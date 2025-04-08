@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosRequestConfig } from 'axios';
 
 // Define the base URL for our API based on environment
 const getApiUrl = () => {
@@ -20,6 +20,20 @@ const api = axios.create({
   }
 });
 
+// Add a request interceptor to include the JWT token in requests
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token && config.headers) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 // Movie interfaces
 export interface Movie {
   showId: string;
@@ -36,9 +50,21 @@ export interface Movie {
   // We'll omit all the genre flags for simplicity in the interface
 }
 
+// Auth response interface
+export interface AuthResponse {
+  token: string;
+  user: {
+    id: string;
+    email: string;
+    name: string;
+    role: string;
+  }
+}
+
 // User interfaces
 export interface User {
-  userId: number;
+  id?: string;
+  userId?: number; // For backward compatibility
   name: string;
   email: string;
   phone?: string;
@@ -46,7 +72,7 @@ export interface User {
   gender?: string;
   city?: string;
   state?: string;
-  zip?: string; // Changed from number to string to match backend model
+  zip?: string;
   role?: string; // "Admin" or "User" (default is "User" as set in backend)
   // Streaming services
   netflix?: number;
@@ -72,6 +98,20 @@ export interface RegisterRequest {
   name: string;
   email: string;
   password: string;
+  phone?: string;
+  age?: number;
+  gender?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+  netflix?: number;
+  amazonPrime?: number;
+  disneyPlus?: number;
+  paramountPlus?: number;
+  max?: number;
+  hulu?: number;
+  appleTVPlus?: number;
+  peacock?: number;
 }
 
 // Rating interface
@@ -105,18 +145,21 @@ export const movieApi = {
     })
 };
 
-// API functions for Users
-export const userApi = {
+// API functions for Auth
+export const authApi = {
   login: (credentials: LoginRequest) =>
-    api.post<User>('/users/login', credentials),
+    api.post<AuthResponse>('/auth/login', credentials),
 
   register: (userData: RegisterRequest) =>
-    api.post<User>('/users/register', userData),
+    api.post<{ message: string }>('/auth/register', userData)
+};
 
-  getById: (id: number) =>
+// API functions for Users
+export const userApi = {
+  getById: (id: string) =>
     api.get<User>(`/users/${id}`),
 
-  update: (id: number, userData: Partial<User>) =>
+  update: (id: string, userData: Partial<User>) =>
     api.put<void>(`/users/${id}`, userData)
 };
 

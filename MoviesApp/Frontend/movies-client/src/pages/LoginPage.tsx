@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { LoginRequest, userApi } from '../services/api';
+import { LoginRequest, authApi } from '../services/api';
 
 const LoginPage = () => {
   const [credentials, setCredentials] = useState<LoginRequest>({
@@ -28,10 +28,11 @@ const LoginPage = () => {
       setLoading(true);
       setError(null);
       
-      const response = await userApi.login(credentials);
+      const response = await authApi.login(credentials);
       
-      // In a real application, you would store the user in context or local storage
-      localStorage.setItem('user', JSON.stringify(response.data));
+      // Store the JWT token and user info
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
       
       // Refresh page to ensure navbar updates with the user profile
       window.location.href = '/';

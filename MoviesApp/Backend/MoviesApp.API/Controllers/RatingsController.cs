@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MoviesApp.API.Data;
@@ -46,6 +47,7 @@ namespace MoviesApp.API.Controllers
 
         // POST: api/Ratings
         [HttpPost]
+        [Authorize] // Require authentication
         public async Task<ActionResult<Rating>> PostRating(Rating rating)
         {
             // Check if movie exists
@@ -93,6 +95,7 @@ namespace MoviesApp.API.Controllers
 
         // DELETE: api/Ratings/5/movie/tt123456
         [HttpDelete("user/{userId}/movie/{showId}")]
+        [Authorize] // Require authentication
         public async Task<IActionResult> DeleteRating(int userId, string showId)
         {
             var rating = await _context.Ratings

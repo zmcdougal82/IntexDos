@@ -1,9 +1,10 @@
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using MoviesApp.API.Models;
 
 namespace MoviesApp.API.Data
 {
-    public class ApplicationDbContext : DbContext
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -20,6 +21,9 @@ namespace MoviesApp.API.Data
 
             // Map entity names to database table names
             modelBuilder.Entity<User>().ToTable("movies_users");
+            
+            // Configure Identity tables
+            modelBuilder.Entity<ApplicationUser>().ToTable("AspNetUsers");
             modelBuilder.Entity<Movie>().ToTable("movies_titles");
             modelBuilder.Entity<Rating>().ToTable("movies_ratings");
 
