@@ -5,12 +5,12 @@ on:
     branches: [ main ]
     paths:
       - 'MoviesApp/Backend/**'
-      - '.github/workflows/backend-ci-cd.yml'
+      - 'MoviesApp/.github/workflows/backend-ci-cd.yml'
   pull_request:
     branches: [ main ]
     paths:
       - 'MoviesApp/Backend/**'
-      - '.github/workflows/backend-ci-cd.yml'
+      - 'MoviesApp/.github/workflows/backend-ci-cd.yml'
 
 jobs:
   build-and-deploy:
