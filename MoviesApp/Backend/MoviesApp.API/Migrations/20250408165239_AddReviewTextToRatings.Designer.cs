@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MoviesApp.API.Data;
 
@@ -11,9 +12,11 @@ using MoviesApp.API.Data;
 namespace MoviesApp.API.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250408165239_AddReviewTextToRatings")]
+    partial class AddReviewTextToRatings
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -218,7 +221,7 @@ namespace MoviesApp.API.Migrations
 
                     b.Property<string>("ReviewText")
                         .HasColumnType("nvarchar(max)")
-                        .HasColumnName("notes");
+                        .HasColumnName("review_text");
 
                     b.Property<DateTime?>("Timestamp")
                         .HasColumnType("datetime2")

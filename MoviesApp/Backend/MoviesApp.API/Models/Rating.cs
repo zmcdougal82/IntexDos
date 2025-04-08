@@ -15,6 +15,9 @@ namespace MoviesApp.API.Models
         [Column("rating")]
         public int RatingValue { get; set; }
 
+        [Column("notes")]
+        public string? ReviewText { get; set; }
+
         [Column("timestamp")]
         public DateTime? Timestamp { get; set; }
 

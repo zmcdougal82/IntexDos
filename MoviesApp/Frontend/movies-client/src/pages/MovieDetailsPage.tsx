@@ -12,6 +12,7 @@ const MovieDetailsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [userRating, setUserRating] = useState<number>(0);
+  const [userReview, setUserReview] = useState<string>('');
   const [user, setUser] = useState<User | null>(null);
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
   // Larger, better looking fallback image for the details page
@@ -24,6 +25,15 @@ const MovieDetailsPage = () => {
       if (storedUser) {
         try {
           const userData = JSON.parse(storedUser);
+          
+          // If userData has id but not userId, add userId as a number
+          if (userData.id && !userData.userId) {
+            const numericId = parseInt(userData.id);
+            if (!isNaN(numericId)) {
+              userData.userId = numericId;
+            }
+          }
+          
           setUser(userData);
         } catch (e) {
           console.error('Error parsing user from localStorage:', e);
@@ -107,9 +117,24 @@ const MovieDetailsPage = () => {
         
         // Check if logged-in user has already rated this movie
         if (user) {
-          const userRating = ratingsResponse.data.find(r => r.userId === user.userId);
-          if (userRating) {
-            setUserRating(userRating.ratingValue);
+          // Try to find the user's rating using userId or id
+          let userRatingObj = null;
+          
+          if (user.userId) {
+            userRatingObj = ratingsResponse.data.find(r => r.userId === user.userId);
+          }
+          
+          // If not found and user has id, try to convert id to number and find rating
+          if (!userRatingObj && user.id) {
+            const numericId = parseInt(user.id);
+            if (!isNaN(numericId)) {
+              userRatingObj = ratingsResponse.data.find(r => r.userId === numericId);
+            }
+          }
+          
+          if (userRatingObj) {
+            setUserRating(userRatingObj.ratingValue);
+            setUserReview(userRatingObj.reviewText || '');
             setRatingSubmitted(true);
           }
         }
@@ -130,15 +155,30 @@ const MovieDetailsPage = () => {
   useEffect(() => {
     // Only run if we have both a user and ratings data
     if (user && ratings.length > 0) {
-      const userRating = ratings.find(r => r.userId === user.userId);
-      if (userRating) {
-        setUserRating(userRating.ratingValue);
+      // Try to find the user's rating using userId or id
+      let userRatingObj = null;
+      
+      if (user.userId) {
+        userRatingObj = ratings.find(r => r.userId === user.userId);
+      }
+      
+      // If not found and user has id, try to convert id to number and find rating
+      if (!userRatingObj && user.id) {
+        const numericId = parseInt(user.id);
+        if (!isNaN(numericId)) {
+          userRatingObj = ratings.find(r => r.userId === numericId);
+        }
+      }
+      
+      if (userRatingObj) {
+        setUserRating(userRatingObj.ratingValue);
+        setUserReview(userRatingObj.reviewText || '');
         setRatingSubmitted(true);
       }
     }
   }, [user, ratings]);
   
-  const handleRatingChange = async (newRating: number) => {
+  const handleRatingChange = (newRating: number) => {
     if (!user) {
       // Redirect to login if not logged in
       navigate('/login', { state: { from: `/movie/${id}` } });
@@ -148,19 +188,72 @@ const MovieDetailsPage = () => {
     if (!id) return;
     
     setUserRating(newRating);
+  };
+
+  const handleReviewChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setUserReview(e.target.value);
+  };
+
+  const handleSubmitReview = async () => {
+    if (!user || !id || userRating === 0) {
+      if (!userRating) {
+        alert('Please select a rating before submitting your review.');
+      }
+      return;
+    }
     
     try {
-      // Ensure userId is a number
-      if (!user.userId) {
-        console.error('User ID is undefined');
+      // Get a fresh token from localStorage
+      const token = localStorage.getItem('token');
+      if (!token) {
+        navigate('/login', { state: { from: `/movie/${id}` } });
+        return;
+      }
+      
+      // Refresh user data from localStorage to ensure we have the latest
+      const storedUser = localStorage.getItem('user');
+      let currentUser = user;
+      
+      if (storedUser) {
+        try {
+          currentUser = JSON.parse(storedUser);
+        } catch (e) {
+          console.error('Error parsing user from localStorage:', e);
+        }
+      }
+      
+      // Ensure userId is available
+      if (!currentUser) {
+        console.error('User is undefined or user is not properly logged in');
         alert('Unable to submit rating. Please try logging in again.');
+        navigate('/login', { state: { from: `/movie/${id}` } });
+        return;
+      }
+      
+      // Try to get userId from the user object
+      // First check if userId exists, if not, try to convert id to a number
+      let userId: number | undefined = currentUser.userId;
+      
+      if (!userId && currentUser.id) {
+        // Try to convert the string id to a number
+        const numericId = parseInt(currentUser.id);
+        if (!isNaN(numericId)) {
+          userId = numericId;
+        }
+      }
+      
+      if (!userId) {
+        console.error('Could not determine a valid user ID');
+        alert('Unable to submit rating. Please try logging in again.');
+        navigate('/login', { state: { from: `/movie/${id}` } });
         return;
       }
       
       const ratingData = {
-        userId: user.userId,
+        userId: userId,
         showId: id,
-        ratingValue: newRating
+        ratingValue: userRating,
+        reviewText: userReview
       };
       
       await ratingApi.addRating(ratingData);
@@ -171,9 +264,11 @@ const MovieDetailsPage = () => {
       // Refresh ratings for this movie
       const ratingsResponse = await ratingApi.getByMovie(id);
       setRatings(ratingsResponse.data);
+      
+      alert('Your review has been submitted successfully!');
     } catch (err) {
-      console.error('Error submitting rating:', err);
-      alert('Failed to submit your rating. Please try again.');
+      console.error('Error submitting review:', err);
+      alert('Failed to submit your review. Please try logging in again.');
     }
   };
   
@@ -306,14 +401,15 @@ const MovieDetailsPage = () => {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        fontSize: '16px',
+                        fontSize: '20px',
                         fontWeight: 'bold',
                         opacity: user ? 1 : 0.6,
                         transition: 'all var(--transition-normal)'
                       }}
                       disabled={!user}
+                      aria-label={`Rate ${rating} out of 5 stars`}
                     >
-                      {rating}
+                      ★
                     </button>
                   ))}
                 </div>
@@ -451,22 +547,156 @@ const MovieDetailsPage = () => {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        fontSize: '16px',
+                        fontSize: '20px',
                         fontWeight: 'bold',
                         opacity: user ? 1 : 0.6,
                         transition: 'all var(--transition-normal)'
                       }}
                       disabled={!user}
+                      aria-label={`Rate ${rating} out of 5 stars`}
                     >
-                      {rating}
+                      ★
                     </button>
                   ))}
                 </div>
+                
+                {user && (
+                  <div style={{ marginTop: 'var(--spacing-md)' }}>
+                    <h4 style={{ color: 'var(--color-text)', fontWeight: 600, marginBottom: 'var(--spacing-sm)' }}>
+                      Write a review
+                    </h4>
+                    <textarea
+                      value={userReview}
+                      onChange={handleReviewChange}
+                      placeholder="Share your thoughts about this title..."
+                      style={{
+                        width: '100%',
+                        minHeight: '120px',
+                        padding: 'var(--spacing-md)',
+                        borderRadius: 'var(--radius-md)',
+                        border: '1px solid var(--color-border)',
+                        marginBottom: 'var(--spacing-md)',
+                        fontFamily: 'inherit',
+                        fontSize: '1rem'
+                      }}
+                      disabled={!user}
+                    />
+                    <button
+                      onClick={handleSubmitReview}
+                      style={{
+                        padding: 'var(--spacing-sm) var(--spacing-lg)',
+                        backgroundColor: 'var(--color-primary)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: 'var(--radius-md)',
+                        fontWeight: 500,
+                        cursor: userRating > 0 ? 'pointer' : 'not-allowed',
+                        opacity: userRating > 0 ? 1 : 0.6
+                      }}
+                      disabled={userRating === 0}
+                    >
+                      Submit Review
+                    </button>
+                  </div>
+                )}
                 
                 {ratingSubmitted && (
                   <p className="text-success mt-2" style={{ fontWeight: 500 }}>
                     ✓ Your rating has been submitted!
                   </p>
+                )}
+              </div>
+              
+              {/* Reviews section */}
+              <div style={{ margin: 'var(--spacing-xl) 0' }}>
+                <h3 style={{ color: 'var(--color-text)', fontWeight: 600 }}>
+                  User Reviews
+                </h3>
+                
+                {ratings.filter(r => r.reviewText && r.reviewText.trim() !== '').length === 0 ? (
+                  <p style={{ color: 'var(--color-text-light)' }}>
+                    No reviews yet. Be the first to review this {movie.type || 'title'}!
+                  </p>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-lg)' }}>
+                    {ratings
+                      .filter(r => r.reviewText && r.reviewText.trim() !== '')
+                      .map((rating, index) => (
+                        <div 
+                          key={`${rating.userId}-${index}`}
+                          style={{
+                            padding: 'var(--spacing-lg)',
+                            backgroundColor: 'var(--color-background)',
+                            borderRadius: 'var(--radius-md)',
+                            border: '1px solid var(--color-border)'
+                          }}
+                        >
+                          <div style={{ 
+                            display: 'flex', 
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            marginBottom: 'var(--spacing-md)'
+                          }}>
+                            <div style={{ 
+                              display: 'flex', 
+                              alignItems: 'center',
+                              gap: 'var(--spacing-sm)'
+                            }}>
+                              <div style={{
+                                width: '40px',
+                                height: '40px',
+                                borderRadius: '50%',
+                                backgroundColor: 'var(--color-secondary)',
+                                color: 'white',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontWeight: 'bold',
+                                fontSize: '1.2rem'
+                              }}>
+                                {rating.user?.name ? rating.user.name.charAt(0).toUpperCase() : 'U'}
+                              </div>
+                              <div>
+                                <p style={{ 
+                                  margin: 0, 
+                                  fontWeight: 600,
+                                  color: 'var(--color-text)'
+                                }}>
+                                  {rating.user?.name || 'Anonymous User'}
+                                </p>
+                                <p style={{ 
+                                  margin: 0, 
+                                  fontSize: '0.85rem',
+                                  color: 'var(--color-text-light)'
+                                }}>
+                                  {new Date(rating.timestamp).toLocaleDateString()}
+                                </p>
+                              </div>
+                            </div>
+                            <div style={{
+                              backgroundColor: 'var(--color-secondary)',
+                              color: 'white',
+                              fontWeight: 'bold',
+                              padding: '4px 10px',
+                              borderRadius: 'var(--radius-md)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              fontSize: '0.9rem'
+                            }}>
+                              <span style={{ fontWeight: 'bold' }}>★</span> {rating.ratingValue}
+                            </div>
+                          </div>
+                          <p style={{ 
+                            margin: 0,
+                            lineHeight: 1.6,
+                            color: 'var(--color-text)'
+                          }}>
+                            {rating.reviewText}
+                          </p>
+                        </div>
+                      ))}
+                  </div>
                 )}
               </div>
             </div>
