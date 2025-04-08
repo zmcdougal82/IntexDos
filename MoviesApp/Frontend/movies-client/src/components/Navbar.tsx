@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { User } from '../services/api';
+import { User, isAdmin } from '../services/api';
 import UserProfileMenu from './UserProfileMenu';
 
 const Navbar = () => {
@@ -108,6 +108,21 @@ const Navbar = () => {
               >
                 My Ratings
               </Link>
+              {isAdmin(user) && (
+                <Link 
+                  to="/admin/movies" 
+                  style={{ 
+                    color: 'white', 
+                    textDecoration: 'none',
+                    backgroundColor: '#f97316', 
+                    padding: '5px 10px',
+                    borderRadius: '4px',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  Admin Dashboard
+                </Link>
+              )}
             </>
           )}
           
