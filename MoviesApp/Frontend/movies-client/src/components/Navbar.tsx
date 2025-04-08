@@ -40,7 +40,7 @@ const Navbar = () => {
       }}>
         <div style={{ fontWeight: 'bold', fontSize: '22px' }}>
           <Link to="/" style={{ color: 'white', textDecoration: 'none' }}>
-            Movievbncbcvnbcvnnbcvs App
+        dfasdfasfads
           </Link>
         </div>
         
