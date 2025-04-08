@@ -145,7 +145,19 @@ export const movieApi = {
       headers: {
         'Content-Type': 'application/json'
       }
-    })
+    }),
+    
+  // Add/Update movie
+  updateMovie: (movie: Movie) =>
+    api.put<Movie>(`/movies/${movie.showId}`, movie),
+    
+  // Create new movie
+  createMovie: (movie: Movie) =>
+    api.post<Movie>('/movies', movie),
+    
+  // Delete movie
+  deleteMovie: (id: string) =>
+    api.delete<void>(`/movies/${id}`)
 };
 
 // API functions for Auth

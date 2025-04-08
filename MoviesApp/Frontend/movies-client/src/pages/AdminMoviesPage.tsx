@@ -117,9 +117,23 @@ const AdminMoviesPage: React.FC = () => {
     try {
       setLoading(true);
       
-      // In a real app, you would have an API endpoint to create a movie
-      // Here we're just simulating it
-      alert('In a production app, this would create a new movie with the provided data');
+      // Create the movie object from form data
+      const movieData: Movie = {
+        showId: formData.showId,
+        title: formData.title,
+        type: formData.type,
+        director: formData.director,
+        cast: formData.cast,
+        country: formData.country,
+        releaseYear: formData.releaseYear,
+        rating: formData.rating,
+        duration: formData.duration,
+        description: formData.description,
+        posterUrl: formData.posterUrl
+      };
+      
+      // Use the API to create the movie
+      await movieApi.createMovie(movieData);
       
       // Reset form and close modal
       setFormData({
@@ -150,9 +164,23 @@ const AdminMoviesPage: React.FC = () => {
     try {
       setLoading(true);
       
-      // In a real app, you would have an API endpoint to update a movie
-      // Here we're just simulating it
-      alert(`In a production app, this would update movie ID: ${editingMovie.showId}`);
+      // Create the movie object from form data
+      const movieData: Movie = {
+        showId: editingMovie.showId,
+        title: editingMovie.title,
+        type: editingMovie.type,
+        director: editingMovie.director,
+        cast: editingMovie.cast,
+        country: editingMovie.country,
+        releaseYear: editingMovie.releaseYear,
+        rating: editingMovie.rating,
+        duration: editingMovie.duration,
+        description: editingMovie.description,
+        posterUrl: editingMovie.posterUrl
+      };
+      
+      // Use the API to update the movie
+      await movieApi.updateMovie(movieData);
       
       // Reset form and close modal
       setEditingMovie(null);
@@ -177,9 +205,8 @@ const AdminMoviesPage: React.FC = () => {
     try {
       setLoading(true);
       
-      // In a real app, you would have an API endpoint to delete a movie
-      // Here we're just simulating it
-      alert(`In a production app, this would delete movie ID: ${movieId}`);
+      // Use the API to delete the movie
+      await movieApi.deleteMovie(movieId);
       
       // Refresh the movie list
       const response = await movieApi.getAll(currentPage, pageSize);
