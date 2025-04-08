@@ -41,21 +41,25 @@ const RecommendedMovies: React.FC<RecommendedMoviesProps> = ({ showId }) => {
               return;
             }
 
-            // Get the list of recommended movie IDs (up to 5)
-            const recommendedIds = filtered
-              .map((row: any) => row.recommended_movie_id)
-              .slice(0, 5);
+            // Get the list of recommended showIds (up to 5)
+            const recommendedShowIds = filtered
+              .map((row: any) => row.recommended_show_id)
+              .slice(0, 5); // Adjust this to grab only the top 5 recommendations
 
-            // Fetch all movies from the API
-            const movieResponse = await movieApi.getAll();
-            const allMovies = movieResponse.data;
-
-            // Filter the recommended movies based on the IDs
-            const recommendedMoviesData = allMovies.filter((movie) =>
-              recommendedIds.includes(movie.showId)
+            // Fetch the recommended movies based on these showIds
+            const movieResponses = await Promise.all(
+              recommendedShowIds.map(async (id: string) => {
+                // Use movieApi.getById to fetch movie details by showId
+                const movieResponse = await movieApi.getById(id);
+                return movieResponse.data; // Return the movie data
+              })
             );
 
-            setRecommendedMovies(recommendedMoviesData);
+            // Flatten the movie data array (in case each response returns multiple movies)
+            const allRecommendedMovies = movieResponses.flat();
+
+            // Set the state with the fetched movie data
+            setRecommendedMovies(allRecommendedMovies);
             setLoading(false);
           },
           error: (parseError: any) => {
