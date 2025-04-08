@@ -119,7 +119,9 @@ export interface Rating {
   userId: number;
   showId: string;
   ratingValue: number;
+  reviewText?: string;
   timestamp: string;
+  user?: User;
 }
 
 // API functions for Movies

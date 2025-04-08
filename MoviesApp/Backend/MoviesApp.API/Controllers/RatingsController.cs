@@ -72,6 +72,7 @@ namespace MoviesApp.API.Controllers
             {
                 // Update existing rating
                 existingRating.RatingValue = rating.RatingValue;
+                existingRating.ReviewText = rating.ReviewText; // Update the review text
                 existingRating.Timestamp = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
                 return Ok(existingRating);

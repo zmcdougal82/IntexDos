@@ -74,10 +74,12 @@ const RatingsPage = () => {
 
   const updateRating = async (rating: Rating) => {
     try {
+      // Preserve the review text when updating the rating
       await ratingApi.addRating({
         userId: rating.userId,
         showId: rating.showId,
-        ratingValue: newRatingValue
+        ratingValue: newRatingValue,
+        reviewText: rating.reviewText // Preserve the existing review text
       });
       
       // Update local state
@@ -194,7 +196,7 @@ const RatingsPage = () => {
                     <div style={{ 
                       display: 'flex',
                       padding: 'var(--spacing-md)',
-                      borderBottom: '1px solid var(--color-border)',
+                      borderBottom: rating.reviewText ? '1px solid var(--color-border)' : 'none',
                       backgroundColor: 'var(--color-background)'
                     }}>
                       <div style={{ 
@@ -255,6 +257,28 @@ const RatingsPage = () => {
                         </div>
                       </div>
                     </div>
+                    
+                    {rating.reviewText && (
+                      <div style={{
+                        padding: 'var(--spacing-md)',
+                        borderBottom: '1px solid var(--color-border)',
+                        backgroundColor: 'var(--color-card)',
+                        fontSize: '0.9rem',
+                        lineHeight: '1.5',
+                        color: 'var(--color-text)'
+                      }}>
+                        <h4 style={{ 
+                          margin: '0 0 var(--spacing-xs) 0',
+                          fontSize: '0.9rem',
+                          fontWeight: 600,
+                          color: 'var(--color-text-light)'
+                        }}>
+                          Your Review:
+                        </h4>
+                        <p style={{ margin: 0 }}>{rating.reviewText}</p>
+                      </div>
+                    )}
+                    
                     <div style={{ 
                       display: 'flex', 
                       justifyContent: 'space-between',
