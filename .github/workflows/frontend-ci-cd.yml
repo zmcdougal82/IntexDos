@@ -1,0 +1,53 @@
+name: Frontend CI/CD
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'MoviesApp/Frontend/**'
+      - '.github/workflows/frontend-ci-cd.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'MoviesApp/Frontend/**'
+      - '.github/workflows/frontend-ci-cd.yml'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: MoviesApp/Frontend/movies-client/package-lock.json
+
+    - name: Install dependencies
+      run: npm ci
+      working-directory: MoviesApp/Frontend/movies-client
+
+    - name: Build
+      run: npm run build
+      working-directory: MoviesApp/Frontend/movies-client
+
+    # For a regular Azure Storage Static Website
+    - name: Deploy to Azure Storage
+      if: github.event_name != 'pull_request'
+      uses: azure/CLI@v1
+      with:
+        inlineScript: |
+          az storage blob upload-batch --account-name moviesappsa79595 --auth-mode key --source MoviesApp/Frontend/movies-client/dist/ --destination '$web' --overwrite true
+      env:
+        AZURE_STORAGE_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
+
+    # Purge CDN endpoint to refresh content (if using Azure CDN)
+    - name: Purge CDN endpoint
+      if: github.event_name != 'pull_request'
+      uses: azure/CLI@v1
+      with:
+        inlineScript: |
+          az cdn endpoint purge --content-paths "/*" --profile-name "moviesappcdn" --name "moviesappsa79595" --resource-group "MoviesAppRG" || echo "CDN purge not configured - skipping"

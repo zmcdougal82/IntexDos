@@ -1,3 +1,4 @@
+// Updated Navbar component - This comment demonstrates CI/CD workflow
 import { Link, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { User } from '../services/api';
@@ -40,7 +41,7 @@ const Navbar = () => {
       }}>
         <div style={{ fontWeight: 'bold', fontSize: '22px' }}>
           <Link to="/" style={{ color: 'white', textDecoration: 'none' }}>
-        dfasdfasfads
+            Movies App
           </Link>
         </div>
         
@@ -68,7 +69,7 @@ const Navbar = () => {
                   fontSize: '16px'
                 }}
               >
-                LogocxZxCZxcZut
+                Logout
               </button>
             </>
           ) : (

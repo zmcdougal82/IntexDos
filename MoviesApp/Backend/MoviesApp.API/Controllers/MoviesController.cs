@@ -1,3 +1,4 @@
+// Controller for movie-related endpoints
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MoviesApp.API.Data;

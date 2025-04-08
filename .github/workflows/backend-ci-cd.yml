@@ -1,0 +1,51 @@
+name: Backend CI/CD
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'MoviesApp/Backend/**'
+      - '.github/workflows/backend-ci-cd.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'MoviesApp/Backend/**'
+      - '.github/workflows/backend-ci-cd.yml'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 9.0.x
+
+    - name: Restore dependencies
+      run: dotnet restore
+      working-directory: MoviesApp/Backend/MoviesApp.API
+
+    - name: Build
+      run: dotnet build --no-restore --configuration Release
+      working-directory: MoviesApp/Backend/MoviesApp.API
+
+    # Add test step if you have tests
+    # - name: Test
+    #   run: dotnet test --no-build --verbosity normal
+    #   working-directory: MoviesApp/Backend/MoviesApp.API
+
+    - name: Publish
+      run: dotnet publish --no-build --configuration Release --output publish
+      working-directory: MoviesApp/Backend/MoviesApp.API
+
+    # Deploy to Azure App Service - Only when pushed to main (not on PR)
+    - name: Deploy to Azure Web App
+      if: github.event_name != 'pull_request'
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: 'moviesapp-api-fixed'  # Your Azure App Service Name
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+        package: MoviesApp/Backend/MoviesApp.API/publish
