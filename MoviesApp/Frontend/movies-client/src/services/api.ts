@@ -94,7 +94,15 @@ export const movieApi = {
     api.get<Movie[]>(`/movies/search?query=${encodeURIComponent(query)}`),
 
   getByGenre: (genre: string, page = 1, pageSize = 20) =>
-    api.get<Movie[]>(`/movies/genre/${genre}?page=${page}&pageSize=${pageSize}`)
+    api.get<Movie[]>(`/movies/genre/${genre}?page=${page}&pageSize=${pageSize}`),
+    
+  // Use JSON.stringify to properly format the array as JSON in the request body
+  getByMultipleGenres: (genres: string[], page = 1, pageSize = 20) =>
+    api.post<Movie[]>(`/movies/genres?page=${page}&pageSize=${pageSize}`, genres, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
 };
 
 // API functions for Users

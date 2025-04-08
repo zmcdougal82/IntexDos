@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MoviesApp.API.Data;
 using MoviesApp.API.Models;
+using MoviesApp.API.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -62,6 +63,138 @@ namespace MoviesApp.API.Controllers
         }
 
         // GET: api/Movies/genre/action
+        // POST: api/Movies/genres - For multiple genre filtering
+        [HttpPost("genres")]
+        [Consumes("application/json")]
+        public async Task<ActionResult<IEnumerable<Movie>>> GetMoviesByMultipleGenres([FromBody] List<string> genres, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+        {
+            if (genres == null || !genres.Any())
+            {
+                return await GetMovies(page, pageSize);
+            }
+            
+            try 
+            {
+                // Start with an empty predicate
+                var query = _context.Movies.AsQueryable();
+                
+                // Build a predicate for OR conditions (movies that match ANY of the selected genres)
+                var predicate = PredicateBuilder.False<Movie>();
+                
+                foreach (var genre in genres)
+                {
+                    var normalizedGenre = genre.Trim().ToLower();
+                    
+                    switch (normalizedGenre)
+                    {
+                        // Movie genres
+                        case "action":
+                            predicate = predicate.Or(m => m.Action == 1);
+                            break;
+                        case "adventure":
+                            predicate = predicate.Or(m => m.Adventure == 1);
+                            break;
+                        case "comedy":
+                            predicate = predicate.Or(m => m.Comedies == 1);
+                            break;
+                        case "drama":
+                            predicate = predicate.Or(m => m.Dramas == 1);
+                            break;
+                        case "horrormovies":
+                            predicate = predicate.Or(m => m.HorrorMovies == 1);
+                            break;
+                        case "thrillers":
+                            predicate = predicate.Or(m => m.Thrillers == 1);
+                            break;
+                        case "documentaries":
+                            predicate = predicate.Or(m => m.Documentaries == 1);
+                            break;
+                        case "familymovies":
+                            predicate = predicate.Or(m => m.FamilyMovies == 1);
+                            break;
+                        case "fantasy":
+                            predicate = predicate.Or(m => m.Fantasy == 1);
+                            break;
+                        case "musicals":
+                            predicate = predicate.Or(m => m.Musicals == 1);
+                            break;
+                        case "romanticmovies":
+                            predicate = predicate.Or(m => m.DramasRomanticMovies == 1 || m.ComediesRomanticMovies == 1);
+                            break;
+                        case "internationalmovies":
+                            predicate = predicate.Or(m => m.DramasInternationalMovies == 1 || m.ComediesInternationalMovies == 1 || 
+                                                      m.DocumentariesInternationalMovies == 1 || m.InternationalMoviesThrillers == 1);
+                            break;
+                        
+                        // TV Show genres
+                        case "tvaction":
+                            predicate = predicate.Or(m => m.TVAction == 1);
+                            break;
+                        case "tvcomedies":
+                            predicate = predicate.Or(m => m.TVComedies == 1);
+                            break;
+                        case "tvdramas":
+                            predicate = predicate.Or(m => m.TVDramas == 1);
+                            break;
+                        case "docuseries":
+                            predicate = predicate.Or(m => m.Docuseries == 1);
+                            break;
+                        case "kidstv":
+                            predicate = predicate.Or(m => m.KidsTV == 1);
+                            break;
+                        case "realitytv":
+                            predicate = predicate.Or(m => m.RealityTV == 1);
+                            break;
+                        case "talkshows":
+                            predicate = predicate.Or(m => m.TalkShowsTVComedies == 1);
+                            break;
+                        case "animeseries":
+                            predicate = predicate.Or(m => m.AnimeSeriesInternationalTVShows == 1);
+                            break;
+                        case "britishtvshows":
+                            predicate = predicate.Or(m => m.BritishTVShowsDocuseriesInternationalTVShows == 1);
+                            break;
+                        case "internationaltvshows":
+                            predicate = predicate.Or(m => m.InternationalTVShowsRomanticTVShowsTVDramas == 1 || 
+                                                     m.AnimeSeriesInternationalTVShows == 1 || 
+                                                     m.BritishTVShowsDocuseriesInternationalTVShows == 1);
+                            break;
+                        case "romantictvshows":
+                            predicate = predicate.Or(m => m.InternationalTVShowsRomanticTVShowsTVDramas == 1);
+                            break;
+                        case "crimetvshows":
+                            predicate = predicate.Or(m => m.CrimeTVShowsDocuseries == 1);
+                            break;
+                        case "languagetvshows":
+                            predicate = predicate.Or(m => m.LanguageTVShows == 1);
+                            break;
+                        case "naturetv":
+                            predicate = predicate.Or(m => m.NatureTV == 1);
+                            break;
+                        case "spirituality":
+                            predicate = predicate.Or(m => m.Spirituality == 1);
+                            break;
+                        case "children":
+                            predicate = predicate.Or(m => m.Children == 1);
+                            break;
+                    }
+                }
+                
+                // Apply the OR predicate to the query
+                query = query.Where(predicate);
+                
+                return await query
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Error in multi-genre filter: {ex.Message}");
+                return new List<Movie>();
+            }
+        }
+        
         // GET: api/Movies/count
         [HttpGet("count")]
         public async Task<ActionResult<int>> GetMoviesCount()

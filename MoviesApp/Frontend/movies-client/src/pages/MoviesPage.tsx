@@ -6,7 +6,7 @@ const MoviesPage = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
+  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -19,8 +19,9 @@ const MoviesPage = () => {
         
         if (searchQuery) {
           response = await movieApi.searchMovies(searchQuery);
-        } else if (selectedGenre) {
-          response = await movieApi.getByGenre(selectedGenre, page);
+        } else if (selectedGenres.length > 0) {
+          // Use the multi-genre endpoint when multiple genres are selected
+          response = await movieApi.getByMultipleGenres(selectedGenres, page);
         } else {
           response = await movieApi.getAll(page);
         }
@@ -44,7 +45,7 @@ const MoviesPage = () => {
     };
 
     fetchMovies();
-  }, [page, selectedGenre, searchQuery]);
+  }, [page, selectedGenres, searchQuery]);
 
   const loadMore = () => {
     if (!loading && hasMore) {
@@ -70,14 +71,26 @@ const MoviesPage = () => {
   }, [loading, hasMore]);
 
   const handleGenreClick = (genre: string) => {
-    setSelectedGenre(prev => prev === genre ? null : genre);
+    setSelectedGenres(prev => {
+      if (prev.includes(genre)) {
+        return prev.filter(g => g !== genre);
+      } else {
+        return [...prev, genre];
+      }
+    });
     setPage(1);
     setSearchQuery('');
   };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    setSelectedGenre(null);
+    setSelectedGenres([]);
+    setPage(1);
+  };
+  
+  const handleClearFilters = () => {
+    setSelectedGenres([]);
+    setSearchQuery('');
     setPage(1);
   };
 
@@ -124,6 +137,31 @@ const MoviesPage = () => {
           
           <div style={{ 
             display: 'flex', 
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: 'var(--spacing-md)'
+          }}>
+            <h4 style={{ margin: 0 }}>Filter by genre:</h4>
+            {(selectedGenres.length > 0 || searchQuery) && (
+              <button
+                onClick={handleClearFilters}
+                style={{
+                  backgroundColor: 'var(--color-error)',
+                  color: 'white',
+                  border: 'none',
+                  padding: 'var(--spacing-xs) var(--spacing-md)',
+                  borderRadius: 'var(--radius-md)',
+                  cursor: 'pointer',
+                  fontSize: '0.9rem'
+                }}
+              >
+                Clear All Filters
+              </button>
+            )}
+          </div>
+          
+          <div style={{ 
+            display: 'flex', 
             flexWrap: 'wrap',
             gap: 'var(--spacing-sm)',
             marginBottom: 'var(--spacing-lg)'
@@ -147,8 +185,8 @@ const MoviesPage = () => {
                 onClick={() => handleGenreClick(genre.id)}
                 style={{
                   border: '1px solid var(--color-border)',
-                  backgroundColor: selectedGenre === genre.id ? 'var(--color-primary)' : 'white',
-                  color: selectedGenre === genre.id ? 'white' : 'var(--color-text)',
+                  backgroundColor: selectedGenres.includes(genre.id) ? 'var(--color-primary)' : 'white',
+                  color: selectedGenres.includes(genre.id) ? 'white' : 'var(--color-text)',
                   padding: 'var(--spacing-xs) var(--spacing-md)',
                   borderRadius: 'var(--radius-full)',
                   fontSize: '0.9rem',

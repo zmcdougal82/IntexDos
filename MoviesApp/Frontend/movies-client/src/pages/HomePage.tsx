@@ -10,7 +10,7 @@ const HomePage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const [activeGenre, setActiveGenre] = useState<string | null>(null);
+  const [activeGenres, setActiveGenres] = useState<string[]>([]);
   const pageSize = 20;
   const observer = useRef<IntersectionObserver | null>(null);
   const lastMovieElementRef = useCallback((node: HTMLDivElement | null) => {
@@ -57,8 +57,8 @@ const HomePage = () => {
       if (searchTerm) {
         // When searching, we don't use pagination in this simple implementation
         return;
-      } else if (activeGenre) {
-        response = await movieApi.getByGenre(activeGenre, nextPage, pageSize);
+      } else if (activeGenres.length > 0) {
+        response = await movieApi.getByMultipleGenres(activeGenres, nextPage, pageSize);
       } else {
         response = await movieApi.getAll(nextPage, pageSize);
       }
@@ -81,14 +81,14 @@ const HomePage = () => {
   const handleSearch = async () => {
     if (!searchTerm.trim()) {
       // Reset to initial state if search is cleared
-      setActiveGenre(null);
+      setActiveGenres([]);
       fetchInitialMovies();
       return;
     }
     
     try {
       setLoading(true);
-      setActiveGenre(null); // Clear any active genre filter
+      setActiveGenres([]); // Clear any active genre filter
       const response = await movieApi.searchMovies(searchTerm);
       setMovies(response.data);
       setHasMore(false); // With search, we don't implement pagination in this simple app
@@ -118,18 +118,29 @@ const HomePage = () => {
   };
   
   const handleGenreFilter = async (genre: string) => {
-    if (activeGenre === genre) {
-      // If clicking the same genre, remove filter
-      setActiveGenre(null);
-      fetchInitialMovies();
-      return;
-    }
+    // Calculate the new genres state
+    const newGenres = activeGenres.includes(genre)
+      ? activeGenres.filter(g => g !== genre)
+      : [...activeGenres, genre];
+    
+    // Update the state
+    setActiveGenres(newGenres);
     
     try {
       setLoading(true);
       setSearchTerm(''); // Clear any search
-      setActiveGenre(genre);
-      const response = await movieApi.getByGenre(genre, 1, pageSize);
+      
+      let response;
+      if (newGenres.length > 0) {
+        if (newGenres.length > 1) {
+          response = await movieApi.getByMultipleGenres(newGenres, 1, pageSize);
+        } else {
+          response = await movieApi.getByGenre(newGenres[0], 1, pageSize);
+        }
+      } else {
+        response = await movieApi.getAll(1, pageSize);
+      }
+      
       setMovies(response.data);
       setHasMore(response.data.length === pageSize);
       setCurrentPage(1);
@@ -217,12 +228,43 @@ const HomePage = () => {
               </button>
             </div>
             
+            {/* Genre filter header and clear button */}
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: 'var(--spacing-md)'
+            }}>
+              <h4 style={{ margin: 0 }}>Filter by genre:</h4>
+              {(activeGenres.length > 0 || searchTerm) && (
+                <button
+                  onClick={() => {
+                    setActiveGenres([]);
+                    setSearchTerm('');
+                    fetchInitialMovies();
+                  }}
+                  style={{
+                    backgroundColor: 'var(--color-error)',
+                    color: 'white',
+                    border: 'none',
+                    padding: 'var(--spacing-xs) var(--spacing-md)',
+                    borderRadius: 'var(--radius-md)',
+                    cursor: 'pointer',
+                    fontSize: '0.9rem'
+                  }}
+                >
+                  Clear All Filters
+                </button>
+              )}
+            </div>
+            
             {/* Genre filter buttons */}
             <div style={{ 
               display: 'flex', 
               flexWrap: 'wrap', 
               gap: 'var(--spacing-sm)', 
-              justifyContent: 'center'
+              justifyContent: 'center',
+              marginBottom: 'var(--spacing-md)'
             }}>
               {[
                 // Movie genres with exact IDs matching backend controller
@@ -262,9 +304,9 @@ const HomePage = () => {
                   onClick={() => handleGenreFilter(genre.id)}
                   style={{
                     padding: 'var(--spacing-xs) var(--spacing-md)',
-                    backgroundColor: activeGenre === genre.id ? 'var(--color-primary)' : 'var(--color-background)',
-                    color: activeGenre === genre.id ? 'white' : 'var(--color-text)',
-                    border: `1px solid ${activeGenre === genre.id ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                    backgroundColor: activeGenres.includes(genre.id) ? 'var(--color-primary)' : 'var(--color-background)',
+                    color: activeGenres.includes(genre.id) ? 'white' : 'var(--color-text)',
+                    border: `1px solid ${activeGenres.includes(genre.id) ? 'var(--color-primary)' : 'var(--color-border)'}`,
                     borderRadius: '20px',
                     cursor: 'pointer',
                     fontSize: '0.9rem',
