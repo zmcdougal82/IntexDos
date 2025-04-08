@@ -113,8 +113,8 @@ const RecommendedMovies: React.FC<RecommendedMoviesProps> = ({ showId }) => {
   };
 
   return (
-    <div style={{ marginTop: '3rem' }}>
-      <h2 style={{ marginBottom: '1.5rem', marginTop:'1.0rem', textAlign: 'center' }}>
+    <div style={{ marginTop: '1rem' }}>
+      <h2 style={{ marginBottom: '1.5rem', paddingTop:'1.0rem', textAlign: 'center' }}>
         Top Suggestions Related to This Content
       </h2>
       <div
