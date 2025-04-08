@@ -1,0 +1,23 @@
+# CSV data files
+*.csv
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Temporary SQL scripts
+*.sql
+
+# Build artifacts
+bin/
+obj/
+
+# Editor files
+.vs/
+.vscode/
+*.user
+
+# Environment files
+*.env
+appsettings.Development.json
