@@ -381,40 +381,34 @@ const RatingsPage = () => {
                           fontWeight: 'bold',
                           marginBottom: 'var(--spacing-xs)'
                         }}>
-                          {/* Display 5 stars with filled/empty based on rating */}
-                          {editingRating === rating.showId ? (
-                            <div>
-                              <select 
-                                value={newRatingValue}
-                                onChange={(e) => setNewRatingValue(Number(e.target.value))}
-                                style={{
-                                  padding: '2px 4px',
-                                  borderRadius: 'var(--radius-sm)',
-                                  border: '1px solid var(--color-border)'
+                          {/* Display clickable 5 stars with filled/empty based on rating */}
+                          <div>
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <span 
+                                key={star} 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (editingRating === rating.showId) {
+                                    setNewRatingValue(star);
+                                  }
+                                }}
+                                style={{ 
+                                  color: editingRating === rating.showId
+                                    ? star <= newRatingValue
+                                      ? 'var(--color-secondary)'
+                                      : 'var(--color-text-light)'
+                                    : star <= Math.round(rating.ratingValue / 2)
+                                      ? 'var(--color-secondary)'
+                                      : 'var(--color-text-light)',
+                                  marginRight: '6px',
+                                  fontSize: '1.5rem',
+                                  cursor: editingRating === rating.showId ? 'pointer' : 'default'
                                 }}
                               >
-                                {[1, 2, 3, 4, 5].map(value => (
-                                  <option key={value} value={value}>{value}</option>
-                                ))}
-                              </select>
-                              <span style={{ marginLeft: '4px' }}>/5</span>
-                            </div>
-                          ) : (
-                            <div>
-                              {[1, 2, 3, 4, 5].map((star) => (
-                                <span 
-                                  key={star} 
-                                  style={{ 
-                                    color: star <= Math.round(rating.ratingValue / 2) ? 
-                                      'var(--color-secondary)' : 'var(--color-text-light)',
-                                    marginRight: '2px'
-                                  }}
-                                >
-                                  ★
-                                </span>
-                              ))}
-                            </div>
-                          )}
+                                ★
+                              </span>
+                            ))}
+                          </div>
                         </div>
                         
                         {/* Date information moved to review section */}
