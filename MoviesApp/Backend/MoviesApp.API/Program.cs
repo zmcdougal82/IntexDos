@@ -108,7 +108,13 @@ app.UseSwaggerUI(c =>
     c.RoutePrefix = string.Empty;
 });
 
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHsts(); // HSTS enabled in non-development environments
+}
+
 app.UseHttpsRedirection();
+
 app.UseRouting();
 
 // Use CORS
