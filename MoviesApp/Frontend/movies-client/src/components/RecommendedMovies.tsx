@@ -7,6 +7,15 @@ interface RecommendedMoviesProps {
   showId: string | undefined;
 }
 
+interface CSVRow {
+  show_id: string;
+  Recommendation1: string;
+  Recommendation2: string;
+  Recommendation3: string;
+  Recommendation4: string;
+  Recommendation5: string;
+}
+
 const RecommendedMovies: React.FC<RecommendedMoviesProps> = ({ showId }) => {
   const [recommendedMovies, setRecommendedMovies] = useState<Movie[]>([]);
   const [recommendedShowIds, setRecommendedShowIds] = useState<string[]>([]); // To store recommended show IDs
@@ -20,7 +29,7 @@ const RecommendedMovies: React.FC<RecommendedMoviesProps> = ({ showId }) => {
 
       try {
         // Fetch the CSV file
-        const response = await fetch('/public/contentRecommendations.csv');
+        const response = await fetch('/contentRecommendations.csv');
         if (!response.ok) {
           throw new Error('Failed to fetch the recommendations CSV.');
         }
@@ -28,12 +37,12 @@ const RecommendedMovies: React.FC<RecommendedMoviesProps> = ({ showId }) => {
         const csvText = await response.text();
 
         // Parse the CSV
-        Papa.parse(csvText, {
+        Papa.parse<CSVRow>(csvText, {
           header: true,
           complete: async (results) => {
-            // Filter the rows by the current showId
-            const filtered = results.data.filter(
-              (row: any) => row.show_id === showId
+            // Ensure TypeScript knows the type of results.data is CSVRow[]
+            const filtered = (results.data as CSVRow[]).filter(
+              (row) => row.show_id === showId
             );
 
             if (filtered.length === 0) {
@@ -42,10 +51,14 @@ const RecommendedMovies: React.FC<RecommendedMoviesProps> = ({ showId }) => {
               return;
             }
 
-            // Get the list of recommended showIds (up to 5)
-            const recommendedShowIds = filtered
-              .map((row: any) => row.recommended_show_id)
-              .slice(0, 5); // Adjust this to grab only the top 5 recommendations
+            // Get the list of recommended showIds (Recommendation1 to Recommendation5)
+            const recommendedShowIds = [
+              filtered[0].Recommendation1,
+              filtered[0].Recommendation2,
+              filtered[0].Recommendation3,
+              filtered[0].Recommendation4,
+              filtered[0].Recommendation5,
+            ].filter((id) => id); // Filter out any empty/null/undefined values
 
             // Store the recommended showIds to display them
             setRecommendedShowIds(recommendedShowIds);
@@ -106,7 +119,7 @@ const RecommendedMovies: React.FC<RecommendedMoviesProps> = ({ showId }) => {
       <div style={{ marginBottom: '1.5rem' }}>
         <strong>Recommended Show IDs:</strong>
         <div>
-            <p>Current showId: {showId}</p>
+          <p>Current showId: {showId}</p>
           {recommendedShowIds.join(', ')} {/* Print all the IDs */}
         </div>
       </div>
