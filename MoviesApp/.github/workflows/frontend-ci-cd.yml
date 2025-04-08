@@ -1,0 +1,55 @@
+name: Frontend CI/CD
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'MoviesApp/Frontend/**'
+      - '.github/workflows/frontend-ci-cd.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'MoviesApp/Frontend/**'
+      - '.github/workflows/frontend-ci-cd.yml'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: MoviesApp/Frontend/movies-client/package-lock.json
+
+    - name: Install dependencies
+      run: npm ci
+      working-directory: MoviesApp/Frontend/movies-client
+      
+    - name: Build
+      run: npm run build
+      working-directory: MoviesApp/Frontend/movies-client
+      
+    # Optional: Run tests if you have them
+    # - name: Test
+    #   run: npm test
+    #   working-directory: MoviesApp/Frontend/movies-client
+
+    # Deploy to Azure Static Web Apps (only on push to main, not on PR)
+    - name: Deploy to Azure Static Web Apps
+      if: github.event_name != 'pull_request'
+      uses: Azure/static-web-apps-deploy@v1
+      with:
+        azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+        repo_token: ${{ secrets.GITHUB_TOKEN }} # Used for GitHub integration
+        action: "upload"
+        app_location: "MoviesApp/Frontend/movies-client" # Location of your React app
+        api_location: "" # Optional: API directory if using Azure Functions
+        output_location: "dist" # Build output location (Vite default is 'dist')
+        skip_app_build: true # We're building the app in a separate step
+      # Note: You'll need to add AZURE_STATIC_WEB_APPS_API_TOKEN secret in your GitHub repo settings
+      # Get this from Azure Portal when creating your Static Web App
