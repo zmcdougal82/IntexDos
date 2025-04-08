@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { User, isAdmin } from '../services/api';
+import { User } from '../services/api';
 import UserProfileMenu from './UserProfileMenu';
 
 const Navbar = () => {

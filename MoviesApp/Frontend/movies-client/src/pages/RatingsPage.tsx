@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Movie, Rating, User, ratingApi } from '../services/api';
-import MovieCard from '../components/MovieCard';
 import { Link, useNavigate } from 'react-router-dom';
 
 const RatingsPage = () => {

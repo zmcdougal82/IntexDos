@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Movie, Rating, User, movieApi, ratingApi } from '../services/api';
+import { tmdbApi } from '../services/tmdbApi';
 
 const MovieDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -13,7 +14,8 @@ const MovieDetailsPage = () => {
   const [userRating, setUserRating] = useState<number>(0);
   const [user, setUser] = useState<User | null>(null);
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
-  const [posterUrl, setPosterUrl] = useState<string>("https://via.placeholder.com/320x480?text=No+Image");
+  // Larger, better looking fallback image for the details page
+  const [posterUrl, setPosterUrl] = useState<string>("https://placehold.co/480x720/2c3e50/FFFFFF?text=Poster+Coming+Soon&font=montserrat");
   
   useEffect(() => {
     // Check if user is logged in
@@ -37,6 +39,33 @@ const MovieDetailsPage = () => {
         const movieResponse = await movieApi.getById(id);
         setMovie(movieResponse.data);
         
+        // Function to fetch a poster from TMDB
+        const fetchTMDBPoster = async (movieTitle: string, releaseYear?: string | number, isTV: boolean = false) => {
+          try {
+            // Parse the year if available
+            let year: number | undefined = undefined;
+            if (releaseYear) {
+              const parsedYear = parseInt(releaseYear.toString());
+              if (!isNaN(parsedYear)) {
+                year = parsedYear;
+              }
+            }
+            
+            // Get the poster URL from TMDB
+            const tmdbPosterUrl = await tmdbApi.getPosterUrl(movieTitle, year, isTV);
+            
+            if (tmdbPosterUrl) {
+              console.log(`TMDB poster found for ${movieTitle}`);
+              setPosterUrl(tmdbPosterUrl);
+              return true;
+            }
+            return false;
+          } catch (error) {
+            console.error('Error fetching TMDB poster:', error);
+            return false;
+          }
+        };
+
         // Process the poster URL
         if (movieResponse.data.posterUrl) {
           const url = movieResponse.data.posterUrl;
@@ -56,7 +85,16 @@ const MovieDetailsPage = () => {
             setPosterUrl(url);
           }
         } else {
-          setPosterUrl("https://via.placeholder.com/320x480?text=No+Image");
+          // No poster URL, try TMDB
+          const tmdbSuccess = await fetchTMDBPoster(
+            movieResponse.data.title, 
+            movieResponse.data.releaseYear, 
+            movieResponse.data.type === 'TV Show'
+          );
+          
+          if (!tmdbSuccess) {
+            setPosterUrl("https://placehold.co/480x720/2c3e50/FFFFFF?text=Poster+Coming+Soon&font=montserrat");
+          }
         }
         
         // Fetch ratings for this movie
@@ -175,6 +213,20 @@ const MovieDetailsPage = () => {
                   width: '100%',
                   borderRadius: 'var(--radius-md)',
                   boxShadow: 'var(--shadow-md)'
+                }}
+                onError={async () => {
+                  console.log(`Azure poster failed for ${movie.title} on details page, trying TMDB...`);
+                  const tmdbSuccess = await tmdbApi.getPosterUrl(
+                    movie.title, 
+                    movie.releaseYear ? parseInt(movie.releaseYear.toString()) : undefined, 
+                    movie.type === 'TV Show'
+                  );
+                  
+                  if (tmdbSuccess) {
+                    setPosterUrl(tmdbSuccess);
+                  } else {
+                    setPosterUrl("https://placehold.co/480x720/2c3e50/FFFFFF?text=Poster+Coming+Soon&font=montserrat");
+                  }
                 }}
               />
                 {movie.type && (
