@@ -190,7 +190,9 @@ const HomePage = () => {
             Sign up or log in to start discovering personalized movie and TV
             show recommendations tailored just for you!
           </p>
-          <div style={{ textAlign: "center" }}>
+          <div
+            style={{ display: "flex", justifyContent: "center", gap: "10px" }}
+          >
             <button
               onClick={() => navigate("/login")}
               style={{
@@ -228,7 +230,7 @@ const HomePage = () => {
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
           <h3
             style={{
-              fontSize: "2.8rem",
+              fontSize: "2 rem",
               fontWeight: 700,
               color: "var(--color-primary)",
               textAlign: "center",
@@ -254,7 +256,7 @@ const HomePage = () => {
           {/* Movie Discovery Section */}
           <h2
             style={{
-              fontSize: "2.8rem",
+              fontSize: "2 rem",
               fontWeight: 700,
               color: "var(--color-primary)",
               textAlign: "center",
