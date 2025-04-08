@@ -397,7 +397,7 @@ const RatingsPage = () => {
                                     ? star <= newRatingValue
                                       ? 'var(--color-secondary)'
                                       : 'var(--color-text-light)'
-                                    : star <= Math.round(rating.ratingValue / 2)
+                                    : star <= rating.ratingValue
                                       ? 'var(--color-secondary)'
                                       : 'var(--color-text-light)',
                                   marginRight: '6px',
