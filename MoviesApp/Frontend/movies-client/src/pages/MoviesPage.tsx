@@ -128,14 +128,27 @@ const MoviesPage = () => {
             gap: 'var(--spacing-sm)',
             marginBottom: 'var(--spacing-lg)'
           }}>
-            {['Action', 'Adventure', 'Comedy', 'Drama', 'Horror', 'Thriller'].map(genre => (
+            {[
+              { id: 'action', label: 'Action' },
+              { id: 'adventure', label: 'Adventure' },
+              { id: 'comedy', label: 'Comedy' },
+              { id: 'drama', label: 'Drama' },
+              { id: 'horror', label: 'Horror Movies' },
+              { id: 'thriller', label: 'Thrillers' },
+              { id: 'documentary', label: 'Documentaries' },
+              { id: 'family', label: 'Family Movies' },
+              { id: 'fantasy', label: 'Fantasy' },
+              { id: 'international', label: 'International Movies' },
+              { id: 'romance', label: 'Romantic Movies' },
+              { id: 'musical', label: 'Musicals' }
+            ].map(genre => (
               <button
-                key={genre}
-                onClick={() => handleGenreClick(genre)}
+                key={genre.id}
+                onClick={() => handleGenreClick(genre.id)}
                 style={{
                   border: '1px solid var(--color-border)',
-                  backgroundColor: selectedGenre === genre ? 'var(--color-primary)' : 'white',
-                  color: selectedGenre === genre ? 'white' : 'var(--color-text)',
+                  backgroundColor: selectedGenre === genre.id ? 'var(--color-primary)' : 'white',
+                  color: selectedGenre === genre.id ? 'white' : 'var(--color-text)',
                   padding: 'var(--spacing-xs) var(--spacing-md)',
                   borderRadius: 'var(--radius-full)',
                   fontSize: '0.9rem',
@@ -143,7 +156,7 @@ const MoviesPage = () => {
                   transition: 'all var(--transition-normal)'
                 }}
               >
-                {genre}
+                {genre.label}
               </button>
             ))}
           </div>

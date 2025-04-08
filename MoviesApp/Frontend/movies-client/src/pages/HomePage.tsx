@@ -224,23 +224,53 @@ const HomePage = () => {
               gap: 'var(--spacing-sm)', 
               justifyContent: 'center'
             }}>
-              {['action', 'adventure', 'comedy', 'drama', 'horror', 'thriller'].map(genre => (
+              {[
+                // Movie genres
+                { id: 'action', label: 'Action' },
+                { id: 'adventure', label: 'Adventure' },
+                { id: 'comedy', label: 'Comedy' },
+                { id: 'drama', label: 'Drama' },
+                { id: 'horror', label: 'Horror Movies' },
+                { id: 'thriller', label: 'Thrillers' },
+                { id: 'documentary', label: 'Documentaries' },
+                { id: 'family', label: 'Family Movies' },
+                { id: 'fantasy', label: 'Fantasy' },
+                { id: 'romance', label: 'Romantic Movies' },
+                { id: 'international', label: 'International Movies' },
+                { id: 'musical', label: 'Musicals' },
+                
+                // TV Show genres
+                { id: 'tvaction', label: 'TV Action' },
+                { id: 'tvcomedy', label: 'TV Comedies' },
+                { id: 'tvdrama', label: 'TV Dramas' },
+                { id: 'docuseries', label: 'Docuseries' },
+                { id: 'kidstv', label: 'Kids\' TV' },
+                { id: 'reality', label: 'Reality TV' },
+                { id: 'tvinter', label: 'International TV Shows' },
+                { id: 'crime', label: 'Crime TV Shows' },
+                { id: 'talk', label: 'Talk Shows' },
+                { id: 'anime', label: 'Anime Series' },
+                { id: 'british', label: 'British TV Shows' },
+                { id: 'romantic', label: 'Romantic TV Shows' },
+                { id: 'language', label: 'Language TV Shows' },
+                { id: 'nature', label: 'Nature TV' },
+                { id: 'spiritual', label: 'Spirituality' }
+              ].map(genre => (
                 <button
-                  key={genre}
-                  onClick={() => handleGenreFilter(genre)}
+                  key={genre.id}
+                  onClick={() => handleGenreFilter(genre.id)}
                   style={{
                     padding: 'var(--spacing-xs) var(--spacing-md)',
-                    backgroundColor: activeGenre === genre ? 'var(--color-primary)' : 'var(--color-background)',
-                    color: activeGenre === genre ? 'white' : 'var(--color-text)',
-                    border: `1px solid ${activeGenre === genre ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                    backgroundColor: activeGenre === genre.id ? 'var(--color-primary)' : 'var(--color-background)',
+                    color: activeGenre === genre.id ? 'white' : 'var(--color-text)',
+                    border: `1px solid ${activeGenre === genre.id ? 'var(--color-primary)' : 'var(--color-border)'}`,
                     borderRadius: '20px',
                     cursor: 'pointer',
-                    textTransform: 'capitalize',
                     fontSize: '0.9rem',
                     transition: 'all var(--transition-normal)'
                   }}
                 >
-                  {genre}
+                  {genre.label}
                 </button>
               ))}
             </div>

@@ -17,6 +17,7 @@ const TVShowsPage = () => {
         setLoading(true);
         let response;
         
+        // Determine which API to call based on user's selection
         if (searchQuery) {
           response = await movieApi.searchMovies(searchQuery);
         } else if (selectedGenre) {
@@ -25,15 +26,17 @@ const TVShowsPage = () => {
           response = await movieApi.getAll(page);
         }
         
-        // Filter to only include TV shows (exclude movies)
+        // Filter results to only include TV shows
         const tvShowsOnly = response.data.filter(item => item.type === 'TV Show');
         
+        // Update state based on whether this is the first page or a subsequent page
         if (page === 1) {
           setTVShows(tvShowsOnly);
         } else {
           setTVShows(prev => [...prev, ...tvShowsOnly]);
         }
         
+        // Determine if there are more results to load
         setHasMore(tvShowsOnly.length > 0);
       } catch (err) {
         console.error('Error fetching TV shows:', err);
@@ -129,12 +132,18 @@ const TVShowsPage = () => {
             marginBottom: 'var(--spacing-lg)'
           }}>
             {[
-              { id: 'Action', label: 'TV Action' },
-              { id: 'Comedy', label: 'TV Comedies' },
-              { id: 'Drama', label: 'TV Dramas' },
-              { id: 'Documentary', label: 'Docuseries' },
-              { id: 'Kids', label: 'Kids TV' },
-              { id: 'Reality', label: 'Reality TV' }
+              { id: 'action', label: 'TV Action' },
+              { id: 'comedy', label: 'TV Comedies' },
+              { id: 'drama', label: 'TV Dramas' },
+              { id: 'documentary', label: 'Docuseries' },
+              { id: 'kids', label: 'Kids\' TV' },
+              { id: 'reality', label: 'Reality TV' },
+              { id: 'international', label: 'International TV Shows' },
+              { id: 'crime', label: 'Crime TV Shows' },
+              { id: 'talk', label: 'Talk Shows' },
+              { id: 'anime', label: 'Anime Series' },
+              { id: 'british', label: 'British TV Shows' },
+              { id: 'romantic', label: 'Romantic TV Shows' }
             ].map(genre => (
               <button
                 key={genre.id}
