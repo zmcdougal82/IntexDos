@@ -479,7 +479,7 @@ const MovieDetailsPage = () => {
         </div>
       </div>
 
-      <div className="recommended-movies-section card" style={{ paddingTop: 'var(--spacing-s)', paddingBottom: 'var(--spacing-m)' }}>
+      <div className="recommended-movies-section card" style={{ paddingTop: 'var(--spacing-m)', paddingBottom: 'var(--spacing-xl)' }}>
         {/* Recommended Movies section */}
         <RecommendedMovies showId={currentShowId} />
       </div>
