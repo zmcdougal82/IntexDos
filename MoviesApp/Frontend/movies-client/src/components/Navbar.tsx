@@ -69,7 +69,7 @@ const Navbar = () => {
                   fontSize: '16px'
                 }}
               >
-                Logout
+                Logfgdsout
               </button>
             </>
           ) : (
@@ -84,7 +84,7 @@ const Navbar = () => {
                 to="/register" 
                 style={{ color: 'white', textDecoration: 'none' }}
               >
-                Register
+                Regisfgsdter
               </Link>
             </>
           )}
