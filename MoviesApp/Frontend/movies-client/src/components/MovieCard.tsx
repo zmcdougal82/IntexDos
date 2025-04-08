@@ -1,5 +1,6 @@
 import { Movie } from '../services/api';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { tmdbApi } from '../services/tmdbApi';
 
 interface MovieCardProps {
   movie: Movie;
@@ -7,9 +8,52 @@ interface MovieCardProps {
 }
 
 const MovieCard: React.FC<MovieCardProps> = ({ movie, onClick }) => {
-  const defaultImage = "https://via.placeholder.com/150x225?text=No+Image";
+  // Fallback image URL - a nice movie-themed placeholder with the correct poster ratio (2:3)
+  const defaultImage = "https://placehold.co/320x480/2c3e50/FFFFFF?text=Poster+Coming+Soon&font=montserrat";
   const [posterUrl, setPosterUrl] = useState<string>(defaultImage);
   
+  // Function to fetch a poster from TMDB
+  const fetchTMDBPoster = useCallback(async () => {
+    try {
+      // Extract year from releaseYear if available
+      let year: number | undefined = undefined;
+      if (movie.releaseYear) {
+        const parsedYear = parseInt(movie.releaseYear.toString());
+        if (!isNaN(parsedYear)) {
+          year = parsedYear;
+        }
+      }
+      
+      // Use the TMDB API to get a poster
+      const tmdbPosterUrl = await tmdbApi.getPosterUrl(
+        movie.title,
+        year,
+        movie.type === 'TV Show' // isTV parameter
+      );
+      
+      if (tmdbPosterUrl) {
+        console.log(`TMDB poster found for ${movie.title}`);
+        setPosterUrl(tmdbPosterUrl);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error fetching TMDB poster:', error);
+      return false;
+    }
+  }, [movie.title, movie.releaseYear, movie.type]);
+
+  // Handle image loading errors
+  const handleImageError = useCallback(async () => {
+    console.log(`Azure poster failed to load for ${movie.title}, trying TMDB...`);
+    const tmdbSuccess = await fetchTMDBPoster();
+    
+    if (!tmdbSuccess) {
+      console.log(`No TMDB poster found for ${movie.title}, using default`);
+      setPosterUrl(defaultImage);
+    }
+  }, [fetchTMDBPoster, movie.title]);
+
   useEffect(() => {
     if (movie.posterUrl) {
       // Check if this is an Azure URL
@@ -28,9 +72,14 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onClick }) => {
         setPosterUrl(movie.posterUrl);
       }
     } else {
-      setPosterUrl(defaultImage);
+      // No poster URL provided, try TMDB
+      fetchTMDBPoster().then(success => {
+        if (!success) {
+          setPosterUrl(defaultImage);
+        }
+      });
     }
-  }, [movie.posterUrl]);
+  }, [movie.posterUrl, fetchTMDBPoster]);
   
   return (
     <div 
@@ -75,9 +124,8 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onClick }) => {
             objectFit: 'cover',
             objectPosition: 'center'
           }}
-          onError={(e) => {
-            // Fallback to default image on error
-            e.currentTarget.src = defaultImage;
+          onError={async (e) => {
+            await handleImageError();
           }}
         />
       </div>
