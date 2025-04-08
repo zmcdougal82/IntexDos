@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MoviesApp.API.Data;
@@ -8,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 
 namespace MoviesApp.API.Controllers
@@ -17,14 +17,10 @@ namespace MoviesApp.API.Controllers
     public class UsersController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
-        private readonly UserManager<ApplicationUser> _userManager;
 
-        public UsersController(
-            ApplicationDbContext context,
-            UserManager<ApplicationUser> userManager)
+        public UsersController(ApplicationDbContext context)
         {
             _context = context;
-            _userManager = userManager;
         }
 
         // GET: api/Users
@@ -32,8 +28,7 @@ namespace MoviesApp.API.Controllers
         [Authorize(Roles = "Admin")] // Only admins can list all users
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
-            // In a real application you'd want to restrict this endpoint to admins
-            // and implement pagination
+            // In a real application you'd want to implement pagination
             return await _context.Users
                 .Select(u => new User
                 {
@@ -50,9 +45,9 @@ namespace MoviesApp.API.Controllers
         // GET: api/Users/5
         [HttpGet("{id}")]
         [Authorize] // Require authentication
-        public async Task<ActionResult<ApplicationUser>> GetUser(string id)
+        public async Task<ActionResult<User>> GetUser(int id)
         {
-            var user = await _userManager.FindByIdAsync(id);
+            var user = await _context.Users.FindAsync(id);
 
             if (user == null)
             {
@@ -60,37 +55,22 @@ namespace MoviesApp.API.Controllers
             }
 
             // Don't return sensitive information
-            return new ApplicationUser
-            {
-                Id = user.Id,
-                UserName = user.UserName,
-                Email = user.Email,
-                Name = user.Name,
-                Phone = user.Phone,
-                Age = user.Age,
-                Gender = user.Gender,
-                City = user.City,
-                State = user.State,
-                Zip = user.Zip,
-                Netflix = user.Netflix,
-                AmazonPrime = user.AmazonPrime,
-                DisneyPlus = user.DisneyPlus,
-                ParamountPlus = user.ParamountPlus,
-                Max = user.Max,
-                Hulu = user.Hulu,
-                AppleTVPlus = user.AppleTVPlus,
-                Peacock = user.Peacock
-            };
-        }
+            user.PasswordHash = null;
 
+            return user;
+        }
 
         // PUT: api/Users/5
         [HttpPut("{id}")]
         [Authorize] // Require authentication
-        public async Task<IActionResult> UpdateUser(string id, UpdateUserModel model)
+        public async Task<IActionResult> UpdateUser(int id, UpdateUserModel model)
         {
             // Get the current user ID from the claims
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdClaim, out int userId))
+            {
+                return BadRequest("Invalid user ID in token");
+            }
             
             // Check if the user is trying to update their own profile or is an admin
             if (userId != id && !User.IsInRole("Admin"))
@@ -98,7 +78,7 @@ namespace MoviesApp.API.Controllers
                 return Forbid("You can only update your own profile");
             }
             
-            var user = await _userManager.FindByIdAsync(id);
+            var user = await _context.Users.FindAsync(id);
             if (user == null)
             {
                 return NotFound();
@@ -184,59 +164,66 @@ namespace MoviesApp.API.Controllers
             // Update password if provided
             if (!string.IsNullOrEmpty(model.Password))
             {
-                // Remove the old password
-                var removePasswordResult = await _userManager.RemovePasswordAsync(user);
-                if (!removePasswordResult.Succeeded)
-                {
-                    foreach (var error in removePasswordResult.Errors)
-                    {
-                        ModelState.AddModelError(string.Empty, error.Description);
-                    }
-                    return BadRequest(ModelState);
-                }
-                
-                // Add the new password
-                var addPasswordResult = await _userManager.AddPasswordAsync(user, model.Password);
-                if (!addPasswordResult.Succeeded)
-                {
-                    foreach (var error in addPasswordResult.Errors)
-                    {
-                        ModelState.AddModelError(string.Empty, error.Description);
-                    }
-                    return BadRequest(ModelState);
-                }
+                // Create password hash
+                user.PasswordHash = HashPassword(model.Password);
             }
 
             // Save changes
-            var result = await _userManager.UpdateAsync(user);
-            if (!result.Succeeded)
+            try
             {
-                foreach (var error in result.Errors)
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!UserExists(id))
                 {
-                    ModelState.AddModelError(string.Empty, error.Description);
+                    return NotFound();
                 }
-                return BadRequest(ModelState);
+                else
+                {
+                    throw;
+                }
             }
 
             return NoContent();
         }
 
+        private bool UserExists(int id)
+        {
+            return _context.Users.Any(e => e.UserId == id);
+        }
+
+        // Password hashing methods
+        private string HashPassword(string password)
+        {
+            // Generate a random salt
+            byte[] salt = new byte[16];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(salt);
+            }
+
+            // Hash the password with the salt
+            byte[] hash = GetHash(password, salt);
+
+            // Combine the salt and hash into a single string
+            byte[] hashBytes = new byte[36];
+            Array.Copy(salt, 0, hashBytes, 0, 16);
+            Array.Copy(hash, 0, hashBytes, 16, 20);
+
+            return Convert.ToBase64String(hashBytes);
+        }
+
+        private byte[] GetHash(string password, byte[] salt)
+        {
+            using (var pbkdf2 = new Rfc2898DeriveBytes(password, salt, 10000, HashAlgorithmName.SHA256))
+            {
+                return pbkdf2.GetBytes(20);
+            }
+        }
     }
 
     // Input models
-    public class RegisterUserModel
-    {
-        public string Name { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
-    }
-
-    public class LoginModel
-    {
-        public string Email { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
-    }
-
     public class UpdateUserModel
     {
         public string? Name { get; set; }

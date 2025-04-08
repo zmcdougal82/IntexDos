@@ -18,16 +18,20 @@ const MovieDetailsPage = () => {
   const [posterUrl, setPosterUrl] = useState<string>("https://placehold.co/480x720/2c3e50/FFFFFF?text=Poster+Coming+Soon&font=montserrat");
   
   useEffect(() => {
-    // Check if user is logged in
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      try {
-        const userData = JSON.parse(storedUser);
-        setUser(userData);
-      } catch (e) {
-        console.error('Error parsing user from localStorage:', e);
+    // Check if user is logged in - only do this once on component mount
+    const checkUserLogin = () => {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        try {
+          const userData = JSON.parse(storedUser);
+          setUser(userData);
+        } catch (e) {
+          console.error('Error parsing user from localStorage:', e);
+        }
       }
-    }
+    };
+    
+    checkUserLogin();
     
     const fetchMovieDetails = async () => {
       if (!id) return;
@@ -120,7 +124,19 @@ const MovieDetailsPage = () => {
     };
     
     fetchMovieDetails();
-  }, [id, user]);
+  }, [id]); // Remove user from the dependency array to prevent infinite loop
+  
+  // Separate effect to check user rating when user state changes
+  useEffect(() => {
+    // Only run if we have both a user and ratings data
+    if (user && ratings.length > 0) {
+      const userRating = ratings.find(r => r.userId === user.userId);
+      if (userRating) {
+        setUserRating(userRating.ratingValue);
+        setRatingSubmitted(true);
+      }
+    }
+  }, [user, ratings]);
   
   const handleRatingChange = async (newRating: number) => {
     if (!user) {
@@ -134,6 +150,13 @@ const MovieDetailsPage = () => {
     setUserRating(newRating);
     
     try {
+      // Ensure userId is a number
+      if (!user.userId) {
+        console.error('User ID is undefined');
+        alert('Unable to submit rating. Please try logging in again.');
+        return;
+      }
+      
       const ratingData = {
         userId: user.userId,
         showId: id,
