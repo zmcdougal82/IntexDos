@@ -38,7 +38,7 @@ const LoginPage = () => {
       window.location.href = '/';
     } catch (err: any) {
       console.error('Login error:', err);
-      setError(err.response?.data || 'Invalid email or password');
+      setError(err.response?.data?.Message || 'Invalid email or password');
     } finally {
       setLoading(false);
     }
