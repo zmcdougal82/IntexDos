@@ -310,7 +310,7 @@ const RatingsPage = () => {
                     // Note: hover effects would need to be added via CSS classes
                     // since inline styles don't support pseudo-selectors
                   }}
-                  onClick={(e) => {
+                  onClick={() => {
                     // Only navigate to details if not in editing mode
                     if (editingRating !== rating.showId) {
                       viewMovieDetails(rating.showId);
