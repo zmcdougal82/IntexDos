@@ -3,6 +3,8 @@ import HomePage from './pages/HomePage';
 import MovieDetailsPage from './pages/MovieDetailsPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import PrivacyPage from './pages/PrivacyPage';
+import AdminMoviesPage from './pages/AdminMoviesPage';
 import Navbar from './components/Navbar';
 
 function App() {
@@ -21,6 +23,8 @@ function App() {
             <Route path="/movie/:id" element={<MovieDetailsPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/admin/movies" element={<AdminMoviesPage />} />
           </Routes>
         </main>
         <footer style={{ 

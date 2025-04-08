@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Movie, Rating, movieApi, ratingApi } from '../services/api';
+import { Movie, Rating, User, movieApi, ratingApi } from '../services/api';
 
 const MovieDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -11,8 +11,21 @@ const MovieDetailsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [userRating, setUserRating] = useState<number>(0);
+  const [user, setUser] = useState<User | null>(null);
+  const [ratingSubmitted, setRatingSubmitted] = useState(false);
   
   useEffect(() => {
+    // Check if user is logged in
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        const userData = JSON.parse(storedUser);
+        setUser(userData);
+      } catch (e) {
+        console.error('Error parsing user from localStorage:', e);
+      }
+    }
+    
     const fetchMovieDetails = async () => {
       if (!id) return;
       
@@ -27,6 +40,15 @@ const MovieDetailsPage = () => {
         const ratingsResponse = await ratingApi.getByMovie(id);
         setRatings(ratingsResponse.data);
         
+        // Check if logged-in user has already rated this movie
+        if (user) {
+          const userRating = ratingsResponse.data.find(r => r.userId === user.userId);
+          if (userRating) {
+            setUserRating(userRating.ratingValue);
+            setRatingSubmitted(true);
+          }
+        }
+        
         setError(null);
       } catch (err) {
         console.error('Error fetching movie details:', err);
@@ -37,13 +59,38 @@ const MovieDetailsPage = () => {
     };
     
     fetchMovieDetails();
-  }, [id]);
+  }, [id, user]);
   
-  const handleRatingChange = (newRating: number) => {
+  const handleRatingChange = async (newRating: number) => {
+    if (!user) {
+      // Redirect to login if not logged in
+      navigate('/login', { state: { from: `/movie/${id}` } });
+      return;
+    }
+    
+    if (!id) return;
+    
     setUserRating(newRating);
-    // In a real app, you would send this rating to the backend
-    // after checking if the user is logged in
-    alert('In a complete app, this would save your rating of ' + newRating);
+    
+    try {
+      const ratingData = {
+        userId: user.userId,
+        showId: id,
+        ratingValue: newRating
+      };
+      
+      await ratingApi.addRating(ratingData);
+      
+      // Update the UI to show this rating is now submitted
+      setRatingSubmitted(true);
+      
+      // Refresh ratings for this movie
+      const ratingsResponse = await ratingApi.getByMovie(id);
+      setRatings(ratingsResponse.data);
+    } catch (err) {
+      console.error('Error submitting rating:', err);
+      alert('Failed to submit your rating. Please try again.');
+    }
   };
   
   if (loading) return <div>Loading movie details...</div>;
@@ -137,6 +184,22 @@ const MovieDetailsPage = () => {
           {/* Rating functionality */}
           <div style={{ margin: '30px 0' }}>
             <h3>Rate this {movie.type}</h3>
+            
+            {!user && (
+              <p style={{ marginBottom: '15px' }}>
+                <a 
+                  href="/login" 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigate('/login', { state: { from: `/movie/${id}` } });
+                  }}
+                  style={{ color: '#0078d4', textDecoration: 'none' }}
+                >
+                  Log in
+                </a> to rate this {movie.type}
+              </p>
+            )}
+            
             <div style={{ display: 'flex', gap: '5px' }}>
               {[1, 2, 3, 4, 5].map(rating => (
                 <button
@@ -148,17 +211,25 @@ const MovieDetailsPage = () => {
                     border: userRating === rating ? '2px solid #f3ce13' : '1px solid #ccc',
                     borderRadius: '50%',
                     background: userRating >= rating ? '#f3ce13' : 'white',
-                    cursor: 'pointer',
+                    cursor: user ? 'pointer' : 'not-allowed',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: '16px'
+                    fontSize: '16px',
+                    opacity: user ? 1 : 0.6
                   }}
+                  disabled={!user}
                 >
                   {rating}
                 </button>
               ))}
             </div>
+            
+            {ratingSubmitted && (
+              <p style={{ color: 'green', marginTop: '10px' }}>
+                Your rating has been submitted!
+              </p>
+            )}
           </div>
         </div>
       </div>

@@ -52,12 +52,26 @@ const Navbar = () => {
           >
             Home
           </Link>
+          <Link 
+            to="/privacy" 
+            style={{ color: 'white', textDecoration: 'none' }}
+          >
+            Privacy
+          </Link>
           
           {user ? (
             <>
               <span style={{ color: 'white' }}>
                 Welcome, {user.name}
               </span>
+              {user.role === 'Admin' && (
+                <Link 
+                  to="/admin/movies" 
+                  style={{ color: 'white', textDecoration: 'none' }}
+                >
+                  Admin
+                </Link>
+              )}
               <button 
                 onClick={handleLogout}
                 style={{
@@ -69,7 +83,7 @@ const Navbar = () => {
                   fontSize: '16px'
                 }}
               >
-                Logfgdsout
+                Logout
               </button>
             </>
           ) : (
@@ -84,7 +98,7 @@ const Navbar = () => {
                 to="/register" 
                 style={{ color: 'white', textDecoration: 'none' }}
               >
-                Regisfgsdter
+                Register
               </Link>
             </>
           )}
