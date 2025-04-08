@@ -1,7 +1,16 @@
 import axios from 'axios';
 
-// Define the base URL for our API
-const API_URL = 'https://moviesapp-api-fixed.azurewebsites.net/api';
+// Define the base URL for our API based on environment
+const getApiUrl = () => {
+  // If running in production (like Azure static website)
+  if (window.location.hostname !== 'localhost') {
+    return 'https://moviesapp-api-fixed.azurewebsites.net/api';
+  }
+  // If running locally
+  return 'http://localhost:5237/api';
+};
+
+const API_URL = getApiUrl();
 
 // Create and configure axios instance
 const api = axios.create({

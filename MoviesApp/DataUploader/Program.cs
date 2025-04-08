@@ -385,7 +385,7 @@ namespace MoviesApp.DataUploader
 
         static void UploadRatings(MovieDbContext context)
         {
-            string csvPath = Path.Combine(Directory.GetCurrentDirectory(), "..", "movies_ratings.csv");
+            string csvPath = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "movies_ratings.csv");
             Console.WriteLine($"Uploading ratings from {csvPath}...");
 
             if (!File.Exists(csvPath))

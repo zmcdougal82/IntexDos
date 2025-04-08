@@ -16,7 +16,11 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp",
         builder => builder
-            .WithOrigins("https://moviesappsa79595.z22.web.core.windows.net") // Storage Account URL
+            .WithOrigins(
+                "https://moviesappsa79595.z22.web.core.windows.net", // Azure Storage Static Website URL
+                "http://localhost:5174", // Local development URL
+                "http://localhost:5173" // Alternative local dev port
+            )
             .AllowAnyMethod()
             .AllowAnyHeader());
 });

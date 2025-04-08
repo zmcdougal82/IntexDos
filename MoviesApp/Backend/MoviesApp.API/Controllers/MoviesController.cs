@@ -61,6 +61,13 @@ namespace MoviesApp.API.Controllers
         }
 
         // GET: api/Movies/genre/action
+        // GET: api/Movies/count
+        [HttpGet("count")]
+        public async Task<ActionResult<int>> GetMoviesCount()
+        {
+            return await _context.Movies.CountAsync();
+        }
+
         [HttpGet("genre/{genre}")]
         public async Task<ActionResult<IEnumerable<Movie>>> GetMoviesByGenre(string genre, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
