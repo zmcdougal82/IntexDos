@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import Papa from 'papaparse';
 import MovieCard from './MovieCard';
 import { movieApi, Movie } from '../services/api';
+import { useNavigate } from 'react-router-dom';
 
 interface RecommendedMoviesProps {
   showId: string | undefined;
@@ -106,24 +107,35 @@ const RecommendedMovies: React.FC<RecommendedMoviesProps> = ({ showId }) => {
     return <div>No recommendations available for show {showId}.</div>;
   }
 
+  const navigate = useNavigate();
+  
+  const handleMovieClick = (movieId: string) => {
+    navigate(`/movie/${movieId}`);
+  };
+
   return (
     <div style={{ marginTop: '3rem' }}>
-      <h2 style={{ marginBottom: '1.5rem' }}>
-        Based on this movie/show, we recommend:
+      <h2 style={{ marginBottom: '1.5rem', textAlign: 'center' }}>
+        Top Suggestions Related to This Content
       </h2>
       <div
         style={{
           display: 'flex',
-          justifyContent: 'space-between', // Ensure equal spacing between items
-          gap: '1.5rem', // Spacing between items
-          justifyItems: 'center', // Align all items in the center
+          justifyContent: 'space-between',
+          gap: '1.5rem',
+          justifyItems: 'center',
         }}
       >
         {recommendedMovies.map((movie, idx) => (
-          <MovieCard key={idx} movie={movie} />
+          <MovieCard
+            key={idx}
+            movie={movie}
+            onClick={() => handleMovieClick(movie.showId)}
+          />
         ))}
       </div>
     </div>
+
   );
 };
 

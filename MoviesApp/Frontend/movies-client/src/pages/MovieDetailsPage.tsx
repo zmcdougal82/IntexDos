@@ -479,7 +479,7 @@ const MovieDetailsPage = () => {
         </div>
       </div>
 
-      <div className="recommended-movies-section mt-4">
+      <div className="recommended-movies-section card">
         {/* Recommended Movies section */}
         <RecommendedMovies showId={currentShowId} />
       </div>
