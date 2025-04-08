@@ -134,6 +134,13 @@ const MovieDetailsPage = () => {
     setUserRating(newRating);
     
     try {
+      // Ensure userId is a number
+      if (!user.userId) {
+        console.error('User ID is undefined');
+        alert('Unable to submit rating. Please try logging in again.');
+        return;
+      }
+      
       const ratingData = {
         userId: user.userId,
         showId: id,
