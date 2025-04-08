@@ -90,7 +90,7 @@ const RegisterPage = () => {
       setLoading(true);
       setError(null);
       
-      const response = await authApi.register(formData);
+      await authApi.register(formData);
       
       // Show success message and redirect to login
       alert('Registration successful! Please log in with your new account.');

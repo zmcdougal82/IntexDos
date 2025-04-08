@@ -1,4 +1,4 @@
-import axios, { AxiosRequestConfig } from 'axios';
+import axios from 'axios';
 
 // Define the base URL for our API based on environment
 const getApiUrl = () => {
