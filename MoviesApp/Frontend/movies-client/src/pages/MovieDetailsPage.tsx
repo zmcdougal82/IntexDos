@@ -472,17 +472,18 @@ const MovieDetailsPage = () => {
                 )}
               </div>
 
-              <div className="recommended-movies-section">
-                {/* Recommended Movies section */}
-                {/* Render the recommended movies based on the current movie's showId */}
-                <RecommendedMovies showId={currentShowId} />
-                <p>This is for {id} = {currentShowId}</p>
-              </div>
+              
 
             </div>
           </div>
         </div>
       </div>
+
+      <div className="recommended-movies-section mt-4">
+        {/* Recommended Movies section */}
+        <RecommendedMovies showId={currentShowId} />
+      </div>
+
     </div>
   );
 };

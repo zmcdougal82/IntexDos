@@ -18,7 +18,7 @@ interface CSVRow {
 
 const RecommendedMovies: React.FC<RecommendedMoviesProps> = ({ showId }) => {
   const [recommendedMovies, setRecommendedMovies] = useState<Movie[]>([]);
-  const [recommendedShowIds, setRecommendedShowIds] = useState<string[]>([]); // To store recommended show IDs
+
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -59,9 +59,6 @@ const RecommendedMovies: React.FC<RecommendedMoviesProps> = ({ showId }) => {
               filtered[0].Recommendation4,
               filtered[0].Recommendation5,
             ].filter((id) => id); // Filter out any empty/null/undefined values
-
-            // Store the recommended showIds to display them
-            setRecommendedShowIds(recommendedShowIds);
 
             // Fetch the recommended movies based on these showIds
             const movieResponses = await Promise.all(
@@ -114,22 +111,12 @@ const RecommendedMovies: React.FC<RecommendedMoviesProps> = ({ showId }) => {
       <h2 style={{ marginBottom: '1.5rem' }}>
         Based on this movie/show, we recommend:
       </h2>
-
-      {/* Display the recommended showIds above the movie cards */}
-      <div style={{ marginBottom: '1.5rem' }}>
-        <strong>Recommended Show IDs:</strong>
-        <div>
-          <p>Current showId: {showId}</p>
-          {recommendedShowIds.join(', ')} {/* Print all the IDs */}
-        </div>
-      </div>
-
       <div
         style={{
           display: 'flex',
-          flexWrap: 'wrap',
-          gap: '1.5rem',
-          justifyContent: 'center',
+          justifyContent: 'space-between', // Ensure equal spacing between items
+          gap: '1.5rem', // Spacing between items
+          justifyItems: 'center', // Align all items in the center
         }}
       >
         {recommendedMovies.map((movie, idx) => (
