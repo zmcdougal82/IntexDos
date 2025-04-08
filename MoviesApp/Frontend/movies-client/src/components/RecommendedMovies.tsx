@@ -20,7 +20,7 @@ const RecommendedMovies: React.FC<RecommendedMoviesProps> = ({ showId }) => {
 
       try {
         // Fetch the CSV file
-        const response = await fetch('/contentrecommendations.csv');
+        const response = await fetch('/public/contentRecommendations.csv');
         if (!response.ok) {
           throw new Error('Failed to fetch the recommendations CSV.');
         }
