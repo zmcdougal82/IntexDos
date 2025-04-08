@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import Papa from 'papaparse';
 import MovieCard from './MovieCard';
 import { movieApi, Movie } from '../services/api';
-import { useNavigate } from 'react-router-dom';
+// import { useNavigate } from 'react-router-dom';
 
 interface RecommendedMoviesProps {
   showId: string | undefined;
@@ -107,11 +107,11 @@ const RecommendedMovies: React.FC<RecommendedMoviesProps> = ({ showId }) => {
     return <div>No recommendations available for show {showId}.</div>;
   }
 
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   
-  const handleMovieClick = (movieId: string) => {
-    navigate(`/movie/${movieId}`);
-  };
+  // const handleMovieClick = (movieId: string) => {
+  //   navigate(`/movie/${movieId}`);
+  // };
 
   return (
     <div style={{ marginTop: '3rem' }}>
@@ -130,7 +130,7 @@ const RecommendedMovies: React.FC<RecommendedMoviesProps> = ({ showId }) => {
           <MovieCard
             key={movie.showId}
             movie={movie}
-            onClick={() => handleMovieClick(movie.showId)}
+            // onClick={() => handleMovieClick(movie.showId)}
           />
         ))}
       </div>
