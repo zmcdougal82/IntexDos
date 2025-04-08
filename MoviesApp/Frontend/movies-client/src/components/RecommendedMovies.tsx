@@ -4,7 +4,7 @@ import MovieCard from './MovieCard';
 import { movieApi, Movie } from '../services/api';
 
 interface RecommendedMoviesProps {
-  showId: string;
+  showId: string | undefined;
 }
 
 const RecommendedMovies: React.FC<RecommendedMoviesProps> = ({ showId }) => {

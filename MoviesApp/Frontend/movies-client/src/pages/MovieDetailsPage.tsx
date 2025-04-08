@@ -6,6 +6,7 @@ import RecommendedMovies from '../components/RecommendedMovies';
 
 const MovieDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
+  var currentShowId = id;
   const navigate = useNavigate();
   
   const [movie, setMovie] = useState<Movie | null>(null);
@@ -474,7 +475,8 @@ const MovieDetailsPage = () => {
               <div className="recommended-movies-section">
                 {/* Recommended Movies section */}
                 {/* Render the recommended movies based on the current movie's showId */}
-                <RecommendedMovies showId={movie.showId} />
+                <RecommendedMovies showId={currentShowId} />
+                <p>This is for {id} = {currentShowId}</p>
               </div>
 
             </div>
