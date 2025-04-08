@@ -175,46 +175,68 @@ const HomePage = () => {
       <div className="mt-4">
         {/* Register / Login CTA */}
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-          <h2>Welcome to CineNiche!</h2>
+          <h1
+            style={{
+              fontSize: "2.8rem",
+              fontWeight: 700,
+              color: "var(--color-primary)",
+              textAlign: "center",
+              marginBottom: "var(--spacing-lg)",
+            }}
+          >
+            Welcome to CineNiche!
+          </h1>
           <p>
             Sign up or log in to start discovering personalized movie and TV
             show recommendations tailored just for you!
           </p>
-          <button
-            onClick={() => navigate("/login")}
-            style={{
-              padding: "10px 20px",
-              backgroundColor: "#007BFF",
-              color: "white",
-              border: "none",
-              borderRadius: "5px",
-              cursor: "pointer",
-              fontSize: "1rem",
-              marginTop: "1rem",
-            }}
-          >
-            Log In
-          </button>
-          <br />
-          <button
-            onClick={() => navigate("/register")}
-            style={{
-              padding: "10px 20px",
-              backgroundColor: "#007BFF",
-              color: "white",
-              border: "none",
-              borderRadius: "5px",
-              cursor: "pointer",
-              fontSize: "1rem",
-              marginTop: "1rem",
-            }}
-          >
-            Register
-          </button>
+          <div style={{ textAlign: "center" }}>
+            <button
+              onClick={() => navigate("/login")}
+              style={{
+                padding: "10px 20px",
+                backgroundColor: "#007BFF",
+                color: "white",
+                border: "none",
+                borderRadius: "5px",
+                cursor: "pointer",
+                fontSize: "1rem",
+                marginTop: "1rem",
+              }}
+            >
+              Log In
+            </button>
+            <br />
+            <button
+              onClick={() => navigate("/register")}
+              style={{
+                padding: "10px 20px",
+                backgroundColor: "#007BFF",
+                color: "white",
+                border: "none",
+                borderRadius: "5px",
+                cursor: "pointer",
+                fontSize: "1rem",
+                marginTop: "1rem",
+              }}
+            >
+              Register
+            </button>
+          </div>
         </div>
         {/* Company Introduction */}
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-          <h3>About CineNiche</h3>
+          <h3
+            style={{
+              fontSize: "2.8rem",
+              fontWeight: 700,
+              color: "var(--color-primary)",
+              textAlign: "center",
+              marginBottom: "var(--spacing-lg)",
+            }}
+          >
+            About CineNiche
+          </h3>
           <p>
             At CineNiche, we believe in bringing you the best movie and TV show
             experiences. Explore thousands of options, discover hidden gems, and
@@ -230,7 +252,7 @@ const HomePage = () => {
           }}
         >
           {/* Movie Discovery Section */}
-          <h1
+          <h2
             style={{
               fontSize: "2.8rem",
               fontWeight: 700,
@@ -240,7 +262,7 @@ const HomePage = () => {
             }}
           >
             Discover Your Next Favorite
-          </h1>
+          </h2>
           <p
             style={{
               fontSize: "1.2rem",
