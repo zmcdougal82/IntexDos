@@ -310,7 +310,12 @@ const RatingsPage = () => {
                     // Note: hover effects would need to be added via CSS classes
                     // since inline styles don't support pseudo-selectors
                   }}
-                  onClick={() => viewMovieDetails(rating.showId)}>
+                  onClick={(e) => {
+                    // Only navigate to details if not in editing mode
+                    if (editingRating !== rating.showId) {
+                      viewMovieDetails(rating.showId);
+                    }
+                  }}>
                     <div style={{ 
                       display: 'flex',
                       padding: 'var(--spacing-xl)',
