@@ -13,6 +13,7 @@ const HomePage = () => {
   const [activeGenres, setActiveGenres] = useState<string[]>([]);
   const pageSize = 20;
   const observer = useRef<IntersectionObserver | null>(null);
+  const [user, setUser] = useState(null); // Store the user state
   const lastMovieElementRef = useCallback(
     (node: HTMLDivElement | null) => {
       if (loading) return;
@@ -170,82 +171,110 @@ const HomePage = () => {
     navigate(`/movie/${movieId}`);
   };
 
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser)); // Parse and set user from localStorage
+      } catch (e) {
+        console.error("Error parsing user from localStorage:", e);
+      }
+    }
+  }, []);
+
+  const handleLogin = () => {
+    navigate("/login");
+  };
+
+  const handleRegister = () => {
+    navigate("/register");
+  };
+
   return (
     <div className="container">
       <div className="mt-4">
-        {/* Register / Login CTA */}
-        <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-          <h1
-            style={{
-              fontSize: "2.8rem",
-              fontWeight: 700,
-              color: "var(--color-primary)",
-              textAlign: "center",
-              marginBottom: "var(--spacing-lg)",
-            }}
-          >
-            Welcome to CineNiche!
-          </h1>
-          <p>
-            Sign up or log in to start discovering personalized movie and TV
-            show recommendations tailored just for you!
-          </p>
-          <div
-            style={{ display: "flex", justifyContent: "center", gap: "10px" }}
-          >
-            <button
-              onClick={() => navigate("/login")}
-              style={{
-                padding: "10px 20px",
-                backgroundColor: "#007BFF",
-                color: "white",
-                border: "none",
-                borderRadius: "5px",
-                cursor: "pointer",
-                fontSize: "1rem",
-                marginTop: "1rem",
-              }}
-            >
-              Log In
-            </button>
-            <br />
-            <button
-              onClick={() => navigate("/register")}
-              style={{
-                padding: "10px 20px",
-                backgroundColor: "#007BFF",
-                color: "white",
-                border: "none",
-                borderRadius: "5px",
-                cursor: "pointer",
-                fontSize: "1rem",
-                marginTop: "1rem",
-              }}
-            >
-              Register
-            </button>
-          </div>
-        </div>
-        {/* Company Introduction */}
-        <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-          <h3
-            style={{
-              fontSize: "2 rem",
-              fontWeight: 700,
-              color: "var(--color-primary)",
-              textAlign: "center",
-              marginBottom: "var(--spacing-lg)",
-            }}
-          >
-            About CineNiche
-          </h3>
-          <p>
-            At CineNiche, we believe in bringing you the best movie and TV show
-            experiences. Explore thousands of options, discover hidden gems, and
-            enjoy recommendations based on your preferences. Let us help you
-            find your next favorite!
-          </p>
-        </div>
+        {/* Conditionally render Register/Login CTA and Company Introduction if user is not logged in */}
+        {!user && (
+          <>
+            {/* Register / Login CTA */}
+            <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+              <h1
+                style={{
+                  fontSize: "2.8rem",
+                  fontWeight: 700,
+                  color: "var(--color-primary)",
+                  textAlign: "center",
+                  marginBottom: "var(--spacing-lg)",
+                }}
+              >
+                Welcome to CineNiche!
+              </h1>
+              <p>
+                Sign up or log in to start discovering personalized movie and TV
+                show recommendations tailored just for you!
+              </p>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  gap: "10px",
+                }}
+              >
+                <button
+                  onClick={handleLogin}
+                  style={{
+                    padding: "10px 20px",
+                    backgroundColor: "#007BFF",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "5px",
+                    cursor: "pointer",
+                    fontSize: "1rem",
+                    marginTop: "1rem",
+                  }}
+                >
+                  Log In
+                </button>
+                <button
+                  onClick={handleRegister}
+                  style={{
+                    padding: "10px 20px",
+                    backgroundColor: "#007BFF",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "5px",
+                    cursor: "pointer",
+                    fontSize: "1rem",
+                    marginTop: "1rem",
+                  }}
+                >
+                  Register
+                </button>
+              </div>
+            </div>
+
+            {/* Company Introduction */}
+            <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+              <h3
+                style={{
+                  fontSize: "2rem",
+                  fontWeight: 700,
+                  color: "var(--color-primary)",
+                  textAlign: "center",
+                  marginBottom: "var(--spacing-lg)",
+                }}
+              >
+                About CineNiche
+              </h3>
+              <p>
+                At CineNiche, we believe in bringing you the best movie and TV
+                show experiences. Explore thousands of options, discover hidden
+                gems, and enjoy recommendations based on your preferences. Let
+                us help you find your next favorite!
+              </p>
+            </div>
+          </>
+        )}
         <div
           className="card"
           style={{
