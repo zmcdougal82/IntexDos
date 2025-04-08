@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Movie, Rating, User, movieApi, ratingApi } from '../services/api';
 import { tmdbApi } from '../services/tmdbApi';
+import RecommendedMovies from '../components/RecommendedMovies';
 
 const MovieDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -469,6 +470,13 @@ const MovieDetailsPage = () => {
                   </p>
                 )}
               </div>
+
+              <div className="recommended-movies-section">
+                {/* Recommended Movies section */}
+                {/* Render the recommended movies based on the current movie's showId */}
+                <RecommendedMovies showId={movie.showId} />
+              </div>
+
             </div>
           </div>
         </div>
