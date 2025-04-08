@@ -298,7 +298,6 @@ const AdminMoviesPage: React.FC = () => {
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
                     <tr>
-                      <th style={tableHeaderStyle}>ID</th>
                       <th style={tableHeaderStyle}>Title</th>
                       <th style={tableHeaderStyle}>Type</th>
                       <th style={tableHeaderStyle}>Year</th>
@@ -316,7 +315,6 @@ const AdminMoviesPage: React.FC = () => {
                       onMouseOut={(e) => {
                         e.currentTarget.style.backgroundColor = 'transparent';
                       }}>
-                        <td style={tableCellStyle}>{movie.showId}</td>
                         <td style={tableCellStyle}>{movie.title}</td>
                         <td style={tableCellStyle}>{movie.type || 'Unknown'}</td>
                         <td style={tableCellStyle}>{movie.releaseYear || 'Unknown'}</td>
