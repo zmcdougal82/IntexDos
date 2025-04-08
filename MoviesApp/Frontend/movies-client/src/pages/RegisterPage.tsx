@@ -405,32 +405,54 @@ const RegisterPage = () => {
           Select the streaming services you currently subscribe to:
         </p>
         
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(2, 1fr)',
-          gap: 'var(--spacing-md)',
-          marginBottom: 'var(--spacing-lg)'
-        }}>
-          {streamingServices.map(service => (
-            <div key={service.id} style={{ 
-              display: 'flex', 
-              alignItems: 'center',
-              padding: 'var(--spacing-sm)',
-              border: '1px solid var(--color-border)',
-              borderRadius: 'var(--radius-md)'
-            }}>
-              <input
-                type="checkbox"
-                id={service.id}
-                name={service.id}
-                checked={service.value === 1}
-                onChange={handleChange}
-                style={{ marginRight: 'var(--spacing-sm)' }}
-              />
-              <label htmlFor={service.id}>{service.name}</label>
-            </div>
-          ))}
-        </div>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(2, 1fr)',
+            gap: 'var(--spacing-md)',
+            marginBottom: 'var(--spacing-lg)',
+          }}
+        >
+          {streamingServices.map((service) => (
+            <div
+              key={service.id}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                padding: 'var(--spacing-sm)',
+                border: '1px solid var(--color-border)',
+                borderRadius: 'var(--radius-md)',
+                justifyContent: 'space-between', // Distribute the checkbox and label evenly
+              }}
+            >
+              {/* Container for the checkbox */}
+              <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+                <input
+                  type="checkbox"
+                  id={service.id}
+                  name={service.id}
+                  checked={service.value === 1}
+                  onChange={handleChange}
+                  style={{ marginRight: 'var(--spacing-sm)' }}
+        />
+      </div>
+
+      {/* Label with flex-grow to take up the remaining space */}
+      <label
+        htmlFor={service.id}
+        style={{
+          flexGrow: 1,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center', // Center the label text in the remaining space
+          margin: 'auto'
+        }}
+      >
+        {service.name}
+      </label>
+    </div>
+  ))}
+</div>
         
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           <button
