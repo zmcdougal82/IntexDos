@@ -111,6 +111,7 @@ const RatingsPage = () => {
   const [user, setUser] = useState<User | null>(null);
   const [editingRating, setEditingRating] = useState<string | null>(null);
   const [newRatingValue, setNewRatingValue] = useState<number>(5);
+  const [newReviewText, setNewReviewText] = useState<string>('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -170,20 +171,23 @@ const RatingsPage = () => {
 
   const updateRating = async (rating: Rating) => {
     try {
-      // Preserve the review text when updating the rating
       // Convert the userId to the same type used when fetching ratings
       const userId = user?.id ? parseInt(user.id) : rating.userId;
       await ratingApi.addRating({
         userId: userId,
         showId: rating.showId,
         ratingValue: newRatingValue,
-        reviewText: rating.reviewText // Preserve the existing review text
+        reviewText: newReviewText // Use the updated review text
       });
       
       // Update local state
       setRatings(prev => prev.map(r => {
         if (r.userId === rating.userId && r.showId === rating.showId) {
-          return { ...r, ratingValue: newRatingValue };
+          return { 
+            ...r, 
+            ratingValue: newRatingValue,
+            reviewText: newReviewText 
+          };
         }
         return r;
       }));
@@ -372,23 +376,39 @@ const RatingsPage = () => {
                           fontWeight: 'bold',
                           marginBottom: 'var(--spacing-xs)'
                         }}>
-                          <span style={{ marginRight: '4px' }}>★</span>
+                          {/* Display 5 stars with filled/empty based on rating */}
                           {editingRating === rating.showId ? (
-                            <select 
-                              value={newRatingValue}
-                              onChange={(e) => setNewRatingValue(Number(e.target.value))}
-                              style={{
-                                padding: '2px 4px',
-                                borderRadius: 'var(--radius-sm)',
-                                border: '1px solid var(--color-border)'
-                              }}
-                            >
-                              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(value => (
-                                <option key={value} value={value}>{value}</option>
-                              ))}
-                            </select>
+                            <div>
+                              <select 
+                                value={newRatingValue}
+                                onChange={(e) => setNewRatingValue(Number(e.target.value))}
+                                style={{
+                                  padding: '2px 4px',
+                                  borderRadius: 'var(--radius-sm)',
+                                  border: '1px solid var(--color-border)'
+                                }}
+                              >
+                                {[1, 2, 3, 4, 5].map(value => (
+                                  <option key={value} value={value}>{value}</option>
+                                ))}
+                              </select>
+                              <span style={{ marginLeft: '4px' }}>/5</span>
+                            </div>
                           ) : (
-                            <span>{rating.ratingValue}/10</span>
+                            <div>
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <span 
+                                  key={star} 
+                                  style={{ 
+                                    color: star <= Math.round(rating.ratingValue / 2) ? 
+                                      'var(--color-secondary)' : 'var(--color-text-light)',
+                                    marginRight: '2px'
+                                  }}
+                                >
+                                  ★
+                                </span>
+                              ))}
+                            </div>
                           )}
                         </div>
                         
@@ -401,20 +421,24 @@ const RatingsPage = () => {
                           Rated on: {new Date(rating.timestamp).toLocaleDateString()}
                         </div>
                         
-                        {rating.reviewText && (
-                          <>
-                            <h4 style={{ 
-                              color: 'var(--color-text)', 
-                              fontSize: '0.9rem',
-                              fontWeight: 600, 
-                              marginBottom: 'var(--spacing-xs)',
-                              marginTop: 'var(--spacing-sm)'
-                            }}>
-                              Your Review
-                            </h4>
-                            <div style={{
+                        {/* Review Section - Always show the heading, conditionally show edit or display */}
+                        <h4 style={{ 
+                          color: 'var(--color-text)', 
+                          fontSize: '0.9rem',
+                          fontWeight: 600, 
+                          marginBottom: 'var(--spacing-xs)',
+                          marginTop: 'var(--spacing-sm)'
+                        }}>
+                          Your Review
+                        </h4>
+                        
+                        {editingRating === rating.showId ? (
+                          <textarea
+                            value={newReviewText}
+                            onChange={(e) => setNewReviewText(e.target.value)}
+                            style={{
                               width: '100%',
-                              minHeight: '80px',
+                              minHeight: '120px',
                               padding: 'var(--spacing-md)',
                               borderRadius: 'var(--radius-md)',
                               border: '1px solid var(--color-border)',
@@ -423,11 +447,27 @@ const RatingsPage = () => {
                               fontSize: '0.95rem',
                               backgroundColor: 'var(--color-background)',
                               color: 'var(--color-text)',
-                              lineHeight: '1.5'
-                            }}>
-                              {rating.reviewText}
-                            </div>
-                          </>
+                              lineHeight: '1.5',
+                              resize: 'vertical'
+                            }}
+                            placeholder="Write your review here..."
+                          />
+                        ) : (
+                          <div style={{
+                            width: '100%',
+                            minHeight: '80px',
+                            padding: 'var(--spacing-md)',
+                            borderRadius: 'var(--radius-md)',
+                            border: '1px solid var(--color-border)',
+                            marginBottom: 'var(--spacing-xs)',
+                            fontFamily: 'inherit',
+                            fontSize: '0.95rem',
+                            backgroundColor: 'var(--color-background)',
+                            color: 'var(--color-text)',
+                            lineHeight: '1.5'
+                          }}>
+                            {rating.reviewText || <em style={{ color: 'var(--color-text-light)' }}>No review yet</em>}
+                          </div>
                         )}
                       </div>
                     </div>
@@ -512,6 +552,7 @@ const RatingsPage = () => {
                               e.stopPropagation(); // Stop event propagation
                               setEditingRating(rating.showId);
                               setNewRatingValue(rating.ratingValue);
+                              setNewReviewText(rating.reviewText || '');
                             }}
                             style={{
                               backgroundColor: 'var(--color-primary)',
