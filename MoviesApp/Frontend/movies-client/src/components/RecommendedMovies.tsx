@@ -126,9 +126,9 @@ const RecommendedMovies: React.FC<RecommendedMoviesProps> = ({ showId }) => {
           justifyItems: 'center',
         }}
       >
-        {recommendedMovies.map((movie, idx) => (
+        {recommendedMovies.map((movie) => (
           <MovieCard
-            key={idx}
+            key={movie.showId}
             movie={movie}
             onClick={() => handleMovieClick(movie.showId)}
           />
