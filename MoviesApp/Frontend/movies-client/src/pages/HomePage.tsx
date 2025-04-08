@@ -252,29 +252,28 @@ const HomePage = () => {
                 </button>
               </div>
             </div>
-
-            {/* Company Introduction */}
-            <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-              <h3
-                style={{
-                  fontSize: "2rem",
-                  fontWeight: 700,
-                  color: "var(--color-primary)",
-                  textAlign: "center",
-                  marginBottom: "var(--spacing-lg)",
-                }}
-              >
-                About CineNiche
-              </h3>
-              <p>
-                At CineNiche, we believe in bringing you the best movie and TV
-                show experiences. Explore thousands of options, discover hidden
-                gems, and enjoy recommendations based on your preferences. Let
-                us help you find your next favorite!
-              </p>
-            </div>
           </>
         )}
+        {/* Company Introduction */}
+        <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+          <h3
+            style={{
+              fontSize: "2rem",
+              fontWeight: 700,
+              color: "var(--color-primary)",
+              textAlign: "center",
+              marginBottom: "var(--spacing-lg)",
+            }}
+          >
+            About CineNiche
+          </h3>
+          <p>
+            At CineNiche, we believe in bringing you the best movie and TV show
+            experiences. Explore thousands of options, discover hidden gems, and
+            enjoy recommendations based on your preferences. Let us help you
+            find your next favorite!
+          </p>
+        </div>
         <div
           className="card"
           style={{
