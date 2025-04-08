@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { User } from '../services/api';
+import { User, isAdmin } from '../services/api';
+import UserProfileMenu from './UserProfileMenu';
 
 const Navbar = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -62,7 +63,7 @@ const Navbar = () => {
               color: 'white',
               fontSize: '18px'
             }}>C</span>
-            CineStream
+            CineNiche
           </Link>
         </div>
         
@@ -71,7 +72,8 @@ const Navbar = () => {
           gap: '24px',
           fontFamily: 'Roboto, sans-serif',
           fontSize: '15px',
-          fontWeight: 500
+          fontWeight: 500,
+          alignItems: 'center'
         }}>
           <Link 
             to="/" 
@@ -80,39 +82,20 @@ const Navbar = () => {
             Home
           </Link>
           <Link 
-            to="/privacy" 
+            to="/movies" 
             style={{ color: 'white', textDecoration: 'none' }}
           >
-            Privacy
+            Movies
+          </Link>
+          <Link 
+            to="/tvshows" 
+            style={{ color: 'white', textDecoration: 'none' }}
+          >
+            TV Shows
           </Link>
           
           {user ? (
-            <>
-              <span style={{ color: 'white' }}>
-                Welcome, {user.name}
-              </span>
-              {user.role === 'Admin' && (
-                <Link 
-                  to="/admin/movies" 
-                  style={{ color: 'white', textDecoration: 'none' }}
-                >
-                  Admin
-                </Link>
-              )}
-              <button 
-                onClick={handleLogout}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  color: 'white',
-                  cursor: 'pointer',
-                  padding: 0,
-                  fontSize: '16px'
-                }}
-              >
-                Logout
-              </button>
-            </>
+            <UserProfileMenu user={user} onLogout={handleLogout} />
           ) : (
             <>
               <Link 

@@ -1,10 +1,13 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import MovieDetailsPage from './pages/MovieDetailsPage';
+import MoviesPage from './pages/MoviesPage';
+import TVShowsPage from './pages/TVShowsPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import PrivacyPage from './pages/PrivacyPage';
 import AdminMoviesPage from './pages/AdminMoviesPage';
+import ProfilePage from './pages/ProfilePage';
 import Navbar from './components/Navbar';
 
 function App() {
@@ -20,21 +23,39 @@ function App() {
         <main style={{ flex: 1 }}>
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/movies" element={<MoviesPage />} />
+            <Route path="/tvshows" element={<TVShowsPage />} />
             <Route path="/movie/:id" element={<MovieDetailsPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/admin/movies" element={<AdminMoviesPage />} />
           </Routes>
         </main>
         <footer style={{ 
-          padding: '20px',
+          padding: 'var(--spacing-lg)',
           textAlign: 'center',
-          borderTop: '1px solid #eee',
+          borderTop: '1px solid var(--color-border)',
           marginTop: 'auto',
-          backgroundColor: 'white'
+          backgroundColor: 'var(--color-card)',
+          color: 'var(--color-text-light)'
         }}>
-          <p>&copy; {new Date().getFullYear()} Movies App. All rights reserved.</p>
+          <div>
+            <p>&copy; {new Date().getFullYear()} CineNiche. All rights reserved.</p>
+            <div style={{ marginTop: 'var(--spacing-sm)' }}>
+              <Link 
+                to="/privacy" 
+                style={{ 
+                  color: 'var(--color-text-light)',
+                  textDecoration: 'none',
+                  fontSize: '0.9rem'
+                }}
+              >
+                Privacy Policy
+              </Link>
+            </div>
+          </div>
         </footer>
       </div>
     </Router>

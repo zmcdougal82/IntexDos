@@ -34,8 +34,8 @@ const LoginPage = () => {
       // In a real application, you would store the user in context or local storage
       localStorage.setItem('user', JSON.stringify(response.data));
       
-      // Redirect to home page
-      navigate('/');
+      // Refresh page to ensure navbar updates with the user profile
+      window.location.href = '/';
     } catch (err: any) {
       console.error('Login error:', err);
       setError(err.response?.data || 'Invalid email or password');

@@ -19,7 +19,9 @@ builder.Services.AddCors(options =>
             .WithOrigins(
                 "https://moviesappsa79595.z22.web.core.windows.net", // Azure Storage Static Website URL
                 "http://localhost:5174", // Local development URL
-                "http://localhost:5173" // Alternative local dev port
+                "http://localhost:5173", // Alternative local dev port
+                "http://localhost:5175", // Another alternative local dev port
+                "http://localhost:5238" // Backend port (for debugging)
             )
             .AllowAnyMethod()
             .AllowAnyHeader());

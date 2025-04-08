@@ -6,8 +6,8 @@ const getApiUrl = () => {
   if (window.location.hostname !== 'localhost') {
     return 'https://moviesapp-api-fixed.azurewebsites.net/api';
   }
-  // If running locally
-  return 'http://localhost:5238/api';
+  // If running locally - use the Vite proxy to avoid CORS issues
+  return '/api';
 };
 
 const API_URL = getApiUrl();
@@ -47,7 +47,7 @@ export interface User {
   city?: string;
   state?: string;
   zip?: string; // Changed from number to string to match backend model
-  role?: string;
+  role?: string; // "Admin" or "User" (default is "User" as set in backend)
   // Streaming services
   netflix?: number;
   amazonPrime?: number;
@@ -57,6 +57,10 @@ export interface User {
   hulu?: number;
   appleTVPlus?: number;
   peacock?: number;
+}
+
+export function isAdmin(user?: User | null): boolean {
+  return !!user && user.role === 'Admin';
 }
 
 export interface LoginRequest {
