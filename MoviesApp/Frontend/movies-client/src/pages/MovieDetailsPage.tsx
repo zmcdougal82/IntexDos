@@ -221,7 +221,7 @@ const MovieDetailsPage = () => {
           <span aria-hidden="true" style={{ fontSize: '1.2rem' }}>&larr;</span> Back
         </button>
         
-        <div className="card" style={{ padding: 'var(--spacing-xl)' }}>
+        <div className="card" style={{ padding: 'var(--spacing-xl)', paddingBottom: 'var(--spacing-m)' }}>
           <div style={{ 
             display: 'flex', 
             flexDirection: 'row',
@@ -479,7 +479,7 @@ const MovieDetailsPage = () => {
         </div>
       </div>
 
-      <div className="recommended-movies-section card">
+      <div className="recommended-movies-section card" style={{ paddingTop: 'var(--spacing-s)', paddingBottom: 'var(--spacing-m)' }}>
         {/* Recommended Movies section */}
         <RecommendedMovies showId={currentShowId} />
       </div>

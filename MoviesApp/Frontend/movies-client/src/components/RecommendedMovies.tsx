@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import Papa from 'papaparse';
 import MovieCard from './MovieCard';
 import { movieApi, Movie } from '../services/api';
-// import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
 interface RecommendedMoviesProps {
   showId: string | undefined;
@@ -19,9 +19,10 @@ interface CSVRow {
 
 const RecommendedMovies: React.FC<RecommendedMoviesProps> = ({ showId }) => {
   const [recommendedMovies, setRecommendedMovies] = useState<Movie[]>([]);
-
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  const navigate = useNavigate(); // Get the navigate function
 
   useEffect(() => {
     const fetchAndParseCSV = async () => {
@@ -107,11 +108,9 @@ const RecommendedMovies: React.FC<RecommendedMoviesProps> = ({ showId }) => {
     return <div>No recommendations available for show {showId}.</div>;
   }
 
-  // const navigate = useNavigate();
-  
-  // const handleMovieClick = (movieId: string) => {
-  //   navigate(`/movie/${movieId}`);
-  // };
+  const handleMovieClick = (movieId: string) => {
+    navigate(`/movie/${movieId}`); // Use navigate to go to the movie detail page
+  };
 
   return (
     <div style={{ marginTop: '3rem' }}>
@@ -130,12 +129,11 @@ const RecommendedMovies: React.FC<RecommendedMoviesProps> = ({ showId }) => {
           <MovieCard
             key={movie.showId}
             movie={movie}
-            // onClick={() => handleMovieClick(movie.showId)}
+            onClick={() => handleMovieClick(movie.showId)}
           />
         ))}
       </div>
     </div>
-
   );
 };
 
