@@ -15,6 +15,8 @@ const MovieDetailsPage = () => {
   const [userReview, setUserReview] = useState<string>('');
   const [user, setUser] = useState<User | null>(null);
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [showThankYouModal, setShowThankYouModal] = useState(false);
   // Larger, better looking fallback image for the details page
   const [posterUrl, setPosterUrl] = useState<string>("https://placehold.co/480x720/2c3e50/FFFFFF?text=Poster+Coming+Soon&font=montserrat");
   
@@ -174,6 +176,7 @@ const MovieDetailsPage = () => {
         setUserRating(userRatingObj.ratingValue);
         setUserReview(userRatingObj.reviewText || '');
         setRatingSubmitted(true);
+        setIsEditing(false);
       }
     }
   }, [user, ratings]);
@@ -187,11 +190,27 @@ const MovieDetailsPage = () => {
     
     if (!id) return;
     
-    setUserRating(newRating);
+    // Only allow rating changes if in editing mode or not yet submitted
+    if (!ratingSubmitted || isEditing) {
+      setUserRating(newRating);
+    }
   };
 
   const handleReviewChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setUserReview(e.target.value);
+    // Only allow review changes if in editing mode or not yet submitted
+    if (!ratingSubmitted || isEditing) {
+      setUserReview(e.target.value);
+    }
+  };
+
+  const handleToggleEdit = async () => {
+    // If currently editing, submit the changes
+    if (isEditing) {
+      await handleSubmitReview();
+    } else {
+      // Otherwise, just enable editing mode
+      setIsEditing(true);
+    }
   };
 
   const handleSubmitReview = async () => {
@@ -260,12 +279,14 @@ const MovieDetailsPage = () => {
       
       // Update the UI to show this rating is now submitted
       setRatingSubmitted(true);
+      setIsEditing(false);
       
       // Refresh ratings for this movie
       const ratingsResponse = await ratingApi.getByMovie(id);
       setRatings(ratingsResponse.data);
       
-      alert('Your review has been submitted successfully!');
+      // Show the thank you modal instead of alert
+      setShowThankYouModal(true);
     } catch (err) {
       console.error('Error submitting review:', err);
       alert('Failed to submit your review. Please try logging in again.');
@@ -283,6 +304,78 @@ const MovieDetailsPage = () => {
     
   return (
     <div className="container">
+      {/* Thank You Modal */}
+      {showThankYouModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: 'var(--radius-lg)',
+            padding: 'var(--spacing-xl)',
+            width: '90%',
+            maxWidth: '500px',
+            boxShadow: 'var(--shadow-lg)',
+            textAlign: 'center'
+          }}>
+            <h2 style={{ 
+              color: 'var(--color-primary)',
+              marginTop: 0
+            }}>Thanks for your review!</h2>
+            <p style={{ 
+              fontSize: '1.1rem', 
+              margin: 'var(--spacing-lg) 0' 
+            }}>
+              Your feedback helps our community discover great content.
+            </p>
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'center',
+              gap: 'var(--spacing-md)',
+              marginTop: 'var(--spacing-xl)',
+              flexWrap: 'wrap'
+            }}>
+              <button
+                onClick={() => setShowThankYouModal(false)}
+                style={{
+                  padding: 'var(--spacing-sm) var(--spacing-lg)',
+                  backgroundColor: 'var(--color-secondary)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: 'var(--radius-md)',
+                  fontWeight: 500,
+                  cursor: 'pointer'
+                }}
+              >
+                Back to Movie
+              </button>
+              <button
+                onClick={() => navigate('/')}
+                style={{
+                  padding: 'var(--spacing-sm) var(--spacing-lg)',
+                  backgroundColor: 'var(--color-primary)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: 'var(--radius-md)',
+                  fontWeight: 500,
+                  cursor: 'pointer'
+                }}
+              >
+                Go to Home Page
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="mt-4">
         <button 
           onClick={() => navigate(-1)}
@@ -414,11 +507,6 @@ const MovieDetailsPage = () => {
                   ))}
                 </div>
                 
-                {ratingSubmitted && (
-                  <p className="text-success mt-2" style={{ fontWeight: 500 }}>
-                    ✓ Your rating has been submitted!
-                  </p>
-                )}
               </div>
             </div>
             
@@ -543,16 +631,16 @@ const MovieDetailsPage = () => {
                         borderRadius: '50%',
                         background: userRating >= rating ? 'var(--color-secondary)' : 'white',
                         color: userRating >= rating ? 'white' : 'var(--color-text)',
-                        cursor: user ? 'pointer' : 'not-allowed',
+                        cursor: (!user || (ratingSubmitted && !isEditing)) ? 'not-allowed' : 'pointer',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         fontSize: '20px',
                         fontWeight: 'bold',
-                        opacity: user ? 1 : 0.6,
+                        opacity: (!user || (ratingSubmitted && !isEditing)) ? 0.6 : 1,
                         transition: 'all var(--transition-normal)'
                       }}
-                      disabled={!user}
+                      disabled={!user || (ratingSubmitted && !isEditing)}
                       aria-label={`Rate ${rating} out of 5 stars`}
                     >
                       ★
@@ -577,33 +665,46 @@ const MovieDetailsPage = () => {
                         border: '1px solid var(--color-border)',
                         marginBottom: 'var(--spacing-md)',
                         fontFamily: 'inherit',
-                        fontSize: '1rem'
+                        fontSize: '1rem',
+                        backgroundColor: (ratingSubmitted && !isEditing) ? 'var(--color-background)' : 'white'
                       }}
-                      disabled={!user}
+                      disabled={!user || (ratingSubmitted && !isEditing)}
+                      readOnly={ratingSubmitted && !isEditing}
                     />
-                    <button
-                      onClick={handleSubmitReview}
-                      style={{
-                        padding: 'var(--spacing-sm) var(--spacing-lg)',
-                        backgroundColor: 'var(--color-primary)',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: 'var(--radius-md)',
-                        fontWeight: 500,
-                        cursor: userRating > 0 ? 'pointer' : 'not-allowed',
-                        opacity: userRating > 0 ? 1 : 0.6
-                      }}
-                      disabled={userRating === 0}
-                    >
-                      Submit Review
-                    </button>
+                    {ratingSubmitted ? (
+                      <button
+                        onClick={handleToggleEdit}
+                        style={{
+                          padding: 'var(--spacing-sm) var(--spacing-lg)',
+                          backgroundColor: isEditing ? 'var(--color-primary)' : 'var(--color-secondary)',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: 'var(--radius-md)',
+                          fontWeight: 500,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {isEditing ? 'Submit Changes' : 'Edit Review'}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handleSubmitReview}
+                        style={{
+                          padding: 'var(--spacing-sm) var(--spacing-lg)',
+                          backgroundColor: 'var(--color-primary)',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: 'var(--radius-md)',
+                          fontWeight: 500,
+                          cursor: userRating > 0 ? 'pointer' : 'not-allowed',
+                          opacity: userRating > 0 ? 1 : 0.6
+                        }}
+                        disabled={userRating === 0}
+                      >
+                        Submit Review
+                      </button>
+                    )}
                   </div>
-                )}
-                
-                {ratingSubmitted && (
-                  <p className="text-success mt-2" style={{ fontWeight: 500 }}>
-                    ✓ Your rating has been submitted!
-                  </p>
                 )}
               </div>
               
