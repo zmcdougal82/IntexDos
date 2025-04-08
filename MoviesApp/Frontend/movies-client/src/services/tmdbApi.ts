@@ -9,7 +9,6 @@ const TMDB_API_KEY = '56cfecfb2042af273b7c51099340b62e'; // TMDB API key
 
 // Base URL for poster images
 const TMDB_POSTER_BASE_URL = 'https://image.tmdb.org/t/p/w500';
-const TMDB_POSTER_FALLBACK_URL = 'https://image.tmdb.org/t/p/w300';
 
 // Types
 interface TMDBMovie {
