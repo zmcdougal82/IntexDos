@@ -93,7 +93,7 @@ const RecommendedMovies: React.FC<RecommendedMoviesProps> = ({ showId }) => {
   }
 
   if (recommendedMovies.length === 0) {
-    return <div>No recommendations available.</div>;
+    return <div>No recommendations available for show {showId}.</div>;
   }
 
   return (
