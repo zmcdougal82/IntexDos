@@ -1,10 +1,112 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Movie, Rating, User, ratingApi } from '../services/api';
 import { Link, useNavigate } from 'react-router-dom';
+import { tmdbApi } from '../services/tmdbApi';
+
+// Movie poster component to handle image loading
+const MoviePoster: React.FC<{ movie: Movie }> = ({ movie }) => {
+  // Fallback image URL 
+  const defaultImage = "https://placehold.co/320x480/2c3e50/FFFFFF?text=Poster+Coming+Soon&font=montserrat";
+  const [posterUrl, setPosterUrl] = useState<string>(defaultImage);
+  
+  // Function to fetch a poster from TMDB
+  const fetchTMDBPoster = useCallback(async () => {
+    try {
+      // Extract year from releaseYear if available
+      let year: number | undefined = undefined;
+      if (movie.releaseYear) {
+        const parsedYear = parseInt(movie.releaseYear.toString());
+        if (!isNaN(parsedYear)) {
+          year = parsedYear;
+        }
+      }
+      
+      // Use the TMDB API to get a poster
+      const tmdbPosterUrl = await tmdbApi.getPosterUrl(
+        movie.title,
+        year,
+        movie.type === 'TV Show' // isTV parameter
+      );
+      
+      if (tmdbPosterUrl) {
+        console.log(`TMDB poster found for ${movie.title}`);
+        setPosterUrl(tmdbPosterUrl);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error fetching TMDB poster:', error);
+      return false;
+    }
+  }, [movie.title, movie.releaseYear, movie.type]);
+
+  // Handle image loading errors
+  const handleImageError = useCallback(async () => {
+    console.log(`Azure poster failed to load for ${movie.title}, trying TMDB...`);
+    const tmdbSuccess = await fetchTMDBPoster();
+    
+    if (!tmdbSuccess) {
+      console.log(`No TMDB poster found for ${movie.title}, using default`);
+      setPosterUrl(defaultImage);
+    }
+  }, [fetchTMDBPoster, movie.title]);
+
+  useEffect(() => {
+    if (movie.posterUrl) {
+      // Check if this is an Azure URL
+      if (movie.posterUrl.includes('moviesappsa79595.blob.core.windows.net')) {
+        // Use the new SAS token provided for the storage account
+        const sasToken = "sp=r&st=2025-04-08T10:57:41Z&se=2026-04-08T18:57:41Z&sv=2024-11-04&sr=c&sig=pAoCi15RVSDceDfeusN0dAmD8KqKAKC4Gkjh0qaOI5I%3D";
+        
+        // Use the movie title to create the proper filename
+        // This matches the format: "Movie Title.jpg"
+        const properFileName = movie.title + '.jpg';
+        
+        // Format according to the correct pattern with unencoded spaces and the new SAS token
+        setPosterUrl(`https://moviesappsa79595.blob.core.windows.net/movie-posters/Movie Posters/${properFileName}?${sasToken}`);
+      } else {
+        // If not from expected source, use as is
+        setPosterUrl(movie.posterUrl);
+      }
+    } else {
+      // No poster URL provided, try TMDB
+      fetchTMDBPoster().then(success => {
+        if (!success) {
+          setPosterUrl(defaultImage);
+        }
+      });
+    }
+  }, [movie.posterUrl, fetchTMDBPoster]);
+  
+  return (
+    <div style={{ 
+      width: '160px', 
+      height: '240px',
+      marginRight: 'var(--spacing-xl)',
+      borderRadius: 'var(--radius-sm)',
+      boxShadow: '0 4px 8px rgba(0,0,0,0.15)',
+      flexShrink: 0,
+      overflow: 'hidden'
+    }}>
+      <img 
+        src={posterUrl}
+        alt={movie.title}
+        style={{
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          objectPosition: 'center'
+        }}
+        onError={async () => {
+          await handleImageError();
+        }}
+      />
+    </div>
+  );
+};
 
 const RatingsPage = () => {
   const [ratings, setRatings] = useState<Rating[]>([]);
-  const [ratedMovies, setRatedMovies] = useState<Map<string, Movie>>(new Map());
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [editingRating, setEditingRating] = useState<string | null>(null);
@@ -19,26 +121,18 @@ const RatingsPage = () => {
         const parsedUser = JSON.parse(storedUser);
         setUser(parsedUser);
         
-        // Fetch user's ratings
+        // Fetch user's ratings with movie details
         const fetchRatings = async () => {
           try {
-            const response = await ratingApi.getByUser(parsedUser.userId);
-            setRatings(response.data);
+            // The userId from auth response is a string, but the API expects a number
+            console.log('User from localStorage:', parsedUser);
+            // In the AuthController, the ID is returned as a string. Convert it to number if needed.
+            const userId = parsedUser.id ? parseInt(parsedUser.id) : parsedUser.userId;
+            console.log('Fetching ratings for user ID:', userId);
             
-            // We need to fetch the movie details for each rated movie
-            // This would typically come from the backend, but for this demo
-            // we'll use the movies stored in localStorage
-            const moviesJson = localStorage.getItem('cachedMovies');
-            if (moviesJson) {
-              const movies: Movie[] = JSON.parse(moviesJson);
-              const moviesMap = new Map<string, Movie>();
-              
-              for (const movie of movies) {
-                moviesMap.set(movie.showId, movie);
-              }
-              
-              setRatedMovies(moviesMap);
-            }
+            const response = await ratingApi.getByUser(userId);
+            console.log('Ratings API response:', response.data);
+            setRatings(response.data);
           } catch (err) {
             console.error('Error fetching ratings:', err);
           } finally {
@@ -63,7 +157,9 @@ const RatingsPage = () => {
 
   const deleteRating = async (rating: Rating) => {
     try {
-      await ratingApi.deleteRating(rating.userId, rating.showId);
+      // Convert the userId to the same type used when fetching ratings
+      const userId = user?.id ? parseInt(user.id) : rating.userId;
+      await ratingApi.deleteRating(userId, rating.showId);
       setRatings(prev => prev.filter(r => 
         !(r.userId === rating.userId && r.showId === rating.showId)
       ));
@@ -75,8 +171,10 @@ const RatingsPage = () => {
   const updateRating = async (rating: Rating) => {
     try {
       // Preserve the review text when updating the rating
+      // Convert the userId to the same type used when fetching ratings
+      const userId = user?.id ? parseInt(user.id) : rating.userId;
       await ratingApi.addRating({
-        userId: rating.userId,
+        userId: userId,
         showId: rating.showId,
         ratingValue: newRatingValue,
         reviewText: rating.reviewText // Preserve the existing review text
@@ -178,38 +276,50 @@ const RatingsPage = () => {
               You've rated {ratings.length} {ratings.length === 1 ? 'movie' : 'movies'}
             </p>
             <div style={{ 
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
-              gap: 'var(--spacing-xl)',
+              width: '100%',
+              maxWidth: '900px',
+              margin: '0 auto',
               padding: '0 var(--spacing-md)'
             }}>
               {ratings.map((rating) => {
-                const movie = ratedMovies.get(rating.showId);
+                // The API includes the movie data in each rating
+                const movie = rating.movie || {
+                  showId: rating.showId,
+                  title: `Movie ID: ${rating.showId}`,
+                  releaseYear: undefined,
+                  posterUrl: undefined
+                };
                 return (
                   <div key={rating.showId} style={{ 
+                    display: 'flex',
+                    flexDirection: 'column',
                     border: '1px solid var(--color-border)',
-                    borderRadius: 'var(--radius-md)',
+                    borderRadius: 'var(--radius-lg)',
                     overflow: 'hidden',
                     backgroundColor: 'var(--color-card)',
-                    boxShadow: 'var(--shadow-sm)',
-                  }}>
+                    boxShadow: '0 4px 15px rgba(0, 0, 0, 0.08)',
+                    marginBottom: 'var(--spacing-xl)',
+                    width: '100%',
+                    transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                    cursor: 'pointer',
+                    transform: 'translateZ(0)'
+                    // Note: hover effects would need to be added via CSS classes
+                    // since inline styles don't support pseudo-selectors
+                  }}
+                  onClick={() => viewMovieDetails(rating.showId)}>
                     <div style={{ 
                       display: 'flex',
-                      padding: 'var(--spacing-md)',
-                      borderBottom: rating.reviewText ? '1px solid var(--color-border)' : 'none',
-                      backgroundColor: 'var(--color-background)'
+                      padding: 'var(--spacing-xl)',
+                      backgroundColor: 'var(--color-background)',
+                      position: 'relative'
                     }}>
+                      <MoviePoster movie={movie} />
+                      
+                      {/* Movie Information */}
                       <div style={{ 
-                        width: '80px', 
-                        height: '120px',
-                        backgroundImage: movie ? `url(${movie.posterUrl || "https://via.placeholder.com/80x120?text=No+Image"})` : "url(https://via.placeholder.com/80x120?text=No+Image)",
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
-                        marginRight: 'var(--spacing-md)',
-                        borderRadius: 'var(--radius-sm)',
-                        flexShrink: 0
-                      }} />
-                      <div>
+                        flex: '0 1 220px',
+                        marginRight: 'var(--spacing-xl)'
+                      }}>
                         <h3 style={{ 
                           margin: '0 0 var(--spacing-xs) 0',
                           fontSize: '1.1rem',
@@ -227,11 +337,40 @@ const RatingsPage = () => {
                         }}>
                           {movie?.releaseYear && <span>{movie.releaseYear}</span>}
                         </div>
+                        
+                        {/* Movie description if available */}
+                        {movie?.description && (
+                          <div style={{
+                            fontSize: '0.9rem',
+                            lineHeight: '1.4',
+                            color: 'var(--color-text)',
+                            marginBottom: 'var(--spacing-md)',
+                            maxHeight: '120px',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 4,
+                            WebkitBoxOrient: 'vertical'
+                          }}>
+                            {movie.description}
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Review Section on the right with rating info moved up */}
+                      <div style={{ 
+                        flex: 1,
+                        minWidth: '200px',
+                        borderLeft: '1px solid var(--color-border)',
+                        paddingLeft: 'var(--spacing-lg)'
+                      }}>
+                        {/* Star Rating moved to review section */}
                         <div style={{ 
                           display: 'flex', 
                           alignItems: 'center', 
                           color: 'var(--color-secondary)',
-                          fontWeight: 'bold'
+                          fontWeight: 'bold',
+                          marginBottom: 'var(--spacing-xs)'
                         }}>
                           <span style={{ marginRight: '4px' }}>★</span>
                           {editingRating === rating.showId ? (
@@ -252,68 +391,94 @@ const RatingsPage = () => {
                             <span>{rating.ratingValue}/10</span>
                           )}
                         </div>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--color-text-light)', marginTop: '4px' }}>
+                        
+                        {/* Date information moved to review section */}
+                        <div style={{ 
+                          fontSize: '0.8rem', 
+                          color: 'var(--color-text-light)', 
+                          marginBottom: 'var(--spacing-sm)'
+                        }}>
                           Rated on: {new Date(rating.timestamp).toLocaleDateString()}
                         </div>
+                        
+                        {rating.reviewText && (
+                          <>
+                            <h4 style={{ 
+                              color: 'var(--color-text)', 
+                              fontSize: '0.9rem',
+                              fontWeight: 600, 
+                              marginBottom: 'var(--spacing-xs)',
+                              marginTop: 'var(--spacing-sm)'
+                            }}>
+                              Your Review
+                            </h4>
+                            <div style={{
+                              width: '100%',
+                              minHeight: '80px',
+                              padding: 'var(--spacing-md)',
+                              borderRadius: 'var(--radius-md)',
+                              border: '1px solid var(--color-border)',
+                              marginBottom: 'var(--spacing-xs)',
+                              fontFamily: 'inherit',
+                              fontSize: '0.95rem',
+                              backgroundColor: 'var(--color-background)',
+                              color: 'var(--color-text)',
+                              lineHeight: '1.5'
+                            }}>
+                              {rating.reviewText}
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
-                    
-                    {rating.reviewText && (
-                      <div style={{
-                        padding: 'var(--spacing-md)',
-                        borderBottom: '1px solid var(--color-border)',
-                        backgroundColor: 'var(--color-card)',
-                        fontSize: '0.9rem',
-                        lineHeight: '1.5',
-                        color: 'var(--color-text)'
-                      }}>
-                        <h4 style={{ 
-                          margin: '0 0 var(--spacing-xs) 0',
-                          fontSize: '0.9rem',
-                          fontWeight: 600,
-                          color: 'var(--color-text-light)'
-                        }}>
-                          Your Review:
-                        </h4>
-                        <p style={{ margin: 0 }}>{rating.reviewText}</p>
-                      </div>
-                    )}
                     
                     <div style={{ 
                       display: 'flex', 
                       justifyContent: 'space-between',
-                      padding: 'var(--spacing-sm)'
+                      padding: 'var(--spacing-md) var(--spacing-lg)',
+                      borderTop: '1px solid var(--color-border)',
+                      backgroundColor: 'rgba(0,0,0,0.02)'
                     }}>
                       {editingRating === rating.showId ? (
                         <>
                           <button
-                            onClick={() => setEditingRating(null)}
+                            onClick={(e) => {
+                              e.stopPropagation(); // Stop event propagation
+                              setEditingRating(null);
+                            }}
                             style={{
                               backgroundColor: 'var(--color-text-light)',
                               color: 'white',
                               border: 'none',
-                              padding: 'var(--spacing-xs) var(--spacing-sm)',
-                              borderRadius: 'var(--radius-sm)',
+                              padding: 'var(--spacing-sm) var(--spacing-md)',
+                              borderRadius: 'var(--radius-md)',
                               cursor: 'pointer',
-                              fontSize: '0.8rem',
+                              fontSize: '0.85rem',
+                              fontWeight: 500,
                               flex: 1,
-                              marginRight: '4px'
+                              marginRight: '8px',
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                             }}
                           >
                             Cancel
                           </button>
                           <button
-                            onClick={() => updateRating(rating)}
+                            onClick={(e) => {
+                              e.stopPropagation(); // Stop event propagation
+                              updateRating(rating);
+                            }}
                             style={{
                               backgroundColor: 'var(--color-success)',
                               color: 'white',
                               border: 'none',
-                              padding: 'var(--spacing-xs) var(--spacing-sm)',
-                              borderRadius: 'var(--radius-sm)',
+                              padding: 'var(--spacing-sm) var(--spacing-md)',
+                              borderRadius: 'var(--radius-md)',
                               cursor: 'pointer',
-                              fontSize: '0.8rem',
+                              fontSize: '0.85rem',
+                              fontWeight: 500,
                               flex: 1,
-                              marginLeft: '4px'
+                              marginLeft: '8px',
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                             }}
                           >
                             Save
@@ -322,23 +487,29 @@ const RatingsPage = () => {
                       ) : (
                         <>
                           <button
-                            onClick={() => deleteRating(rating)}
+                            onClick={(e) => {
+                              e.stopPropagation(); // Stop event propagation
+                              deleteRating(rating);
+                            }}
                             style={{
                               backgroundColor: 'var(--color-error)',
                               color: 'white',
                               border: 'none',
-                              padding: 'var(--spacing-xs) var(--spacing-sm)',
-                              borderRadius: 'var(--radius-sm)',
+                              padding: 'var(--spacing-sm) var(--spacing-md)',
+                              borderRadius: 'var(--radius-md)',
                               cursor: 'pointer',
-                              fontSize: '0.8rem',
+                              fontSize: '0.85rem',
+                              fontWeight: 500,
                               flex: 1,
-                              marginRight: '4px'
+                              marginRight: '8px',
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                             }}
                           >
                             Delete
                           </button>
                           <button
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.stopPropagation(); // Stop event propagation
                               setEditingRating(rating.showId);
                               setNewRatingValue(rating.ratingValue);
                             }}
@@ -346,29 +517,35 @@ const RatingsPage = () => {
                               backgroundColor: 'var(--color-primary)',
                               color: 'white',
                               border: 'none',
-                              padding: 'var(--spacing-xs) var(--spacing-sm)',
-                              borderRadius: 'var(--radius-sm)',
+                              padding: 'var(--spacing-sm) var(--spacing-md)',
+                              borderRadius: 'var(--radius-md)',
                               cursor: 'pointer',
-                              fontSize: '0.8rem',
+                              fontSize: '0.85rem',
+                              fontWeight: 500,
                               flex: 1,
-                              marginLeft: '4px',
-                              marginRight: '4px'
+                              margin: '0 8px',
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                             }}
                           >
                             Edit
                           </button>
                           <button
-                            onClick={() => viewMovieDetails(rating.showId)}
+                            onClick={(e) => {
+                              e.stopPropagation(); // Stop event propagation
+                              viewMovieDetails(rating.showId);
+                            }}
                             style={{
                               backgroundColor: 'var(--color-secondary)',
                               color: 'white',
                               border: 'none',
-                              padding: 'var(--spacing-xs) var(--spacing-sm)',
-                              borderRadius: 'var(--radius-sm)',
+                              padding: 'var(--spacing-sm) var(--spacing-md)',
+                              borderRadius: 'var(--radius-md)',
                               cursor: 'pointer',
-                              fontSize: '0.8rem',
+                              fontSize: '0.85rem',
+                              fontWeight: 500,
                               flex: 1,
-                              marginLeft: '4px'
+                              marginLeft: '8px',
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                             }}
                           >
                             Details
