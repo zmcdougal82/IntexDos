@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MoviesApp.API.Data;
@@ -5,8 +7,7 @@ using MoviesApp.API.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace MoviesApp.API.Controllers
@@ -16,14 +17,19 @@ namespace MoviesApp.API.Controllers
     public class UsersController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public UsersController(ApplicationDbContext context)
+        public UsersController(
+            ApplicationDbContext context,
+            UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: api/Users
         [HttpGet]
+        [Authorize(Roles = "Admin")] // Only admins can list all users
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
             // In a real application you'd want to restrict this endpoint to admins
@@ -43,72 +49,56 @@ namespace MoviesApp.API.Controllers
 
         // GET: api/Users/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<User>> GetUser(int id)
+        [Authorize] // Require authentication
+        public async Task<ActionResult<ApplicationUser>> GetUser(string id)
         {
-            var user = await _context.Users.FindAsync(id);
+            var user = await _userManager.FindByIdAsync(id);
 
             if (user == null)
             {
                 return NotFound();
             }
 
-            // Don't return sensitive information like password hash
-            user.PasswordHash = null;
-
-            return user;
-        }
-
-        // POST: api/Users/register
-        [HttpPost("register")]
-        public async Task<ActionResult<User>> RegisterUser(RegisterUserModel model)
-        {
-            // Check if email is already in use
-            if (await _context.Users.AnyAsync(u => u.Email == model.Email))
+            // Don't return sensitive information
+            return new ApplicationUser
             {
-                return Conflict("Email is already in use");
-            }
-
-            // Create new user
-            var user = new User
-            {
-                Name = model.Name,
-                Email = model.Email,
-                PasswordHash = HashPassword(model.Password),
-                Role = "User" // Default role
+                Id = user.Id,
+                UserName = user.UserName,
+                Email = user.Email,
+                Name = user.Name,
+                Phone = user.Phone,
+                Age = user.Age,
+                Gender = user.Gender,
+                City = user.City,
+                State = user.State,
+                Zip = user.Zip,
+                Netflix = user.Netflix,
+                AmazonPrime = user.AmazonPrime,
+                DisneyPlus = user.DisneyPlus,
+                ParamountPlus = user.ParamountPlus,
+                Max = user.Max,
+                Hulu = user.Hulu,
+                AppleTVPlus = user.AppleTVPlus,
+                Peacock = user.Peacock
             };
-
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-
-            // Don't return sensitive information like password hash
-            user.PasswordHash = null;
-
-            return CreatedAtAction(nameof(GetUser), new { id = user.UserId }, user);
         }
 
-        // POST: api/Users/login
-        [HttpPost("login")]
-        public async Task<ActionResult<User>> Login(LoginModel model)
-        {
-            var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.Email == model.Email);
-
-            if (user == null || user.PasswordHash != HashPassword(model.Password))
-            {
-                return Unauthorized("Invalid email or password");
-            }
-
-            // Don't return sensitive information like password hash
-            user.PasswordHash = null;
-
-            return Ok(user);
-        }
 
         // PUT: api/Users/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateUser(int id, UpdateUserModel model)
+        [Authorize] // Require authentication
+        public async Task<IActionResult> UpdateUser(string id, UpdateUserModel model)
         {
-            var user = await _context.Users.FindAsync(id);
+            // Get the current user ID from the claims
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            
+            // Check if the user is trying to update their own profile or is an admin
+            if (userId != id && !User.IsInRole("Admin"))
+            {
+                return Forbid("You can only update your own profile");
+            }
+            
+            var user = await _userManager.FindByIdAsync(id);
             if (user == null)
             {
                 return NotFound();
@@ -194,43 +184,43 @@ namespace MoviesApp.API.Controllers
             // Update password if provided
             if (!string.IsNullOrEmpty(model.Password))
             {
-                user.PasswordHash = HashPassword(model.Password);
+                // Remove the old password
+                var removePasswordResult = await _userManager.RemovePasswordAsync(user);
+                if (!removePasswordResult.Succeeded)
+                {
+                    foreach (var error in removePasswordResult.Errors)
+                    {
+                        ModelState.AddModelError(string.Empty, error.Description);
+                    }
+                    return BadRequest(ModelState);
+                }
+                
+                // Add the new password
+                var addPasswordResult = await _userManager.AddPasswordAsync(user, model.Password);
+                if (!addPasswordResult.Succeeded)
+                {
+                    foreach (var error in addPasswordResult.Errors)
+                    {
+                        ModelState.AddModelError(string.Empty, error.Description);
+                    }
+                    return BadRequest(ModelState);
+                }
             }
 
-            try
+            // Save changes
+            var result = await _userManager.UpdateAsync(user);
+            if (!result.Succeeded)
             {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!UserExists(id))
+                foreach (var error in result.Errors)
                 {
-                    return NotFound();
+                    ModelState.AddModelError(string.Empty, error.Description);
                 }
-                else
-                {
-                    throw;
-                }
+                return BadRequest(ModelState);
             }
 
             return NoContent();
         }
 
-        private bool UserExists(int id)
-        {
-            return _context.Users.Any(e => e.UserId == id);
-        }
-
-        private string HashPassword(string password)
-        {
-            // In a real application use a proper password hashing library like BCrypt
-            // This is a simplified example using SHA256
-            using (var sha256 = SHA256.Create())
-            {
-                var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-                return Convert.ToBase64String(hashedBytes);
-            }
-        }
     }
 
     // Input models
