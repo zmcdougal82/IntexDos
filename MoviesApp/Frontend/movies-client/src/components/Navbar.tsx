@@ -68,7 +68,7 @@ const Navbar = () => {
                   fontSize: '16px'
                 }}
               >
-                Logout
+                LogocxZxCZxcZut
               </button>
             </>
           ) : (
