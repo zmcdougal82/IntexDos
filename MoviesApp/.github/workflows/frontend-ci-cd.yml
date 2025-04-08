@@ -15,7 +15,7 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v3
 
@@ -29,27 +29,26 @@ jobs:
     - name: Install dependencies
       run: npm ci
       working-directory: MoviesApp/Frontend/movies-client
-      
+
     - name: Build
       run: npm run build
       working-directory: MoviesApp/Frontend/movies-client
-      
-    # Optional: Run tests if you have them
-    # - name: Test
-    #   run: npm test
-    #   working-directory: MoviesApp/Frontend/movies-client
 
-    # Deploy to Azure Static Web Apps (only on push to main, not on PR)
-    - name: Deploy to Azure Static Web Apps
+    # For a regular Azure Storage Static Website
+    - name: Deploy to Azure Storage
       if: github.event_name != 'pull_request'
-      uses: Azure/static-web-apps-deploy@v1
+      uses: azure/CLI@v1
       with:
-        azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
-        repo_token: ${{ secrets.GITHUB_TOKEN }} # Used for GitHub integration
-        action: "upload"
-        app_location: "MoviesApp/Frontend/movies-client" # Location of your React app
-        api_location: "" # Optional: API directory if using Azure Functions
-        output_location: "dist" # Build output location (Vite default is 'dist')
-        skip_app_build: true # We're building the app in a separate step
-      # Note: You'll need to add AZURE_STATIC_WEB_APPS_API_TOKEN secret in your GitHub repo settings
-      # Get this from Azure Portal when creating your Static Web App
+        inlineScript: |
+          az storage blob upload-batch --account-name moviesappsa79595 --auth-mode key --source MoviesApp/Frontend/movies-client/dist/ --destination '$web' --overwrite true
+      env:
+        AZURE_STORAGE_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
+
+    # Purge CDN endpoint to refresh content (if using Azure CDN)
+    - name: Purge CDN endpoint
+      if: github.event_name != 'pull_request'
+      uses: azure/CLI@v1
+      with:
+        inlineScript: |
+          az cdn endpoint purge --content-paths "/*" --profile-name "moviesappcdn" --name "moviesappsa79595" --resource-group "MoviesAppRG" || echo "CDN purge not configured - skipping"
+      # Note: The above command will fail gracefully if CDN is not configured
