@@ -1,0 +1,39 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MoviesApp", "MoviesApp", "{E65A17AF-5BF8-6CE2-A4A6-6923C337B44C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataUploader", "MoviesApp\DataUploader\DataUploader.csproj", "{659217A4-B57D-8A19-4D3A-7A20B11B5A13}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Backend", "Backend", "{3F9DE71A-F7F6-2BFF-6239-A152F3596936}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoviesApp.API", "MoviesApp\Backend\MoviesApp.API\MoviesApp.API.csproj", "{9FF07786-268B-101F-FBE6-06FF0525329D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{659217A4-B57D-8A19-4D3A-7A20B11B5A13}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{659217A4-B57D-8A19-4D3A-7A20B11B5A13}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{659217A4-B57D-8A19-4D3A-7A20B11B5A13}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{659217A4-B57D-8A19-4D3A-7A20B11B5A13}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9FF07786-268B-101F-FBE6-06FF0525329D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9FF07786-268B-101F-FBE6-06FF0525329D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9FF07786-268B-101F-FBE6-06FF0525329D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9FF07786-268B-101F-FBE6-06FF0525329D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{659217A4-B57D-8A19-4D3A-7A20B11B5A13} = {E65A17AF-5BF8-6CE2-A4A6-6923C337B44C}
+		{3F9DE71A-F7F6-2BFF-6239-A152F3596936} = {E65A17AF-5BF8-6CE2-A4A6-6923C337B44C}
+		{9FF07786-268B-101F-FBE6-06FF0525329D} = {3F9DE71A-F7F6-2BFF-6239-A152F3596936}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B9F874E4-AAB2-4A7E-9310-23EB006B48BE}
+	EndGlobalSection
+EndGlobal
