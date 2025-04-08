@@ -124,7 +124,7 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onClick }) => {
             objectFit: 'cover',
             objectPosition: 'center'
           }}
-          onError={async (e) => {
+          onError={async () => {
             await handleImageError();
           }}
         />
