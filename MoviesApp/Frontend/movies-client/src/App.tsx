@@ -8,6 +8,8 @@ import RegisterPage from './pages/RegisterPage';
 import PrivacyPage from './pages/PrivacyPage';
 import AdminMoviesPage from './pages/AdminMoviesPage';
 import ProfilePage from './pages/ProfilePage';
+import WatchlistPage from './pages/WatchlistPage';
+import RatingsPage from './pages/RatingsPage';
 import Navbar from './components/Navbar';
 
 function App() {
@@ -31,6 +33,8 @@ function App() {
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/admin/movies" element={<AdminMoviesPage />} />
+            <Route path="/watchlist" element={<WatchlistPage />} />
+            <Route path="/ratings" element={<RatingsPage />} />
           </Routes>
         </main>
         <footer style={{ 

@@ -183,8 +183,7 @@ const TVShowsPage = () => {
               { id: 'britishtvshows', label: 'British TV Shows' },
               { id: 'romantictvshows', label: 'Romantic TV Shows' },
               { id: 'languagetvshows', label: 'Language Shows' },
-              { id: 'naturetv', label: 'Nature TV' },
-              { id: 'spirituality', label: 'Spirituality' }
+              { id: 'naturetv', label: 'Nature TV' }
             ].map(genre => (
               <button
                 key={genre.id}

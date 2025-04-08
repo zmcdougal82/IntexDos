@@ -13,6 +13,7 @@ const MovieDetailsPage = () => {
   const [userRating, setUserRating] = useState<number>(0);
   const [user, setUser] = useState<User | null>(null);
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
+  const [posterUrl, setPosterUrl] = useState<string>("https://via.placeholder.com/320x480?text=No+Image");
   
   useEffect(() => {
     // Check if user is logged in
@@ -35,6 +36,28 @@ const MovieDetailsPage = () => {
         // Fetch movie details
         const movieResponse = await movieApi.getById(id);
         setMovie(movieResponse.data);
+        
+        // Process the poster URL
+        if (movieResponse.data.posterUrl) {
+          const url = movieResponse.data.posterUrl;
+          
+          // Check if this is an Azure URL
+          if (url.includes('moviesappsa79595.blob.core.windows.net')) {
+            // Use the new SAS token provided for the storage account
+            const sasToken = "sp=r&st=2025-04-08T10:57:41Z&se=2026-04-08T18:57:41Z&sv=2024-11-04&sr=c&sig=pAoCi15RVSDceDfeusN0dAmD8KqKAKC4Gkjh0qaOI5I%3D";
+            
+            // Create properly formatted URL with the movie title
+            const properFileName = movieResponse.data.title + '.jpg';
+            
+            // Format according to the correct pattern with unencoded spaces and the new SAS token
+            setPosterUrl(`https://moviesappsa79595.blob.core.windows.net/movie-posters/Movie Posters/${properFileName}?${sasToken}`);
+          } else {
+            // If not from expected source, use as is
+            setPosterUrl(url);
+          }
+        } else {
+          setPosterUrl("https://via.placeholder.com/320x480?text=No+Image");
+        }
         
         // Fetch ratings for this movie
         const ratingsResponse = await ratingApi.getByMovie(id);
@@ -145,15 +168,15 @@ const MovieDetailsPage = () => {
             {/* Movie poster */}
             <div style={{ flexBasis: '320px', flexShrink: 0 }}>
               <div style={{ position: 'relative' }}>
-                <img 
-                  src={movie.posterUrl || "https://via.placeholder.com/320x480?text=No+Image"} 
-                  alt={movie.title}
-                  style={{ 
-                    width: '100%',
-                    borderRadius: 'var(--radius-md)',
-                    boxShadow: 'var(--shadow-md)'
-                  }}
-                />
+              <img 
+                src={posterUrl} 
+                alt={movie.title}
+                style={{ 
+                  width: '100%',
+                  borderRadius: 'var(--radius-md)',
+                  boxShadow: 'var(--shadow-md)'
+                }}
+              />
                 {movie.type && (
                   <div style={{
                     position: 'absolute',

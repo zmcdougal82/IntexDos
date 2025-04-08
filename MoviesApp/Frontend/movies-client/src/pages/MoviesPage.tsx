@@ -178,7 +178,8 @@ const MoviesPage = () => {
               { id: 'fantasy', label: 'Fantasy' },
               { id: 'internationalmovies', label: 'International Movies' },
               { id: 'romanticmovies', label: 'Romantic Movies' },
-              { id: 'musicals', label: 'Musicals' }
+              { id: 'musicals', label: 'Musicals' },
+              { id: 'spirituality', label: 'Spirituality' }
             ].map(genre => (
               <button
                 key={genre.id}

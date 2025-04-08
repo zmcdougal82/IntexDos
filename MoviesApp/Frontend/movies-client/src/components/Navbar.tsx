@@ -94,6 +94,23 @@ const Navbar = () => {
             TV Shows
           </Link>
           
+          {user && (
+            <>
+              <Link 
+                to="/watchlist" 
+                style={{ color: 'white', textDecoration: 'none' }}
+              >
+                Watchlist
+              </Link>
+              <Link 
+                to="/ratings" 
+                style={{ color: 'white', textDecoration: 'none' }}
+              >
+                My Ratings
+              </Link>
+            </>
+          )}
+          
           {user ? (
             <UserProfileMenu user={user} onLogout={handleLogout} />
           ) : (
