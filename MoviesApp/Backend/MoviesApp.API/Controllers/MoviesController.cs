@@ -342,5 +342,102 @@ namespace MoviesApp.API.Controllers
                 return new List<Movie>();
             }
         }
+
+        // POST: api/Movies
+        [HttpPost]
+        public async Task<ActionResult<Movie>> CreateMovie([FromBody] Movie movie)
+        {
+            try
+            {
+                _context.Movies.Add(movie);
+                await _context.SaveChangesAsync();
+
+                return CreatedAtAction(nameof(GetMovie), new { id = movie.ShowId }, movie);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        // PUT: api/Movies/5
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateMovie(string id, [FromBody] Movie movie)
+        {
+            if (id != movie.ShowId)
+            {
+                return BadRequest("Movie ID mismatch");
+            }
+
+            try
+            {
+                var existingMovie = await _context.Movies.FindAsync(id);
+                if (existingMovie == null)
+                {
+                    return NotFound($"Movie with ID {id} not found");
+                }
+
+                // Update properties
+                existingMovie.Title = movie.Title;
+                existingMovie.Type = movie.Type;
+                existingMovie.Director = movie.Director;
+                existingMovie.Cast = movie.Cast;
+                existingMovie.Country = movie.Country;
+                existingMovie.ReleaseYear = movie.ReleaseYear;
+                existingMovie.Rating = movie.Rating;
+                existingMovie.Duration = movie.Duration;
+                existingMovie.Description = movie.Description;
+                existingMovie.PosterUrl = movie.PosterUrl;
+
+                // Mark as modified
+                _context.Entry(existingMovie).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+
+                return NoContent();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!MovieExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        // DELETE: api/Movies/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteMovie(string id)
+        {
+            try
+            {
+                var movie = await _context.Movies.FindAsync(id);
+                if (movie == null)
+                {
+                    return NotFound($"Movie with ID {id} not found");
+                }
+
+                _context.Movies.Remove(movie);
+                await _context.SaveChangesAsync();
+
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        private bool MovieExists(string id)
+        {
+            return _context.Movies.Any(e => e.ShowId == id);
+        }
     }
 }
