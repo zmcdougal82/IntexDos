@@ -122,6 +122,7 @@ export interface Rating {
   reviewText?: string;
   timestamp: string;
   user?: User;
+  movie?: Movie;
 }
 
 // API functions for Movies
