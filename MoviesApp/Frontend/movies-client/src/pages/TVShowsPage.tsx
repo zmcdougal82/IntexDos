@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Movie, movieApi } from '../services/api';
 import MovieCard from '../components/MovieCard';
+import { useNavigate } from 'react-router-dom';
 
 const TVShowsPage = () => {
   const [tvShows, setTVShows] = useState<Movie[]>([]);
@@ -10,6 +11,7 @@ const TVShowsPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchTVShows = async () => {
@@ -225,7 +227,11 @@ const TVShowsPage = () => {
             padding: '0 var(--spacing-md)'
           }}>
             {tvShows.map((show) => (
-              <MovieCard key={show.showId} movie={show} />
+              <MovieCard 
+                key={show.showId} 
+                movie={show} 
+                onClick={() => navigate(`/movie/${show.showId}`)}
+              />
             ))}
           </div>
         )}

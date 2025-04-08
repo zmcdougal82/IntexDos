@@ -5,7 +5,13 @@ using MoviesApp.API.Data;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // Configure JSON serialization to ignore circular references
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.MaxDepth = 64; // Increase max depth to handle nested objects
+    });
 
 // Add Entity Framework Core and DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
