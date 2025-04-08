@@ -7,7 +7,7 @@ const getApiUrl = () => {
     return 'https://moviesapp-api-fixed.azurewebsites.net/api';
   }
   // If running locally
-  return 'http://localhost:5237/api';
+  return 'http://localhost:5238/api';
 };
 
 const API_URL = getApiUrl();

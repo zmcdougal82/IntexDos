@@ -15,11 +15,23 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onClick }) => {
       style={{ 
         cursor: onClick ? 'pointer' : 'default',
         width: '220px',
-        margin: '15px',
-        borderRadius: '8px',
+        borderRadius: 'var(--radius-md)',
         overflow: 'hidden',
-        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-        transition: 'transform 0.3s ease',
+        boxShadow: 'var(--shadow-md)',
+        transition: 'all var(--transition-normal)',
+        backgroundColor: 'var(--color-card)',
+        transform: 'translateY(0)',
+        position: 'relative'
+      }}
+      onMouseOver={(e) => {
+        const target = e.currentTarget;
+        target.style.transform = 'translateY(-5px)';
+        target.style.boxShadow = 'var(--shadow-lg)';
+      }}
+      onMouseOut={(e) => {
+        const target = e.currentTarget;
+        target.style.transform = 'translateY(0)';
+        target.style.boxShadow = 'var(--shadow-md)';
       }}
     >
       <div 
@@ -28,26 +40,65 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onClick }) => {
           backgroundImage: `url(${movie.posterUrl || defaultImage})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
+          borderBottom: '1px solid var(--color-border)'
         }} 
       />
-      <div style={{ padding: '12px' }}>
+      
+      {/* Genre indicator */}
+      {movie.type && (
+        <div style={{
+          position: 'absolute',
+          top: 'var(--spacing-sm)',
+          right: 'var(--spacing-sm)',
+          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          color: 'white',
+          padding: '2px 8px',
+          borderRadius: '12px',
+          fontSize: '11px',
+          fontWeight: 500,
+          textTransform: 'uppercase',
+          letterSpacing: '0.5px'
+        }}>
+          {movie.type}
+        </div>
+      )}
+      
+      <div style={{ padding: 'var(--spacing-md)' }}>
         <h3 style={{ 
-          margin: '0 0 8px 0', 
-          fontSize: '18px',
+          margin: '0 0 var(--spacing-xs) 0', 
+          fontSize: '1rem',
+          fontWeight: 600,
           whiteSpace: 'nowrap',
           overflow: 'hidden',
-          textOverflow: 'ellipsis'
+          textOverflow: 'ellipsis',
+          color: 'var(--color-text)'
         }}>
           {movie.title}
         </h3>
         <div style={{ 
           display: 'flex', 
           justifyContent: 'space-between',
-          fontSize: '14px',
-          color: '#666'
+          alignItems: 'center',
+          fontSize: '0.85rem',
+          color: 'var(--color-text-light)'
         }}>
-          <span>{movie.releaseYear}</span>
-          <span>{movie.type}</span>
+          {movie.releaseYear && (
+            <span>{movie.releaseYear}</span>
+          )}
+          
+          {movie.rating && (
+            <span style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px'
+            }}>
+              <span style={{ 
+                fontSize: '10px', 
+                color: 'var(--color-secondary)' 
+              }}>★</span>
+              {movie.rating}
+            </span>
+          )}
         </div>
       </div>
     </div>

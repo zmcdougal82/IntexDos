@@ -62,182 +62,142 @@ const RegisterPage = () => {
   };
 
   return (
-    <div style={{
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      minHeight: 'calc(100vh - 100px)',
-      padding: '20px'
-    }}>
+    <div className="container">
       <div style={{
-        width: '100%',
-        maxWidth: '400px',
-        padding: '30px',
-        borderRadius: '8px',
-        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-        backgroundColor: 'white'
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: 'calc(100vh - 180px)',
+        padding: 'var(--spacing-lg)'
       }}>
-        <h1 style={{ textAlign: 'center', marginBottom: '30px' }}>Create Account</h1>
-        
-        {error && (
-          <div style={{
-            padding: '10px',
-            backgroundColor: '#ffeeee',
-            color: '#d32f2f',
-            borderRadius: '4px',
-            marginBottom: '20px'
+        <div className="card" style={{
+          width: '100%',
+          maxWidth: '450px',
+          padding: 'var(--spacing-xl)',
+          border: '1px solid var(--color-border)'
+        }}>
+          <h1 style={{ 
+            textAlign: 'center', 
+            marginBottom: 'var(--spacing-xl)',
+            color: 'var(--color-primary)'
           }}>
-            {error}
-          </div>
-        )}
-        
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '20px' }}>
-            <label 
-              htmlFor="name"
-              style={{
-                display: 'block',
-                marginBottom: '5px',
-                fontWeight: 'bold'
-              }}
-            >
-              Full Name
-            </label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
+            Create Your Account
+          </h1>
+          
+          {error && (
+            <div style={{
+              padding: 'var(--spacing-md)',
+              backgroundColor: '#fff5f5',
+              color: 'var(--color-error)',
+              borderRadius: 'var(--radius-md)',
+              marginBottom: 'var(--spacing-lg)',
+              borderLeft: '4px solid var(--color-error)'
+            }}>
+              {error}
+            </div>
+          )}
+          
+          <form onSubmit={handleSubmit}>
+            <div style={{ marginBottom: 'var(--spacing-lg)' }}>
+              <label htmlFor="name" className="mb-2">
+                Full Name
+              </label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                placeholder="Your full name"
+                required
+              />
+            </div>
+            
+            <div style={{ marginBottom: 'var(--spacing-lg)' }}>
+              <label htmlFor="email" className="mb-2">
+                Email Address
+              </label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="Your email address"
+                required
+              />
+            </div>
+            
+            <div style={{ marginBottom: 'var(--spacing-lg)' }}>
+              <label htmlFor="password" className="mb-2">
+                Password
+              </label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Create a password"
+                required
+              />
+              <p style={{ 
+                fontSize: '0.8rem', 
+                color: 'var(--color-text-light)',
+                marginTop: 'var(--spacing-xs)'
+              }}>
+                Password must be at least 6 characters long
+              </p>
+            </div>
+            
+            <div style={{ marginBottom: 'var(--spacing-lg)' }}>
+              <label htmlFor="confirmPassword" className="mb-2">
+                Confirm Password
+              </label>
+              <input
+                type="password"
+                id="confirmPassword"
+                name="confirmPassword"
+                value={confirmPassword}
+                onChange={handleChange}
+                placeholder="Confirm your password"
+                required
+              />
+            </div>
+            
+            <button
+              type="submit"
+              disabled={loading}
               style={{
                 width: '100%',
-                padding: '10px',
-                borderRadius: '4px',
-                border: '1px solid #ccc',
-                fontSize: '16px'
-              }}
-              required
-            />
-          </div>
-          
-          <div style={{ marginBottom: '20px' }}>
-            <label 
-              htmlFor="email"
-              style={{
-                display: 'block',
-                marginBottom: '5px',
-                fontWeight: 'bold'
+                padding: 'var(--spacing-md)',
+                backgroundColor: 'var(--color-secondary)',
+                marginTop: 'var(--spacing-md)',
+                fontSize: '1rem',
+                fontWeight: 500
               }}
             >
-              Email
-            </label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              style={{
-                width: '100%',
-                padding: '10px',
-                borderRadius: '4px',
-                border: '1px solid #ccc',
-                fontSize: '16px'
-              }}
-              required
-            />
-          </div>
-          
-          <div style={{ marginBottom: '20px' }}>
-            <label 
-              htmlFor="password"
-              style={{
-                display: 'block',
-                marginBottom: '5px',
-                fontWeight: 'bold'
-              }}
-            >
-              Password
-            </label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              style={{
-                width: '100%',
-                padding: '10px',
-                borderRadius: '4px',
-                border: '1px solid #ccc',
-                fontSize: '16px'
-              }}
-              required
-            />
-          </div>
-          
-          <div style={{ marginBottom: '20px' }}>
-            <label 
-              htmlFor="confirmPassword"
-              style={{
-                display: 'block',
-                marginBottom: '5px',
-                fontWeight: 'bold'
-              }}
-            >
-              Confirm Password
-            </label>
-            <input
-              type="password"
-              id="confirmPassword"
-              name="confirmPassword"
-              value={confirmPassword}
-              onChange={handleChange}
-              style={{
-                width: '100%',
-                padding: '10px',
-                borderRadius: '4px',
-                border: '1px solid #ccc',
-                fontSize: '16px'
-              }}
-              required
-            />
-          </div>
-          
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              width: '100%',
-              padding: '12px',
-              backgroundColor: '#0078d4',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              fontSize: '16px',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              opacity: loading ? 0.7 : 1
-            }}
-          >
-            {loading ? 'Creating account...' : 'Register'}
-          </button>
-          
-          <div style={{ 
-            marginTop: '20px',
-            textAlign: 'center'
-          }}>
-            Already have an account?{' '}
-            <Link 
-              to="/login"
-              style={{
-                color: '#0078d4',
-                textDecoration: 'none'
-              }}
-            >
-              Login here
-            </Link>
-          </div>
-        </form>
+              {loading ? 'Creating account...' : 'Create Account'}
+            </button>
+            
+            <div style={{ 
+              marginTop: 'var(--spacing-xl)',
+              textAlign: 'center',
+              color: 'var(--color-text-light)'
+            }}>
+              Already have an account?{' '}
+              <Link 
+                to="/login"
+                style={{
+                  color: 'var(--color-primary)',
+                  fontWeight: 500
+                }}
+              >
+                Sign in
+              </Link>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

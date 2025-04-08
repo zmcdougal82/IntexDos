@@ -217,155 +217,216 @@ const AdminMoviesPage: React.FC = () => {
   }
 
   return (
-    <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
-      <h1>Admin: Manage Movies</h1>
-      
-      {error && <div style={{ color: 'red', marginBottom: '20px' }}>{error}</div>}
-      
-      {/* Add Movie Button */}
-      <button
-        onClick={() => setIsAdding(true)}
-        style={{
-          padding: '10px 20px',
-          backgroundColor: '#4CAF50',
-          color: 'white',
-          border: 'none',
-          borderRadius: '4px',
-          cursor: 'pointer',
-          marginBottom: '20px'
-        }}
-      >
-        Add New Movie
-      </button>
-      
-      {/* Page Size Selector */}
-      <div style={{ marginBottom: '20px' }}>
-        <label htmlFor="pageSize" style={{ marginRight: '10px' }}>Movies per page:</label>
-        <select
-          id="pageSize"
-          value={pageSize}
-          onChange={(e) => setPageSize(parseInt(e.target.value))}
-          style={{ padding: '5px 10px' }}
-        >
-          <option value="5">5</option>
-          <option value="10">10</option>
-          <option value="20">20</option>
-          <option value="50">50</option>
-        </select>
-      </div>
-      
-      {/* Movies Table */}
-      {loading ? (
-        <p>Loading movies...</p>
-      ) : (
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr>
-                <th style={tableHeaderStyle}>ID</th>
-                <th style={tableHeaderStyle}>Title</th>
-                <th style={tableHeaderStyle}>Type</th>
-                <th style={tableHeaderStyle}>Year</th>
-                <th style={tableHeaderStyle}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {movies.map(movie => (
-                <tr key={movie.showId}>
-                  <td style={tableCellStyle}>{movie.showId}</td>
-                  <td style={tableCellStyle}>{movie.title}</td>
-                  <td style={tableCellStyle}>{movie.type}</td>
-                  <td style={tableCellStyle}>{movie.releaseYear}</td>
-                  <td style={tableCellStyle}>
-                    <button
-                      onClick={() => startEdit(movie)}
-                      style={{
-                        padding: '5px 10px',
-                        backgroundColor: '#2196F3',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        marginRight: '5px'
-                      }}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDeleteMovie(movie.showId)}
-                      style={{
-                        padding: '5px 10px',
-                        backgroundColor: '#f44336',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-      
-      {/* Pagination Controls */}
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        margin: '20px 0',
-        flexWrap: 'wrap',
-        gap: '5px'
-      }}>
-        <button
-          onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-          disabled={currentPage === 1}
-          style={{
-            padding: '5px 10px',
-            backgroundColor: currentPage === 1 ? '#ddd' : '#0078d4',
-            color: currentPage === 1 ? '#666' : 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: currentPage === 1 ? 'not-allowed' : 'pointer'
-          }}
-        >
-          Previous
-        </button>
-        
-        {pageNumbers.map(number => (
+    <div className="container">
+      <div className="mt-4 mb-5">
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          flexWrap: 'wrap',
+          marginBottom: 'var(--spacing-lg)'
+        }}>
+          <h1 style={{ color: 'var(--color-primary)' }}>
+            Admin Dashboard
+          </h1>
+          
+          {/* Add Movie Button */}
           <button
-            key={number}
-            onClick={() => setCurrentPage(number)}
+            onClick={() => setIsAdding(true)}
             style={{
-              padding: '5px 10px',
-              backgroundColor: currentPage === number ? '#0078d4' : '#f0f0f0',
-              color: currentPage === number ? 'white' : '#333',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer'
+              backgroundColor: 'var(--color-success)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 'var(--spacing-xs)'
             }}
           >
-            {number}
+            <span style={{ fontSize: '1.2rem' }}>+</span> Add New Movie
           </button>
-        ))}
+        </div>
         
-        <button
-          onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-          disabled={currentPage === totalPages}
-          style={{
-            padding: '5px 10px',
-            backgroundColor: currentPage === totalPages ? '#ddd' : '#0078d4',
-            color: currentPage === totalPages ? '#666' : 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: currentPage === totalPages ? 'not-allowed' : 'pointer'
-          }}
-        >
-          Next
-        </button>
+        {error && (
+          <div className="card mb-4" style={{ 
+            backgroundColor: '#fff5f5',
+            borderLeft: '4px solid var(--color-error)'
+          }}>
+            <p className="text-error">{error}</p>
+          </div>
+        )}
+
+        <div className="card">
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            marginBottom: 'var(--spacing-lg)'
+          }}>
+            <h2 style={{ margin: 0 }}>Movie Management</h2>
+            
+            {/* Page Size Selector */}
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center',
+              gap: 'var(--spacing-sm)'
+            }}>
+              <label htmlFor="pageSize">Movies per page:</label>
+              <select
+                id="pageSize"
+                value={pageSize}
+                onChange={(e) => setPageSize(parseInt(e.target.value))}
+                style={{ 
+                  padding: 'var(--spacing-xs) var(--spacing-sm)',
+                  width: 'auto'
+                }}
+              >
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+              </select>
+            </div>
+          </div>
+      
+          {/* Movies Table */}
+          {loading ? (
+            <div className="text-center" style={{ padding: 'var(--spacing-xl)' }}>
+              <p>Loading movies...</p>
+            </div>
+          ) : (
+            <div style={{ overflowX: 'auto' }}>
+              {movies.length > 0 ? (
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr>
+                      <th style={tableHeaderStyle}>ID</th>
+                      <th style={tableHeaderStyle}>Title</th>
+                      <th style={tableHeaderStyle}>Type</th>
+                      <th style={tableHeaderStyle}>Year</th>
+                      <th style={tableHeaderStyle}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {movies.map(movie => (
+                      <tr key={movie.showId} style={{
+                        transition: 'background-color var(--transition-normal)'
+                      }}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.backgroundColor = 'var(--color-background)';
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                      }}>
+                        <td style={tableCellStyle}>{movie.showId}</td>
+                        <td style={tableCellStyle}>{movie.title}</td>
+                        <td style={tableCellStyle}>{movie.type || 'Unknown'}</td>
+                        <td style={tableCellStyle}>{movie.releaseYear || 'Unknown'}</td>
+                        <td style={tableCellStyle}>
+                          <div style={{ display: 'flex', gap: 'var(--spacing-xs)' }}>
+                            <button
+                              onClick={() => startEdit(movie)}
+                              style={{
+                                padding: 'var(--spacing-xs) var(--spacing-sm)',
+                                backgroundColor: 'var(--color-primary-light)',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: 'var(--radius-md)',
+                                cursor: 'pointer',
+                                fontSize: '0.875rem'
+                              }}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDeleteMovie(movie.showId)}
+                              style={{
+                                padding: 'var(--spacing-xs) var(--spacing-sm)',
+                                backgroundColor: 'var(--color-error)',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: 'var(--radius-md)',
+                                cursor: 'pointer',
+                                fontSize: '0.875rem'
+                              }}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <div className="text-center" style={{ padding: 'var(--spacing-xl)' }}>
+                  <p>No movies found. Add some movies to get started!</p>
+                </div>
+              )}
+            </div>
+          )}
+      
+          {/* Pagination Controls */}
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            margin: 'var(--spacing-lg) 0 var(--spacing-sm) 0',
+            flexWrap: 'wrap',
+            gap: 'var(--spacing-xs)'
+          }}>
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              style={{
+                padding: 'var(--spacing-xs) var(--spacing-md)',
+                backgroundColor: currentPage === 1 ? 'var(--color-background)' : 'var(--color-primary)',
+                color: currentPage === 1 ? 'var(--color-text-light)' : 'white',
+                border: `1px solid ${currentPage === 1 ? 'var(--color-border)' : 'var(--color-primary)'}`,
+                borderRadius: 'var(--radius-md)',
+                cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                opacity: currentPage === 1 ? 0.7 : 1
+              }}
+            >
+              &larr; Previous
+            </button>
+            
+            {pageNumbers.map(number => (
+              <button
+                key={number}
+                onClick={() => setCurrentPage(number)}
+                style={{
+                  padding: 'var(--spacing-xs) var(--spacing-md)',
+                  backgroundColor: currentPage === number ? 'var(--color-primary)' : 'var(--color-background)',
+                  color: currentPage === number ? 'white' : 'var(--color-text)',
+                  border: `1px solid ${currentPage === number ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                  borderRadius: 'var(--radius-md)',
+                  cursor: 'pointer',
+                  minWidth: '40px'
+                }}
+              >
+                {number}
+              </button>
+            ))}
+            
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages || totalPages === 0}
+              style={{
+                padding: 'var(--spacing-xs) var(--spacing-md)',
+                backgroundColor: currentPage === totalPages || totalPages === 0 ? 'var(--color-background)' : 'var(--color-primary)',
+                color: currentPage === totalPages || totalPages === 0 ? 'var(--color-text-light)' : 'white',
+                border: `1px solid ${currentPage === totalPages || totalPages === 0 ? 'var(--color-border)' : 'var(--color-primary)'}`,
+                borderRadius: 'var(--radius-md)',
+                cursor: currentPage === totalPages || totalPages === 0 ? 'not-allowed' : 'pointer',
+                opacity: currentPage === totalPages || totalPages === 0 ? 0.7 : 1
+              }}
+            >
+              Next &rarr;
+            </button>
+          </div>
+          
+          <div className="text-center" style={{ color: 'var(--color-text-light)', fontSize: '0.875rem' }}>
+            Showing page {currentPage} of {totalPages || 1}
+          </div>
+        </div>
       </div>
       
       {/* Add Movie Modal */}

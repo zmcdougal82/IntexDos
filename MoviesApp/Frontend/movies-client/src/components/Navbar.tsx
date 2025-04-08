@@ -1,4 +1,3 @@
-// Updated Navbar component - This comment demonstrates CI/CD workflow
 import { Link, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { User } from '../services/api';
@@ -26,26 +25,54 @@ const Navbar = () => {
   
   return (
     <nav style={{
-      backgroundColor: '#0078d4',
+      backgroundColor: '#1e3a8a',
       color: 'white',
       padding: '0 20px',
-      boxShadow: '0 2px 5px rgba(0, 0, 0, 0.1)'
+      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
     }}>
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        height: '64px',
+        height: '70px',
         maxWidth: '1200px',
         margin: '0 auto'
       }}>
-        <div style={{ fontWeight: 'bold', fontSize: '22px' }}>
-          <Link to="/" style={{ color: 'white', textDecoration: 'none' }}>
-            Movies App
+        <div style={{ 
+          fontWeight: 'bold', 
+          fontSize: '24px',
+          fontFamily: 'Montserrat, sans-serif',
+          letterSpacing: '-0.5px'
+        }}>
+          <Link to="/" style={{ 
+            color: 'white', 
+            textDecoration: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <span style={{ 
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '32px',
+              height: '32px',
+              borderRadius: '8px',
+              backgroundColor: '#f97316',
+              color: 'white',
+              fontSize: '18px'
+            }}>C</span>
+            CineStream
           </Link>
         </div>
         
-        <div style={{ display: 'flex', gap: '20px' }}>
+        <div style={{ 
+          display: 'flex', 
+          gap: '24px',
+          fontFamily: 'Roboto, sans-serif',
+          fontSize: '15px',
+          fontWeight: 500
+        }}>
           <Link 
             to="/" 
             style={{ color: 'white', textDecoration: 'none' }}

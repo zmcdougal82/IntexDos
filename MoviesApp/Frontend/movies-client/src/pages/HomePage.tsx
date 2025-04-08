@@ -153,84 +153,125 @@ const HomePage = () => {
   };
 
   return (
-    <div style={{ padding: '20px' }}>
-      <h1>Movies Collection</h1>
-      
-      <div style={{ 
-        display: 'flex',
-        flexDirection: 'column',
-        margin: '20px 0',
-        maxWidth: '100%'
-      }}>
-        <div style={{ 
-          display: 'flex',
-          margin: '0 0 20px 0',
-          maxWidth: '600px'
-        }}>
-          <input
-            type="text"
-            placeholder="Search movies..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            onKeyPress={handleKeyPress}
-            style={{
-              flex: 1,
-              padding: '10px',
-              fontSize: '16px',
-              borderRadius: '4px 0 0 4px',
-              border: '1px solid #ccc',
-              borderRight: 'none'
-            }}
-          />
-          <button
-            onClick={handleSearch}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#0078d4',
-              color: 'white',
-              border: 'none',
-              borderRadius: '0 4px 4px 0',
-              cursor: 'pointer'
-            }}
-          >
-            Search
-          </button>
-        </div>
-        
-        {/* Genre filter buttons */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '20px' }}>
-          {['action', 'adventure', 'comedy', 'drama', 'horror', 'thriller'].map(genre => (
-            <button
-              key={genre}
-              onClick={() => handleGenreFilter(genre)}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: activeGenre === genre ? '#0078d4' : '#f0f0f0',
-                color: activeGenre === genre ? 'white' : '#333',
-                border: 'none',
-                borderRadius: '20px',
-                cursor: 'pointer',
-                textTransform: 'capitalize'
-              }}
-            >
-              {genre}
-            </button>
-          ))}
+    <div className="container">
+      <div className="mt-4">
+        <div className="card" style={{ padding: 'var(--spacing-xl)', marginBottom: 'var(--spacing-xl)' }}>
+          <h1 style={{ 
+            fontSize: '2.8rem', 
+            fontWeight: 700, 
+            color: 'var(--color-primary)',
+            textAlign: 'center',
+            marginBottom: 'var(--spacing-lg)'
+          }}>
+            Discover Your Next Favorite
+          </h1>
+          <p style={{ 
+            fontSize: '1.2rem', 
+            color: 'var(--color-text-light)',
+            textAlign: 'center',
+            maxWidth: '800px',
+            margin: '0 auto var(--spacing-xl) auto'
+          }}>
+            Explore our collection of movies and TV shows, personalize your recommendations, and find your perfect watch.
+          </p>
+          
+          <div style={{ 
+            display: 'flex',
+            flexDirection: 'column',
+            maxWidth: '700px',
+            margin: '0 auto'
+          }}>
+            <div style={{ 
+              display: 'flex',
+              margin: '0 0 var(--spacing-lg) 0',
+              width: '100%'
+            }}>
+              <input
+                type="text"
+                placeholder="Search titles, directors, or actors..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyPress={handleKeyPress}
+                style={{
+                  flex: 1,
+                  padding: 'var(--spacing-md)',
+                  fontSize: '1rem',
+                  borderRadius: 'var(--radius-md) 0 0 var(--radius-md)',
+                  border: '1px solid var(--color-border)',
+                  borderRight: 'none'
+                }}
+              />
+              <button
+                onClick={handleSearch}
+                style={{
+                  padding: 'var(--spacing-md) var(--spacing-lg)',
+                  backgroundColor: 'var(--color-secondary)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '0 var(--radius-md) var(--radius-md) 0',
+                  cursor: 'pointer',
+                  fontWeight: 500
+                }}
+              >
+                Search
+              </button>
+            </div>
+            
+            {/* Genre filter buttons */}
+            <div style={{ 
+              display: 'flex', 
+              flexWrap: 'wrap', 
+              gap: 'var(--spacing-sm)', 
+              justifyContent: 'center'
+            }}>
+              {['action', 'adventure', 'comedy', 'drama', 'horror', 'thriller'].map(genre => (
+                <button
+                  key={genre}
+                  onClick={() => handleGenreFilter(genre)}
+                  style={{
+                    padding: 'var(--spacing-xs) var(--spacing-md)',
+                    backgroundColor: activeGenre === genre ? 'var(--color-primary)' : 'var(--color-background)',
+                    color: activeGenre === genre ? 'white' : 'var(--color-text)',
+                    border: `1px solid ${activeGenre === genre ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                    borderRadius: '20px',
+                    cursor: 'pointer',
+                    textTransform: 'capitalize',
+                    fontSize: '0.9rem',
+                    transition: 'all var(--transition-normal)'
+                  }}
+                >
+                  {genre}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
-      {loading && <p>Loading movies...</p>}
+      {loading && !movies.length && (
+        <div className="text-center mt-4">
+          <p style={{ fontSize: '1.1rem' }}>Loading movies...</p>
+        </div>
+      )}
       
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {error && (
+        <div className="card mt-4" style={{ backgroundColor: '#feecec', borderLeft: '4px solid var(--color-error)' }}>
+          <p className="text-error">{error}</p>
+        </div>
+      )}
       
       {!loading && !error && movies.length === 0 && (
-        <p>No movies found. Try a different search term.</p>
+        <div className="card mt-4 text-center">
+          <p>No movies found. Try a different search term.</p>
+        </div>
       )}
       
       <div style={{
         display: 'flex',
         flexWrap: 'wrap',
-        justifyContent: 'flex-start'
+        justifyContent: 'center',
+        gap: 'var(--spacing-md)',
+        marginTop: 'var(--spacing-lg)'
       }}>
         {movies.map((movie, index) => {
           if (movies.length === index + 1) {
@@ -254,11 +295,18 @@ const HomePage = () => {
         })}
       </div>
       
-      {loading && <p style={{ textAlign: 'center', padding: '20px' }}>Loading more movies...</p>}
+      {loading && movies.length > 0 && (
+        <div className="text-center mt-4 mb-4">
+          <p style={{ color: 'var(--color-text-light)' }}>Loading more movies...</p>
+        </div>
+      )}
+      
       {!hasMore && movies.length > 0 && !loading && (
-        <p style={{ textAlign: 'center', padding: '20px', color: '#666' }}>
-          You've reached the end of the list
-        </p>
+        <div className="text-center mt-4 mb-4">
+          <p style={{ color: 'var(--color-text-light)' }}>
+            You've reached the end of the list
+          </p>
+        </div>
       )}
     </div>
   );

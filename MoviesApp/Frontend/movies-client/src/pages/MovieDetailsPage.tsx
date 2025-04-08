@@ -103,133 +103,275 @@ const MovieDetailsPage = () => {
     : 0;
     
   return (
-    <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
-      <button 
-        onClick={() => navigate(-1)}
-        style={{
-          padding: '8px 16px',
-          background: 'transparent',
-          border: '1px solid #ccc',
-          borderRadius: '4px',
-          cursor: 'pointer',
-          marginBottom: '20px'
-        }}
-      >
-        &larr; Back
-      </button>
-      
-      <div style={{ 
-        display: 'flex', 
-        flexDirection: 'row',
-        gap: '30px',
-        flexWrap: 'wrap'
-      }}>
-        {/* Movie poster */}
-        <div style={{ flexBasis: '300px', flexShrink: 0 }}>
-          <img 
-            src={movie.posterUrl || "https://via.placeholder.com/300x450?text=No+Image"} 
-            alt={movie.title}
-            style={{ 
-              width: '100%',
-              borderRadius: '8px',
-              boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)'
-            }}
-          />
-        </div>
+    <div className="container">
+      <div className="mt-4">
+        <button 
+          onClick={() => navigate(-1)}
+          style={{
+            padding: 'var(--spacing-sm) var(--spacing-md)',
+            background: 'transparent',
+            border: '1px solid var(--color-border)',
+            borderRadius: 'var(--radius-md)',
+            cursor: 'pointer',
+            marginBottom: 'var(--spacing-md)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 'var(--spacing-xs)',
+            transition: 'all var(--transition-normal)',
+            color: 'var(--color-text)',
+            fontWeight: 500
+          }}
+          onMouseOver={(e) => {
+            const target = e.currentTarget;
+            target.style.backgroundColor = 'var(--color-background)';
+            target.style.borderColor = 'var(--color-primary)';
+          }}
+          onMouseOut={(e) => {
+            const target = e.currentTarget;
+            target.style.backgroundColor = 'transparent';
+            target.style.borderColor = 'var(--color-border)';
+          }}
+        >
+          <span aria-hidden="true" style={{ fontSize: '1.2rem' }}>&larr;</span> Back
+        </button>
         
-        {/* Movie details */}
-        <div style={{ flex: 1, minWidth: '300px' }}>
-          <h1 style={{ marginTop: 0 }}>{movie.title}</h1>
-          
+        <div className="card" style={{ padding: 'var(--spacing-xl)' }}>
           <div style={{ 
             display: 'flex', 
-            alignItems: 'center',
-            margin: '15px 0'
+            flexDirection: 'row',
+            gap: 'var(--spacing-xl)',
+            flexWrap: 'wrap'
           }}>
-            <div style={{
-              backgroundColor: '#f3ce13',
-              color: 'black',
-              fontWeight: 'bold',
-              padding: '4px 8px',
-              borderRadius: '4px',
-              marginRight: '10px'
-            }}>
-              ⭐ {averageRating.toFixed(1)}
-            </div>
-            <span>{ratings.length} {ratings.length === 1 ? 'rating' : 'ratings'}</span>
-          </div>
-          
-          <div style={{ margin: '20px 0' }}>
-            <p><strong>Type:</strong> {movie.type}</p>
-            <p><strong>Year:</strong> {movie.releaseYear}</p>
-            {movie.director && <p><strong>Director:</strong> {movie.director}</p>}
-            {movie.duration && <p><strong>Duration:</strong> {movie.duration}</p>}
-            {movie.rating && <p><strong>Content Rating:</strong> {movie.rating}</p>}
-          </div>
-          
-          {movie.description && (
-            <div style={{ margin: '20px 0' }}>
-              <h3>Description</h3>
-              <p>{movie.description}</p>
-            </div>
-          )}
-          
-          {movie.cast && (
-            <div style={{ margin: '20px 0' }}>
-              <h3>Cast</h3>
-              <p>{movie.cast}</p>
-            </div>
-          )}
-          
-          {/* Rating functionality */}
-          <div style={{ margin: '30px 0' }}>
-            <h3>Rate this {movie.type}</h3>
-            
-            {!user && (
-              <p style={{ marginBottom: '15px' }}>
-                <a 
-                  href="/login" 
-                  onClick={(e) => {
-                    e.preventDefault();
-                    navigate('/login', { state: { from: `/movie/${id}` } });
+            {/* Movie poster */}
+            <div style={{ flexBasis: '320px', flexShrink: 0 }}>
+              <div style={{ position: 'relative' }}>
+                <img 
+                  src={movie.posterUrl || "https://via.placeholder.com/320x480?text=No+Image"} 
+                  alt={movie.title}
+                  style={{ 
+                    width: '100%',
+                    borderRadius: 'var(--radius-md)',
+                    boxShadow: 'var(--shadow-md)'
                   }}
-                  style={{ color: '#0078d4', textDecoration: 'none' }}
-                >
-                  Log in
-                </a> to rate this {movie.type}
-              </p>
-            )}
-            
-            <div style={{ display: 'flex', gap: '5px' }}>
-              {[1, 2, 3, 4, 5].map(rating => (
-                <button
-                  key={rating}
-                  onClick={() => handleRatingChange(rating)}
-                  style={{
-                    width: '40px',
-                    height: '40px',
-                    border: userRating === rating ? '2px solid #f3ce13' : '1px solid #ccc',
-                    borderRadius: '50%',
-                    background: userRating >= rating ? '#f3ce13' : 'white',
-                    cursor: user ? 'pointer' : 'not-allowed',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '16px',
-                    opacity: user ? 1 : 0.6
-                  }}
-                  disabled={!user}
-                >
-                  {rating}
-                </button>
-              ))}
+                />
+                {movie.type && (
+                  <div style={{
+                    position: 'absolute',
+                    top: 'var(--spacing-md)',
+                    right: 'var(--spacing-md)',
+                    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                    color: 'white',
+                    padding: '3px 10px',
+                    borderRadius: '20px',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px'
+                  }}>
+                    {movie.type}
+                  </div>
+                )}
+              </div>
+              
+              {/* Rating functionality for mobile devices */}
+              <div className="mt-4 mobile-rating" style={{ display: 'none' }}>
+                <h3>Rate this {movie.type || 'title'}</h3>
+                
+                {!user && (
+                  <p style={{ marginBottom: 'var(--spacing-md)' }}>
+                    <a 
+                      href="/login" 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        navigate('/login', { state: { from: `/movie/${id}` } });
+                      }}
+                      style={{ color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 500 }}
+                    >
+                      Log in
+                    </a> to rate this {movie.type || 'title'}
+                  </p>
+                )}
+                
+                <div style={{ display: 'flex', gap: 'var(--spacing-sm)' }}>
+                  {[1, 2, 3, 4, 5].map(rating => (
+                    <button
+                      key={rating}
+                      onClick={() => handleRatingChange(rating)}
+                      style={{
+                        width: '45px',
+                        height: '45px',
+                        border: userRating === rating ? `2px solid var(--color-secondary)` : `1px solid var(--color-border)`,
+                        borderRadius: '50%',
+                        background: userRating >= rating ? 'var(--color-secondary)' : 'white',
+                        color: userRating >= rating ? 'white' : 'var(--color-text)',
+                        cursor: user ? 'pointer' : 'not-allowed',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '16px',
+                        fontWeight: 'bold',
+                        opacity: user ? 1 : 0.6,
+                        transition: 'all var(--transition-normal)'
+                      }}
+                      disabled={!user}
+                    >
+                      {rating}
+                    </button>
+                  ))}
+                </div>
+                
+                {ratingSubmitted && (
+                  <p className="text-success mt-2" style={{ fontWeight: 500 }}>
+                    ✓ Your rating has been submitted!
+                  </p>
+                )}
+              </div>
             </div>
             
-            {ratingSubmitted && (
-              <p style={{ color: 'green', marginTop: '10px' }}>
-                Your rating has been submitted!
-              </p>
-            )}
+            {/* Movie details */}
+            <div style={{ flex: 1, minWidth: '300px' }}>
+              <h1 style={{ 
+                marginTop: 0, 
+                fontSize: '2.5rem',
+                color: 'var(--color-primary)',
+                marginBottom: 'var(--spacing-md)'
+              }}>
+                {movie.title}
+              </h1>
+              
+              <div style={{ 
+                display: 'flex', 
+                alignItems: 'center',
+                margin: 'var(--spacing-md) 0'
+              }}>
+                <div style={{
+                  backgroundColor: 'var(--color-secondary)',
+                  color: 'white',
+                  fontWeight: 'bold',
+                  padding: '6px 12px',
+                  borderRadius: 'var(--radius-md)',
+                  marginRight: 'var(--spacing-md)',
+                  fontSize: '1.1rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}>
+                  <span style={{ fontWeight: 'bold' }}>★</span> {averageRating.toFixed(1)}
+                </div>
+                <span style={{ color: 'var(--color-text-light)' }}>
+                  {ratings.length} {ratings.length === 1 ? 'rating' : 'ratings'}
+                </span>
+              </div>
+              
+              <div className="card" style={{ 
+                margin: 'var(--spacing-lg) 0',
+                backgroundColor: 'var(--color-background)',
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 'var(--spacing-md)'
+              }}>
+                <div style={{ minWidth: '120px', flex: 1 }}>
+                  <p style={{ margin: 0 }}><strong>Year:</strong> {movie.releaseYear || 'Unknown'}</p>
+                </div>
+                {movie.duration && (
+                  <div style={{ minWidth: '120px', flex: 1 }}>
+                    <p style={{ margin: 0 }}><strong>Duration:</strong> {movie.duration}</p>
+                  </div>
+                )}
+                {movie.rating && (
+                  <div style={{ minWidth: '120px', flex: 1 }}>
+                    <p style={{ margin: 0 }}><strong>Content Rating:</strong> {movie.rating}</p>
+                  </div>
+                )}
+              </div>
+              
+              {movie.description && (
+                <div style={{ margin: 'var(--spacing-lg) 0' }}>
+                  <h3 style={{ color: 'var(--color-text)', fontWeight: 600 }}>Description</h3>
+                  <p style={{ 
+                    lineHeight: 1.6,
+                    color: 'var(--color-text)',
+                    fontSize: '1.05rem'
+                  }}>{movie.description}</p>
+                </div>
+              )}
+              
+              {movie.director && (
+                <div style={{ margin: 'var(--spacing-lg) 0' }}>
+                  <h3 style={{ color: 'var(--color-text)', fontWeight: 600 }}>Director</h3>
+                  <p>{movie.director}</p>
+                </div>
+              )}
+              
+              {movie.cast && (
+                <div style={{ margin: 'var(--spacing-lg) 0' }}>
+                  <h3 style={{ color: 'var(--color-text)', fontWeight: 600 }}>Cast</h3>
+                  <p>{movie.cast}</p>
+                </div>
+              )}
+              
+              {/* Rating functionality for desktop */}
+              <div className="desktop-rating" style={{ 
+                margin: 'var(--spacing-xl) 0'
+              }}>
+                <h3 style={{ color: 'var(--color-text)', fontWeight: 600 }}>
+                  Rate this {movie.type || 'title'}
+                </h3>
+                
+                {!user && (
+                  <p style={{ marginBottom: 'var(--spacing-md)' }}>
+                    <a 
+                      href="/login" 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        navigate('/login', { state: { from: `/movie/${id}` } });
+                      }}
+                      style={{ 
+                        color: 'var(--color-primary)', 
+                        textDecoration: 'none',
+                        fontWeight: 500
+                      }}
+                    >
+                      Log in
+                    </a> to rate this {movie.type || 'title'}
+                  </p>
+                )}
+                
+                <div style={{ display: 'flex', gap: 'var(--spacing-sm)' }}>
+                  {[1, 2, 3, 4, 5].map(rating => (
+                    <button
+                      key={rating}
+                      onClick={() => handleRatingChange(rating)}
+                      style={{
+                        width: '45px',
+                        height: '45px',
+                        border: userRating === rating ? `2px solid var(--color-secondary)` : `1px solid var(--color-border)`,
+                        borderRadius: '50%',
+                        background: userRating >= rating ? 'var(--color-secondary)' : 'white',
+                        color: userRating >= rating ? 'white' : 'var(--color-text)',
+                        cursor: user ? 'pointer' : 'not-allowed',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '16px',
+                        fontWeight: 'bold',
+                        opacity: user ? 1 : 0.6,
+                        transition: 'all var(--transition-normal)'
+                      }}
+                      disabled={!user}
+                    >
+                      {rating}
+                    </button>
+                  ))}
+                </div>
+                
+                {ratingSubmitted && (
+                  <p className="text-success mt-2" style={{ fontWeight: 500 }}>
+                    ✓ Your rating has been submitted!
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
