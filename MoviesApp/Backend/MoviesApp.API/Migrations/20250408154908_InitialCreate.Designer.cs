@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MoviesApp.API.Data;
@@ -11,37 +12,42 @@ using MoviesApp.API.Data;
 namespace MoviesApp.API.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250408153450_InitialCreate")]
+    [Migration("20250408154908_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "8.0.3");
+            modelBuilder
+                .HasAnnotation("ProductVersion", "8.0.3")
+                .HasAnnotation("Relational:MaxIdentifierLength", 128);
+
+            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
                     b.Property<string>("Id")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
                         .HasMaxLength(256)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<string>("NormalizedName")
                         .HasMaxLength(256)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(256)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("NormalizedName")
                         .IsUnique()
-                        .HasDatabaseName("RoleNameIndex");
+                        .HasDatabaseName("RoleNameIndex")
+                        .HasFilter("[NormalizedName] IS NOT NULL");
 
                     b.ToTable("AspNetRoles", (string)null);
                 });
@@ -50,17 +56,19 @@ namespace MoviesApp.API.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ClaimType")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ClaimValue")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("RoleId")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
@@ -73,17 +81,19 @@ namespace MoviesApp.API.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ClaimType")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ClaimValue")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
@@ -95,17 +105,17 @@ namespace MoviesApp.API.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
                     b.Property<string>("LoginProvider")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ProviderKey")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ProviderDisplayName")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("LoginProvider", "ProviderKey");
 
@@ -117,10 +127,10 @@ namespace MoviesApp.API.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
                 {
                     b.Property<string>("UserId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("RoleId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("UserId", "RoleId");
 
@@ -132,16 +142,16 @@ namespace MoviesApp.API.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
                     b.Property<string>("UserId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("LoginProvider")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Name")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Value")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("UserId", "LoginProvider", "Name");
 
@@ -151,100 +161,100 @@ namespace MoviesApp.API.Migrations
             modelBuilder.Entity("MoviesApp.API.Models.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("AccessFailedCount")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int?>("Age")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int?>("AmazonPrime")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int?>("AppleTVPlus")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<string>("City")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("DisneyPlus")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<bool>("EmailConfirmed")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("bit");
 
                     b.Property<string>("Gender")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("Hulu")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<bool>("LockoutEnabled")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("bit");
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<int?>("Max")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("Netflix")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<string>("NormalizedUserName")
                         .HasMaxLength(256)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<int?>("ParamountPlus")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<string>("PasswordHash")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("Peacock")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<string>("Phone")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PhoneNumber")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("PhoneNumberConfirmed")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("bit");
 
                     b.Property<string>("SecurityStamp")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("State")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("TwoFactorEnabled")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("bit");
 
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<string>("Zip")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -253,7 +263,8 @@ namespace MoviesApp.API.Migrations
 
                     b.HasIndex("NormalizedUserName")
                         .IsUnique()
-                        .HasDatabaseName("UserNameIndex");
+                        .HasDatabaseName("UserNameIndex")
+                        .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
                 });
@@ -261,176 +272,176 @@ namespace MoviesApp.API.Migrations
             modelBuilder.Entity("MoviesApp.API.Models.Movie", b =>
                 {
                     b.Property<string>("ShowId")
-                        .HasColumnType("TEXT")
+                        .HasColumnType("nvarchar(450)")
                         .HasColumnName("show_id");
 
                     b.Property<int?>("Action")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasColumnName("Action");
 
                     b.Property<int?>("Adventure")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasColumnName("Adventure");
 
                     b.Property<int?>("AnimeSeriesInternationalTVShows")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasColumnName("AnimeSeriesInternationalTVShows");
 
                     b.Property<int?>("BritishTVShowsDocuseriesInternationalTVShows")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasColumnName("BritishTVShowsDocuseriesInternationalTVShows");
 
                     b.Property<string>("Cast")
-                        .HasColumnType("TEXT")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("cast");
 
                     b.Property<int?>("Children")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasColumnName("Children");
 
                     b.Property<int?>("Comedies")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasColumnName("Comedies");
 
                     b.Property<int?>("ComediesDramasInternationalMovies")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasColumnName("ComediesDramasInternationalMovies");
 
                     b.Property<int?>("ComediesInternationalMovies")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasColumnName("ComediesInternationalMovies");
 
                     b.Property<int?>("ComediesRomanticMovies")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasColumnName("ComediesRomanticMovies");
 
                     b.Property<string>("Country")
-                        .HasColumnType("TEXT")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("country");
 
                     b.Property<int?>("CrimeTVShowsDocuseries")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasColumnName("CrimeTVShowsDocuseries");
 
                     b.Property<string>("Description")
-                        .HasColumnType("TEXT")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("description");
 
                     b.Property<string>("Director")
-                        .HasColumnType("TEXT")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("director");
 
                     b.Property<int?>("Documentaries")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasColumnName("Documentaries");
 
                     b.Property<int?>("DocumentariesInternationalMovies")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasColumnName("DocumentariesInternationalMovies");
 
                     b.Property<int?>("Docuseries")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasColumnName("Docuseries");
 
                     b.Property<int?>("Dramas")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasColumnName("Dramas");
 
                     b.Property<int?>("DramasInternationalMovies")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasColumnName("DramasInternationalMovies");
 
                     b.Property<int?>("DramasRomanticMovies")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasColumnName("DramasRomanticMovies");
 
                     b.Property<string>("Duration")
-                        .HasColumnType("TEXT")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("duration");
 
                     b.Property<int?>("FamilyMovies")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasColumnName("FamilyMovies");
 
                     b.Property<int?>("Fantasy")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasColumnName("Fantasy");
 
                     b.Property<int?>("HorrorMovies")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasColumnName("HorrorMovies");
 
                     b.Property<int?>("InternationalMoviesThrillers")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasColumnName("InternationalMoviesThrillers");
 
                     b.Property<int?>("InternationalTVShowsRomanticTVShowsTVDramas")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasColumnName("InternationalTVShowsRomanticTVShowsTVDramas");
 
                     b.Property<int?>("KidsTV")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasColumnName("KidsTV");
 
                     b.Property<int?>("LanguageTVShows")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasColumnName("LanguageTVShows");
 
                     b.Property<int?>("Musicals")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasColumnName("Musicals");
 
                     b.Property<int?>("NatureTV")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasColumnName("NatureTV");
 
                     b.Property<string>("PosterUrl")
-                        .HasColumnType("TEXT")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("poster_url");
 
                     b.Property<string>("Rating")
-                        .HasColumnType("TEXT")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("rating");
 
                     b.Property<int?>("RealityTV")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasColumnName("RealityTV");
 
                     b.Property<int?>("ReleaseYear")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasColumnName("release_year");
 
                     b.Property<int?>("Spirituality")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasColumnName("Spirituality");
 
                     b.Property<int?>("TVAction")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasColumnName("TVAction");
 
                     b.Property<int?>("TVComedies")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasColumnName("TVComedies");
 
                     b.Property<int?>("TVDramas")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasColumnName("TVDramas");
 
                     b.Property<int?>("TalkShowsTVComedies")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasColumnName("TalkShowsTVComedies");
 
                     b.Property<int?>("Thrillers")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasColumnName("Thrillers");
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasColumnType("TEXT")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("title");
 
                     b.Property<string>("Type")
-                        .HasColumnType("TEXT")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("type");
 
                     b.HasKey("ShowId");
@@ -441,22 +452,22 @@ namespace MoviesApp.API.Migrations
             modelBuilder.Entity("MoviesApp.API.Models.Rating", b =>
                 {
                     b.Property<int>("UserId")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasColumnName("user_id");
 
                     b.Property<string>("ShowId")
-                        .HasColumnType("TEXT")
+                        .HasColumnType("nvarchar(450)")
                         .HasColumnName("show_id");
 
                     b.Property<string>("ApplicationUserId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("RatingValue")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasColumnName("rating");
 
                     b.Property<DateTime?>("Timestamp")
-                        .HasColumnType("TEXT")
+                        .HasColumnType("datetime2")
                         .HasColumnName("timestamp");
 
                     b.HasKey("UserId", "ShowId");
@@ -472,81 +483,83 @@ namespace MoviesApp.API.Migrations
                 {
                     b.Property<int>("UserId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasColumnName("user_id");
 
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserId"));
+
                     b.Property<int?>("Age")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasColumnName("age");
 
                     b.Property<int?>("AmazonPrime")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasColumnName("AmazonPrime");
 
                     b.Property<int?>("AppleTVPlus")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasColumnName("AppleTVPlus");
 
                     b.Property<string>("City")
-                        .HasColumnType("TEXT")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("city");
 
                     b.Property<int?>("DisneyPlus")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasColumnName("DisneyPlus");
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("TEXT")
+                        .HasColumnType("nvarchar(450)")
                         .HasColumnName("email");
 
                     b.Property<string>("Gender")
-                        .HasColumnType("TEXT")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("gender");
 
                     b.Property<int?>("Hulu")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasColumnName("Hulu");
 
                     b.Property<int?>("Max")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasColumnName("Max");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("TEXT")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("name");
 
                     b.Property<int?>("Netflix")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasColumnName("Netflix");
 
                     b.Property<int?>("ParamountPlus")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasColumnName("ParamountPlus");
 
                     b.Property<string>("PasswordHash")
-                        .HasColumnType("TEXT")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("password_hash");
 
                     b.Property<int?>("Peacock")
-                        .HasColumnType("INTEGER")
+                        .HasColumnType("int")
                         .HasColumnName("Peacock");
 
                     b.Property<string>("Phone")
-                        .HasColumnType("TEXT")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("phone");
 
                     b.Property<string>("Role")
-                        .HasColumnType("TEXT")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("role");
 
                     b.Property<string>("State")
-                        .HasColumnType("TEXT")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("state");
 
                     b.Property<string>("Zip")
-                        .HasColumnType("TEXT")
+                        .HasColumnType("nvarchar(max)")
                         .HasColumnName("zip");
 
                     b.HasKey("UserId");
