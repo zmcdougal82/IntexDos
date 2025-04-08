@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
-import Papa from 'papaparse';
-import MovieCard from './MovieCard';
-import { movieApi, Movie } from '../services/api';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { useEffect, useState } from "react";
+import Papa from "papaparse";
+import MovieCard from "./MovieCard";
+import { movieApi, Movie } from "../services/api";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 interface RecommendedMoviesProps {
   showId: string | undefined;
@@ -31,9 +31,9 @@ const RecommendedMovies: React.FC<RecommendedMoviesProps> = ({ showId }) => {
 
       try {
         // Fetch the CSV file
-        const response = await fetch('/contentRecommendations.csv');
+        const response = await fetch("/contentRecommendations.csv");
         if (!response.ok) {
-          throw new Error('Failed to fetch the recommendations CSV.');
+          throw new Error("Failed to fetch the recommendations CSV.");
         }
 
         const csvText = await response.text();
@@ -48,7 +48,7 @@ const RecommendedMovies: React.FC<RecommendedMoviesProps> = ({ showId }) => {
             );
 
             if (filtered.length === 0) {
-              setError('No recommendations found for this show.');
+              setError("No recommendations found for this show.");
               setLoading(false);
               return;
             }
@@ -79,14 +79,14 @@ const RecommendedMovies: React.FC<RecommendedMoviesProps> = ({ showId }) => {
             setLoading(false);
           },
           error: (parseError: any) => {
-            console.error('CSV parsing error:', parseError);
-            setError('Error parsing CSV file.');
+            console.error("CSV parsing error:", parseError);
+            setError("Error parsing CSV file.");
             setLoading(false);
           },
         });
       } catch (err) {
-        console.error('Error fetching recommendations CSV:', err);
-        setError('Failed to fetch recommendations.');
+        console.error("Error fetching recommendations CSV:", err);
+        setError("Failed to fetch recommendations.");
         setLoading(false);
       }
     };
@@ -113,16 +113,22 @@ const RecommendedMovies: React.FC<RecommendedMoviesProps> = ({ showId }) => {
   };
 
   return (
-    <div style={{ marginTop: '1rem' }}>
-      <h2 style={{ marginBottom: '1.5rem', paddingTop:'1.0rem', textAlign: 'center' }}>
+    <div style={{ marginTop: "1rem" }}>
+      <h2
+        style={{
+          marginBottom: "1.5rem",
+          paddingTop: "1.0rem",
+          textAlign: "center",
+        }}
+      >
         Top Suggestions Related to This Content
       </h2>
       <div
         style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          gap: '1.5rem',
-          justifyItems: 'center',
+          display: "flex",
+          justifyContent: "space-between",
+          gap: "1.5rem",
+          justifyItems: "center",
         }}
       >
         {recommendedMovies.map((movie) => (
