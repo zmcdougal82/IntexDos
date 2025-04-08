@@ -225,36 +225,37 @@ const HomePage = () => {
               justifyContent: 'center'
             }}>
               {[
-                // Movie genres
+                // Movie genres with exact IDs matching backend controller
                 { id: 'action', label: 'Action' },
                 { id: 'adventure', label: 'Adventure' },
                 { id: 'comedy', label: 'Comedy' },
                 { id: 'drama', label: 'Drama' },
-                { id: 'horror', label: 'Horror Movies' },
-                { id: 'thriller', label: 'Thrillers' },
-                { id: 'documentary', label: 'Documentaries' },
-                { id: 'family', label: 'Family Movies' },
+                { id: 'horrormovies', label: 'Horror Movies' },
+                { id: 'thrillers', label: 'Thrillers' },
+                { id: 'documentaries', label: 'Documentaries' },
+                { id: 'familymovies', label: 'Family Movies' },
                 { id: 'fantasy', label: 'Fantasy' },
-                { id: 'romance', label: 'Romantic Movies' },
-                { id: 'international', label: 'International Movies' },
-                { id: 'musical', label: 'Musicals' },
+                { id: 'romanticmovies', label: 'Romantic Movies' },
+                { id: 'internationalmovies', label: 'International Movies' },
+                { id: 'musicals', label: 'Musicals' },
                 
-                // TV Show genres
+                // TV Show genres with exact IDs matching backend controller
                 { id: 'tvaction', label: 'TV Action' },
-                { id: 'tvcomedy', label: 'TV Comedies' },
-                { id: 'tvdrama', label: 'TV Dramas' },
+                { id: 'tvcomedies', label: 'TV Comedies' },
+                { id: 'tvdramas', label: 'TV Dramas' },
                 { id: 'docuseries', label: 'Docuseries' },
                 { id: 'kidstv', label: 'Kids\' TV' },
-                { id: 'reality', label: 'Reality TV' },
-                { id: 'tvinter', label: 'International TV Shows' },
-                { id: 'crime', label: 'Crime TV Shows' },
-                { id: 'talk', label: 'Talk Shows' },
-                { id: 'anime', label: 'Anime Series' },
-                { id: 'british', label: 'British TV Shows' },
-                { id: 'romantic', label: 'Romantic TV Shows' },
-                { id: 'language', label: 'Language TV Shows' },
-                { id: 'nature', label: 'Nature TV' },
-                { id: 'spiritual', label: 'Spirituality' }
+                { id: 'realitytv', label: 'Reality TV' },
+                { id: 'internationaltvshows', label: 'International TV Shows' },
+                { id: 'crimetvshows', label: 'Crime TV Shows' },
+                { id: 'talkshows', label: 'Talk Shows' },
+                { id: 'animeseries', label: 'Anime Series' },
+                { id: 'britishtvshows', label: 'British TV Shows' },
+                { id: 'romantictvshows', label: 'Romantic TV Shows' },
+                { id: 'languagetvshows', label: 'Language TV Shows' },
+                { id: 'naturetv', label: 'Nature TV' },
+                { id: 'spirituality', label: 'Spirituality' },
+                { id: 'children', label: 'Children' }
               ].map(genre => (
                 <button
                   key={genre.id}

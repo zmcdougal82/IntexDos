@@ -133,14 +133,14 @@ const MoviesPage = () => {
               { id: 'adventure', label: 'Adventure' },
               { id: 'comedy', label: 'Comedy' },
               { id: 'drama', label: 'Drama' },
-              { id: 'horror', label: 'Horror Movies' },
-              { id: 'thriller', label: 'Thrillers' },
-              { id: 'documentary', label: 'Documentaries' },
-              { id: 'family', label: 'Family Movies' },
+              { id: 'horrormovies', label: 'Horror Movies' },
+              { id: 'thrillers', label: 'Thrillers' },
+              { id: 'documentaries', label: 'Documentaries' },
+              { id: 'familymovies', label: 'Family Movies' },
               { id: 'fantasy', label: 'Fantasy' },
-              { id: 'international', label: 'International Movies' },
-              { id: 'romance', label: 'Romantic Movies' },
-              { id: 'musical', label: 'Musicals' }
+              { id: 'internationalmovies', label: 'International Movies' },
+              { id: 'romanticmovies', label: 'Romantic Movies' },
+              { id: 'musicals', label: 'Musicals' }
             ].map(genre => (
               <button
                 key={genre.id}

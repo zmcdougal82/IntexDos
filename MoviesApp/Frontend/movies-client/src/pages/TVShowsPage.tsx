@@ -132,18 +132,21 @@ const TVShowsPage = () => {
             marginBottom: 'var(--spacing-lg)'
           }}>
             {[
-              { id: 'action', label: 'TV Action' },
-              { id: 'comedy', label: 'TV Comedies' },
-              { id: 'drama', label: 'TV Dramas' },
-              { id: 'documentary', label: 'Docuseries' },
-              { id: 'kids', label: 'Kids\' TV' },
-              { id: 'reality', label: 'Reality TV' },
-              { id: 'international', label: 'International TV Shows' },
-              { id: 'crime', label: 'Crime TV Shows' },
-              { id: 'talk', label: 'Talk Shows' },
-              { id: 'anime', label: 'Anime Series' },
-              { id: 'british', label: 'British TV Shows' },
-              { id: 'romantic', label: 'Romantic TV Shows' }
+              { id: 'tvaction', label: 'TV Action' },
+              { id: 'tvcomedies', label: 'TV Comedies' },
+              { id: 'tvdramas', label: 'TV Dramas' },
+              { id: 'docuseries', label: 'Docuseries' },
+              { id: 'kidstv', label: 'Kids\' TV' },
+              { id: 'realitytv', label: 'Reality TV' },
+              { id: 'internationaltvshows', label: 'International TV Shows' },
+              { id: 'crimetvshows', label: 'Crime TV Shows' },
+              { id: 'talkshows', label: 'Talk Shows' },
+              { id: 'animeseries', label: 'Anime Series' },
+              { id: 'britishtvshows', label: 'British TV Shows' },
+              { id: 'romantictvshows', label: 'Romantic TV Shows' },
+              { id: 'languagetvshows', label: 'Language Shows' },
+              { id: 'naturetv', label: 'Nature TV' },
+              { id: 'spirituality', label: 'Spirituality' }
             ].map(genre => (
               <button
                 key={genre.id}

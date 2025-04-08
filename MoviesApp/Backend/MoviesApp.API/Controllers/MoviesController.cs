@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MoviesApp.API.Data;
 using MoviesApp.API.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -73,38 +74,140 @@ namespace MoviesApp.API.Controllers
         {
             var normalizedGenre = genre.Trim().ToLower();
             
-            // This is a simplistic implementation - in a real app, you'd have a more sophisticated mapping
-            // between URL parameters and your database columns
+            // Enhanced implementation that supports all genre columns in the database
             var query = _context.Movies.AsQueryable();
             
-            switch (normalizedGenre)
+            try 
             {
-                case "action":
-                    query = query.Where(m => m.Action == 1);
-                    break;
-                case "adventure":
-                    query = query.Where(m => m.Adventure == 1);
-                    break;
-                case "comedy":
-                    query = query.Where(m => m.Comedies == 1);
-                    break;
-                case "drama":
-                    query = query.Where(m => m.Dramas == 1);
-                    break;
-                case "horror":
-                    query = query.Where(m => m.HorrorMovies == 1);
-                    break;
-                case "thriller":
-                    query = query.Where(m => m.Thrillers == 1);
-                    break;
-                default:
-                    return BadRequest("Unknown genre");
+                switch (normalizedGenre)
+                {
+                    // Movie genres
+                    case "action":
+                        query = query.Where(m => m.Action == 1);
+                        break;
+                    case "adventure":
+                        query = query.Where(m => m.Adventure == 1);
+                        break;
+                    case "comedy":
+                        query = query.Where(m => m.Comedies == 1);
+                        break;
+                    case "drama":
+                        query = query.Where(m => m.Dramas == 1);
+                        break;
+                    case "horror":
+                    case "horrormovies":
+                        query = query.Where(m => m.HorrorMovies == 1);
+                        break;
+                    case "thriller":
+                    case "thrillers":
+                        query = query.Where(m => m.Thrillers == 1);
+                        break;
+                    case "documentary":
+                    case "documentaries":
+                        query = query.Where(m => m.Documentaries == 1);
+                        break;
+                    case "family":
+                    case "familymovies":
+                        query = query.Where(m => m.FamilyMovies == 1);
+                        break;
+                    case "fantasy":
+                        query = query.Where(m => m.Fantasy == 1);
+                        break;
+                    case "musical":
+                    case "musicals":
+                        query = query.Where(m => m.Musicals == 1);
+                        break;
+                    case "romance":
+                    case "romantic":
+                    case "romanticmovies":
+                        query = query.Where(m => m.DramasRomanticMovies == 1 || m.ComediesRomanticMovies == 1);
+                        break;
+                    case "international":
+                    case "internationalmovies":
+                        query = query.Where(m => m.DramasInternationalMovies == 1 || m.ComediesInternationalMovies == 1 || 
+                                                m.DocumentariesInternationalMovies == 1 || m.InternationalMoviesThrillers == 1);
+                        break;
+                    
+                    // TV Show genres
+                    case "tvaction":
+                        query = query.Where(m => m.TVAction == 1);
+                        break;
+                    case "tvcomedy":
+                    case "tvcomedies":
+                        query = query.Where(m => m.TVComedies == 1);
+                        break;
+                    case "tvdrama":
+                    case "tvdramas":
+                        query = query.Where(m => m.TVDramas == 1);
+                        break;
+                    case "docuseries":
+                        query = query.Where(m => m.Docuseries == 1);
+                        break;
+                    case "kidstv":
+                    case "kids":
+                    case "kidtv":
+                        query = query.Where(m => m.KidsTV == 1);
+                        break;
+                    case "reality":
+                    case "realitytv":
+                        query = query.Where(m => m.RealityTV == 1);
+                        break;
+                    case "talk":
+                    case "talkshows":
+                        query = query.Where(m => m.TalkShowsTVComedies == 1);
+                        break;
+                    case "anime":
+                    case "animeseries":
+                        query = query.Where(m => m.AnimeSeriesInternationalTVShows == 1);
+                        break;
+                    case "british":
+                    case "britishtvshows":
+                        query = query.Where(m => m.BritishTVShowsDocuseriesInternationalTVShows == 1);
+                        break;
+                    case "tvinter":
+                    case "internationaltvshows":
+                        query = query.Where(m => m.InternationalTVShowsRomanticTVShowsTVDramas == 1 || 
+                                               m.AnimeSeriesInternationalTVShows == 1 || 
+                                               m.BritishTVShowsDocuseriesInternationalTVShows == 1);
+                        break;
+                    case "romantictvshows":
+                        query = query.Where(m => m.InternationalTVShowsRomanticTVShowsTVDramas == 1);
+                        break;
+                    case "crime":
+                    case "crimetvshows":
+                        query = query.Where(m => m.CrimeTVShowsDocuseries == 1);
+                        break;
+                    case "language":
+                    case "languagetvshows":
+                        query = query.Where(m => m.LanguageTVShows == 1);
+                        break;
+                    case "nature":
+                    case "naturetv":
+                        query = query.Where(m => m.NatureTV == 1);
+                        break;
+                    case "spiritual":
+                    case "spirituality":
+                        query = query.Where(m => m.Spirituality == 1);
+                        break;
+                    case "children":
+                        query = query.Where(m => m.Children == 1);
+                        break;
+                    default:
+                        // Try search in title instead of returning a 400 error
+                        query = query.Where(m => m.Title.Contains(normalizedGenre));
+                        break;
+                }
+                
+                return await query
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
             }
-            
-            return await query
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Error in genre filter: {ex.Message}");
+                return new List<Movie>();
+            }
         }
     }
 }
