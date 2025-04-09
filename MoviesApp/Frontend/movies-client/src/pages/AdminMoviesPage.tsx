@@ -101,7 +101,6 @@ const AdminMoviesPage: React.FC = () => {
   const [posterSearchResults, setPosterSearchResults] = useState<TMDBResult[]>([]);
   const [posterSearchPage, setPosterSearchPage] = useState(1);
   const [posterSearchTotalPages, setPosterSearchTotalPages] = useState(1);
-  const [currentPosterQuery, setCurrentPosterQuery] = useState('');
   const [currentPosterType, setCurrentPosterType] = useState<'movie' | 'tv'>('movie');
   const [showPosterModal, setShowPosterModal] = useState(false);
   const [posterForEditMode, setPosterForEditMode] = useState(false); // To track if poster search is for add or edit mode
@@ -696,8 +695,7 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
     return genres.length > 0 ? genres[0] : "Not specified";
   };
   
-  // Function to get a movie genre from form data
-  const getSelectedMovieGenre = (data: MovieFormData): string => {
+ 
     const movieGenres = [
       'Action', 'Adventure', 'Comedies', 'Dramas', 'HorrorMovies', 'Thrillers',
       'Documentaries', 'FamilyMovies', 'Fantasy', 'Musicals',
@@ -711,13 +709,13 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
       if ((data as any)[genre] === 1) {
         return genre;
       }
-    }
+    
     
     return "";
   };
   
   // Function to get a TV genre from form data
-  const getSelectedTVGenre = (data: MovieFormData): string => {
+  
     const tvGenres = [
       'TVAction', 'TVComedies', 'TVDramas', 'Docuseries', 'KidsTV', 'RealityTV',
       'TalkShowsTVComedies', 'AnimeSeriesInternationalTVShows',
@@ -730,7 +728,7 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
       if ((data as any)[genre] === 1) {
         return genre;
       }
-    }
+    
     
     return "";
   };
@@ -3485,7 +3483,7 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
                     <div>
                       {getAllGenres(editingMovie).map((genre, index) => {
                         // Find the key in genreMapping that matches this genre
-                        const genreKey = Object.entries(genreMapping).find(([key, val]) => val === genre)?.[0] || '';
+                        const genreKey = Object.entries(genreMapping).find(([val]) => val === genre)?.[0] || '';
                         
                         return (
                           <div key={index} style={{
@@ -3716,17 +3714,5 @@ const textareaStyle: React.CSSProperties = {
   resize: 'vertical'
 };
 
-const checkboxGroupStyle: React.CSSProperties = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
-  gap: '10px',
-  marginBottom: '20px'
-};
-
-const checkboxContainerStyle: React.CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '5px'
-};
 
 export default AdminMoviesPage;
