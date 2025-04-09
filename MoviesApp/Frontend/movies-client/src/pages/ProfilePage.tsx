@@ -64,7 +64,7 @@ const ProfilePage = () => {
   const handleSubmitChanges = async () => {
     try {
       // Check if we have the edit data and user ID
-      if (!user || !user.id || !user.userId) {
+      if (!user || !user.userId) {
         console.error("User data is missing required fields.");
         return;
       }
@@ -77,9 +77,10 @@ const ProfilePage = () => {
         id: user.id,
         userId: user.userId
       };
+      var currentUserId = String(user.userId);
   
       // Send the update request to the API
-      const response = await userApi.update(user.id, updatedUser);
+      const response = await userApi.update(currentUserId, updatedUser);
       console.log("API response:", response);
   
       // If the response status is 200, update the user state
@@ -334,32 +335,21 @@ const ProfilePage = () => {
                       {/* Streaming services */}
                       <div style={{ marginBottom: 'var(--spacing-md)' }}>
                         <label>Streaming Services</label>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 'var(--spacing-sm)' }}>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-sm)' }}>
                           {streamingServices.map(service => (
-                            <div
-                              key={service.id}
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                padding: 'var(--spacing-sm)',
-                                border: '1px solid var(--color-border)',
-                                borderRadius: 'var(--radius-md)',
-                                justifyContent: 'flex-start', // Align the checkbox and label to the left
-                              }}
-                            >
+                            <label key={service.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                               <input
                                 type="checkbox"
-                                id={service.id}
                                 name={service.id}
-                                checked={service.value === 1}
+                                checked={!!(editData && editData[service.id as keyof EditableUser])}
                                 onChange={handleStreamingServiceChange}
-                                style={{ marginRight: 'var(--spacing-sm)' }}
                               />
-                              <label htmlFor={service.id}>{service.name}</label>
-                            </div>
+                              {service.name}
+                            </label>
                           ))}
                         </div>
                       </div>
+
                     </div>
 
                     <div style={{ display: 'flex', gap: 'var(--spacing-md)', justifyContent: 'center' }}>
@@ -370,6 +360,7 @@ const ProfilePage = () => {
                         Submit Changes
                       </button>
                     </div>
+
                   </form>
                 </div>
               )}
