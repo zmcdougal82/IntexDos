@@ -344,36 +344,47 @@ const ProfilePage = () => {
                   </div>
                 </div>
 
+                {/*  */}
 
               {/* Show Edit Form */}
               {isEditing && (
-                <div className="edit-form" style={{
-                  position: 'fixed',
-                  top: '50%',
-                  left: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  backgroundColor: 'white',
-                  padding: '2rem',
-                  boxShadow: '0 0 10px rgba(0, 0, 0, 0.2)',
-                  borderRadius: 'var(--radius-md)',
-                  zIndex: 9999,
-                  width: '80%',
-                  maxWidth: '500px',
-                  maxHeight: '80vh', // Adjust the maximum height to fit within screen
-                  overflowY: 'auto' // Allow scrolling
-                }}>
-                  <button onClick={() => setIsEditing(false)} style={{
-                    position: 'absolute',
-                    top: '10px',
-                    right: '10px',
-                    background: 'none',
-                    border: 'none',
-                    fontSize: '1.5rem',
-                    color: 'var(--color-text-light)'
-                  }}>X</button>
+                <div
+                  className="edit-form"
+                  style={{
+                    position: 'fixed',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    backgroundColor: 'white',
+                    padding: '2rem',
+                    boxShadow: '0 0 10px rgba(0, 0, 0, 0.2)',
+                    borderRadius: 'var(--radius-md)',
+                    zIndex: 9999,
+                    width: '80%',
+                    maxWidth: '500px',
+                    maxHeight: '80vh',
+                    overflowY: 'auto',
+                  }}
+                >
+                  <button
+                    onClick={() => setIsEditing(false)}
+                    style={{
+                      position: 'absolute',
+                      top: '10px',
+                      right: '10px',
+                      background: 'none',
+                      border: 'none',
+                      fontSize: '1.5rem',
+                      color: 'var(--color-text-light)',
+                    }}
+                  >
+                    X
+                  </button>
 
                   <h3>Edit Your Profile</h3>
+
                   <form>
+                    {/* Name */}
                     <div style={{ marginBottom: 'var(--spacing-md)' }}>
                       <label>Name</label>
                       <input
@@ -384,6 +395,7 @@ const ProfilePage = () => {
                       />
                     </div>
 
+                    {/* Email */}
                     <div style={{ marginBottom: 'var(--spacing-md)' }}>
                       <label>Email</label>
                       <input
@@ -394,6 +406,7 @@ const ProfilePage = () => {
                       />
                     </div>
 
+                    {/* Age */}
                     <div style={{ marginBottom: 'var(--spacing-md)' }}>
                       <label>Age</label>
                       <input
@@ -404,6 +417,7 @@ const ProfilePage = () => {
                       />
                     </div>
 
+                    {/* Gender */}
                     <div style={{ marginBottom: 'var(--spacing-md)' }}>
                       <label>Gender</label>
                       <input
@@ -414,35 +428,45 @@ const ProfilePage = () => {
                       />
                     </div>
 
+                    {/* Location */}
                     <div style={{ marginBottom: 'var(--spacing-md)' }}>
                       <label>Location</label>
-                      <input
-                        type="text"
-                        name="city"
-                        value={editData?.city || ''}
-                        onChange={handleInputChange}
-                        placeholder="City"
-                      />
-                      <input
-                        type="text"
-                        name="state"
-                        value={editData?.state || ''}
-                        onChange={handleInputChange}
-                        placeholder="State"
-                      />
-                      <input
-                        type="text"
-                        name="zip"
-                        value={editData?.zip || ''}
-                        onChange={handleInputChange}
-                        placeholder="Zip"
-                      />
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        <input
+                          type="text"
+                          name="city"
+                          value={editData?.city || ''}
+                          onChange={handleInputChange}
+                          placeholder="City"
+                        />
+                        <input
+                          type="text"
+                          name="state"
+                          value={editData?.state || ''}
+                          onChange={handleInputChange}
+                          placeholder="State"
+                        />
+                        <input
+                          type="text"
+                          name="zip"
+                          value={editData?.zip || ''}
+                          onChange={handleInputChange}
+                          placeholder="Zip"
+                        />
+                      </div>
                     </div>
 
-                    {/* Streaming services */}
+                    {/* Streaming Services */}
                     <div style={{ marginBottom: 'var(--spacing-md)' }}>
                       <label>Streaming Services</label>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
+                      <div
+                        style={{
+                          display: 'grid',
+                          gridTemplateColumns: 'repeat(2, 1fr)',
+                          gap: 'var(--spacing-md)',
+                          marginBottom: 'var(--spacing-lg)',
+                        }}
+                      >
                         {streamingServices.map((service) => (
                           <div
                             key={service.id}
@@ -452,9 +476,10 @@ const ProfilePage = () => {
                               padding: 'var(--spacing-sm)',
                               border: '1px solid var(--color-border)',
                               borderRadius: 'var(--radius-md)',
-                              justifyContent: 'space-between', // Distribute the checkbox and label evenly
+                              justifyContent: 'space-between',
                             }}
                           >
+                            {/* Checkbox container */}
                             <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
                               <input
                                 type="checkbox"
@@ -465,13 +490,33 @@ const ProfilePage = () => {
                                 style={{ marginRight: 'var(--spacing-sm)' }}
                               />
                             </div>
-                            <div>{service.name}</div>
+
+                            {/* Label */}
+                            <label
+                              htmlFor={service.id}
+                              style={{
+                                flexGrow: 1,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                margin: 'auto',
+                              }}
+                            >
+                              {service.name}
+                            </label>
                           </div>
                         ))}
                       </div>
                     </div>
 
-                    <div style={{ display: 'flex', gap: 'var(--spacing-md)', justifyContent: 'center' }}>
+                    {/* Buttons */}
+                    <div
+                      style={{
+                        display: 'flex',
+                        gap: 'var(--spacing-md)',
+                        justifyContent: 'center',
+                      }}
+                    >
                       <button
                         type="button"
                         onClick={handleCancel}
@@ -498,9 +543,11 @@ const ProfilePage = () => {
                       </button>
                     </div>
                   </form>
-
                 </div>
               )}
+
+
+              {/*  */}
             </div>
           </div>
         </div>

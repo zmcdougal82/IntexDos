@@ -36,14 +36,16 @@ const CookieConsentBanner = () => {
     visible && (
       <div className="cookie-consent-banner">
         <p>
-          This website uses cookies to improve your experience, including authentication 
-          cookies to keep you signed in. By using this website, you consent to the use of cookies.{" "}
+          This website uses cookies to improve your experience, including
+          authentication cookies to keep you signed in. Do you consent to the
+          use of cookies.{" "}
           <a href="/PrivacyPage" onClick={handleLearnMore}>
             Learn more
           </a>
           . {/* Use regular <a> tag with onClick */}
         </p>
-        <button onClick={handleDismiss}>Got it!</button>
+        <button onClick={handleDismiss}>I Accept</button>
+        <button>No Thank you</button>
       </div>
     )
   );
