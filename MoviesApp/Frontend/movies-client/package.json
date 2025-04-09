@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "generate-env": "node generate-env.js",
+    "prebuild": "npm run generate-env",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
