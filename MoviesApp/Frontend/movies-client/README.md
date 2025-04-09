@@ -71,6 +71,4 @@ npm run build
 
 This will create a production-ready build in the `dist` directory.
 
-## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
