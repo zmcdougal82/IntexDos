@@ -1,24 +1,50 @@
 // OMDB API service for fetching movie and TV show data, including IMDB and Rotten Tomatoes ratings
 
-// OMDB API via our CORS proxy
-// When in localhost, use the proxy server
+// Get the API base URL from api.ts
+const getApiUrl = () => {
+  // If we're running in local development, use the local proxy
+  if (window.location.hostname === 'localhost') {
+    return "http://localhost:3001/api";
+  }
+  
+  // For production, use the environment variable if it exists
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL;
+  }
+  
+  // Dynamically determine API URL for Azure
+  const currentDomain = window.location.hostname;
+  if (currentDomain.includes('azurewebsites.net')) {
+    const apiDomain = currentDomain.replace('client', 'api').replace('-web', '-api');
+    return `https://${apiDomain}/api`;
+  }
+  
+  // Fallback
+  return "https://moviesapp-api-fixed.azurewebsites.net/api";
+};
+
+// OMDB API URLs and keys
+// In development, use the local CORS proxy
+// In production, use our backend proxy
 const getOmdbBaseUrl = () => {
   if (window.location.hostname === 'localhost') {
     // In local development, use the CORS proxy
     return 'http://localhost:3001/omdb';
   }
-  // In production, use the direct API (CORS is already handled in web.config for Azure)
-  return 'https://www.omdbapi.com';
+  
+  // In production, use our backend proxy which will handle API keys and CORS issues
+  return `${getApiUrl()}/proxy/omdb`;
 };
 
 const OMDB_API_BASE_URL = getOmdbBaseUrl();
 
-// OMDB API key from environment variable
+// OMDB API key - not needed for most requests in production as our backend will add it
+// Still check in development and for reference
 const OMDB_API_KEY = import.meta.env.VITE_OMDB_API_KEY;
 
-// Check if API key is available and log a warning if it's not
-if (!OMDB_API_KEY) {
-  console.warn('OMDB API key is not configured. External ratings will not be available.');
+// Check if API key is available for local development
+if (window.location.hostname === 'localhost' && !OMDB_API_KEY) {
+  console.warn('OMDB API key is not configured. External ratings will not be available in development.');
 }
 
 console.log('Using OMDB API URL:', OMDB_API_BASE_URL);
@@ -80,9 +106,18 @@ interface ExternalRatings {
  */
 async function getMovieByTitle(title: string, year?: number | string, isTV: boolean = false): Promise<OMDBMovieResponse | null> {
   try {
-    // Create query parameters
+    // Create query parameters without API key - our backend will add it
     const type = isTV ? 'series' : 'movie';
-    let params = `?apikey=${OMDB_API_KEY}&t=${encodeURIComponent(title)}&type=${type}&plot=full`;
+    let params = '';
+    
+    // For local development
+    if (window.location.hostname === 'localhost') {
+      // Include API key for local development
+      params = `?apikey=${OMDB_API_KEY}&t=${encodeURIComponent(title)}&type=${type}&plot=full`;
+    } else {
+      // In production, don't include API key
+      params = `?t=${encodeURIComponent(title)}&type=${type}&plot=full`;
+    }
     
     if (year) {
       params += `&y=${year}`;
@@ -90,12 +125,9 @@ async function getMovieByTitle(title: string, year?: number | string, isTV: bool
     
     console.log(`Fetching movie data from: ${OMDB_API_BASE_URL}${params}`);
     
-    // Make API request with additional options
-    // Note: Using 'no-cors' will make the response opaque and unusable, so we use 'cors'
-    // The Azure web.config includes CORS headers that should make this work
+    // Make API request with appropriate options
     const response = await fetch(`${OMDB_API_BASE_URL}${params}`, {
       method: 'GET',
-      mode: 'cors',
       headers: {
         'Accept': 'application/json',
       }

@@ -1,13 +1,13 @@
 // Streaming API service for fetching streaming availability data using TMDB
 
 // Import the base URL functions from tmdbApi to ensure consistency
-// and avoid CORS issues
-import { getTmdbBaseUrl, getTmdbImageBaseUrl } from './tmdbApi';
+import { getTmdbBaseUrl, getTmdbImageBaseUrl, getTmdbRequestUrl } from './tmdbApi';
 
 // We still need this for constructing endpoints
 const TMDB_API_BASE_URL = getTmdbBaseUrl();
 
-// TMDB API key from environment variable
+// TMDB API key from environment variable - not needed in production
+// as our backend proxy will handle it
 const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 
 // Get the TMDB image base URL
@@ -83,13 +83,23 @@ async function getStreamingProviders(
 ): Promise<StreamingServiceInfo[]> {
   try {
     const contentType = isTV ? 'tv' : 'movie';
-    // Import the getTmdbRequestUrl from tmdbApi.ts
-    const { getTmdbRequestUrl } = await import('./tmdbApi');
-    const endpoint = `/${contentType}/${tmdbId}/watch/providers?api_key=${TMDB_API_KEY}`;
+    
+    // Use the imported function to get the correct URL for either development or production
+    // In development, this will use our local CORS proxy
+    // In production, this will use our backend proxy
+    
+    // Remove the API key as our backend will add it in production
+    let endpoint = '';
+    if (window.location.hostname === 'localhost') {
+      // For local development, include API key
+      endpoint = `/${contentType}/${tmdbId}/watch/providers?api_key=${TMDB_API_KEY}`;
+    } else {
+      // For production, let the backend add the API key
+      endpoint = `/${contentType}/${tmdbId}/watch/providers`;
+    }
     
     console.log(`Fetching streaming providers for ${contentType} ID: ${tmdbId}`);
     
-    // Use the imported function to get the correct URL for either development or production
     const apiUrl = getTmdbRequestUrl(endpoint);
     console.log(`Using API URL for streaming providers: ${apiUrl}`);
     
