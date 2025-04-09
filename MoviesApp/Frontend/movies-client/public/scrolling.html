@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        height: 100%;
+        background: black;
+      }
+
+      img {
+        width: 100%;
+        display: block;
+      }
+
+      .scroll-container {
+        height: 100%;
+        width: 100%;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .scroll-content {
+        position: absolute;
+        top: 0;
+        animation: scrollUp 75s linear infinite;
+        will-change: transform; /* Hint for GPU acceleration */
+        }
+
+      .scroll-content img {
+        width: 100vw;
+        height: auto; /* Let it scale naturally */
+        display: block;
+        image-rendering: crisp-edges;
+        }
+
+        @keyframes scrollUp {
+        0% {
+            transform: translateY(0);
+        }
+        100% {
+            transform: translateY(-2137px); /* Match your image height */
+        }
+        }
+    </style>
+  </head>
+  <body>
+    <div class="scroll-container">
+      <div class="scroll-content">
+        <img src="/MoviesScrollingHome.png" alt="Scrolling Movies" />
+        <!-- <img src="/MoviesScrollingHome.png" alt="Scrolling Movies Duplicate" /> -->
+      </div>
+    </div>
+  </body>
+</html>
