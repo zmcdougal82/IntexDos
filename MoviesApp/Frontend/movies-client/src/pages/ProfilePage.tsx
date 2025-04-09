@@ -107,6 +107,10 @@ const ProfilePage = () => {
     setModalOpen(true); // open the modal when delete is clicked
   };
 
+  const cancelDelete = async () => {
+    setModalOpen(false); // open the modal when delete is clicked
+  };
+
   const handleConfirmDelete = async () => {
     if (!user || !user.userId) {
       console.error("User data is missing required fields.");
@@ -240,7 +244,7 @@ const ProfilePage = () => {
                     <ConfirmationModal 
                       isOpen={isModalOpen}
                       onConfirm={handleConfirmDelete}
-                      onCancel={handleDelete}
+                      onCancel={cancelDelete}
                     />
 
               </div>
