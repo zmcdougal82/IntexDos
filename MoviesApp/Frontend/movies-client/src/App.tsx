@@ -14,7 +14,7 @@ import Navbar from "./components/Navbar";
 import CookieConsentBanner from "./components/CookieConsentBanner";
 
 function App() {
-
+  
   return (
     <Router>
       <div

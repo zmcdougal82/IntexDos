@@ -5,6 +5,7 @@ import { User, isAdmin } from '../services/api'; // make sure interfaces are imp
 import axios from 'axios';
 import ConfirmationModal from '../components/ConfirmationModal';
 
+
 const ProfilePage = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -124,6 +125,7 @@ const ProfilePage = () => {
       if (response.status === 200 || response.status === 204) {
         console.log("Profile successfully deleted");
         localStorage.removeItem('userId');
+        setUser(null);
         navigate('/login'); // Redirect to login page after successful deletion
       } else {
         console.error("Failed to delete user, received response:", response);
@@ -136,7 +138,6 @@ const ProfilePage = () => {
     }
     
     localStorage.removeItem('userId'); //remove the current saved userId
-    onLogout(); // Call onLogout to clear any session data
     setModalOpen(false); // close the modal after confirming
   };
   
@@ -509,7 +510,3 @@ const ProfilePage = () => {
 
 
 export default ProfilePage;
-function onLogout() {
-  throw new Error('Function not implemented.');
-}
-
