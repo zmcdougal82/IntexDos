@@ -154,7 +154,16 @@ const ProfilePage = () => {
                     {user.role}
                   </div>
                 )}
-                <button onClick={handleEditClick} style={{ marginTop: 'var(--spacing-md)', padding: 'var(--spacing-sm)', backgroundColor: 'var(--color-primary)', color: 'white', borderRadius: 'var(--radius-sm)' }}>
+
+                {/* Smaller Edit button underneath profile role */}
+                <button onClick={handleEditClick} style={{
+                  marginTop: 'var(--spacing-md)',
+                  padding: 'var(--spacing-sm)',
+                  fontSize: '0.875rem', // smaller size
+                  backgroundColor: 'var(--color-primary)',
+                  color: 'white',
+                  borderRadius: 'var(--radius-sm)'
+                }}>
                   Edit Profile
                 </button>
               </div>
@@ -206,6 +215,50 @@ const ProfilePage = () => {
                 </div>
               </div>
 
+              <h2 style={{ 
+                  color: 'var(--color-text)',
+                  fontSize: '1.5rem',
+                  marginBottom: 'var(--spacing-md)'
+                }}>
+                  Streaming Services
+                </h2>
+                
+                <div className="card" style={{ 
+                  backgroundColor: 'var(--color-background)',
+                  marginBottom: 'var(--spacing-lg)'
+                }}>
+                  <div style={{ 
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: 'var(--spacing-md)'
+                  }}>
+                    {[
+                      { key: 'netflix', name: 'Netflix' },
+                      { key: 'amazonPrime', name: 'Amazon Prime' },
+                      { key: 'disneyPlus', name: 'Disney+' },
+                      { key: 'paramountPlus', name: 'Paramount+' },
+                      { key: 'max', name: 'Max' },
+                      { key: 'hulu', name: 'Hulu' },
+                      { key: 'appleTVPlus', name: 'Apple TV+' },
+                      { key: 'peacock', name: 'Peacock' }
+                    ].map(service => (
+                      <div 
+                        key={service.key} 
+                        style={{
+                          padding: 'var(--spacing-xs) var(--spacing-md)',
+                          backgroundColor: user[service.key as keyof User] === 1 ? 'var(--color-primary)' : 'var(--color-border)',
+                          color: user[service.key as keyof User] === 1 ? 'white' : 'var(--color-text-light)',
+                          borderRadius: 'var(--radius-md)',
+                          fontSize: '0.9rem'
+                        }}
+                      >
+                        {service.name}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+
               {/* Show Edit Form */}
               {isEditing && (
                 <div className="edit-form" style={{
@@ -219,7 +272,9 @@ const ProfilePage = () => {
                   borderRadius: 'var(--radius-md)',
                   zIndex: 9999,
                   width: '80%',
-                  maxWidth: '500px'
+                  maxWidth: '500px',
+                  maxHeight: '80vh', // Adjust the maximum height to fit within screen
+                  overflowY: 'auto' // Allow scrolling
                 }}>
                   <button onClick={() => setIsEditing(false)} style={{
                     position: 'absolute',
