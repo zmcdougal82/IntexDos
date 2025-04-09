@@ -1052,20 +1052,20 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
                 position: 'relative', 
                 display: 'flex', 
                 alignItems: 'center',
-                boxShadow: '0 3px 8px rgba(0,0,0,0.15)',
+                boxShadow: '0 4px 10px rgba(0,0,0,0.2)',
                 borderRadius: '4px',
-                border: '3px solid #c0c7d0',
+                border: '3px solid #95a5a6',
                 backgroundColor: 'white',
                 transition: 'all 0.2s ease'
               }}
               onFocus={(e) => {
-                e.currentTarget.style.boxShadow = '0 5px 10px rgba(0,0,0,0.2)';
+                e.currentTarget.style.boxShadow = '0 5px 12px rgba(0,0,0,0.25)';
                 e.currentTarget.style.borderColor = '#3498db';
                 e.currentTarget.style.borderWidth = '3px';
               }}
               onBlur={(e) => {
-                e.currentTarget.style.boxShadow = '0 3px 8px rgba(0,0,0,0.15)';
-                e.currentTarget.style.borderColor = '#c0c7d0';
+                e.currentTarget.style.boxShadow = '0 4px 10px rgba(0,0,0,0.2)';
+                e.currentTarget.style.borderColor = '#95a5a6';
                 e.currentTarget.style.borderWidth = '3px';
               }}>
                 {/* Search icon */}
