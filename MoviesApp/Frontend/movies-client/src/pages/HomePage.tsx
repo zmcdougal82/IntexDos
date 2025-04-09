@@ -188,29 +188,64 @@ const HomePage = () => {
 
   return (
     <div className="container">
-      <div
-        className="container"
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <iframe
-          src="/scrolling.html"
-          width="1585"
-          height="200px"
-          title="Movies Scrolling Home"
-          scrolling="no"
-          style={{
-            border: "none",
-            marginTop: "5px",
-            marginBottom: "20px",
-            height: "60vh",
-          }}
-        />
+
+      {/* Home Page Promo */}
+      <div className="container" style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
+        <div style={{ position: 'relative', width: '1585px', height: '60vh' }}>
+          <iframe
+            src="/scrolling.html"
+            width="1585"
+            height="200px"
+            title="Movies Scrolling Home"
+            scrolling="no"
+            style={{
+              border: 'none',
+              marginTop: '5px',
+              marginBottom: '20px',
+              height: '60vh',
+              width: '100%',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              zIndex: 1,
+            }}
+          />
+          <div
+            style={{
+              position: 'absolute',
+              top: 5,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              zIndex: 2,
+              backgroundColor: 'rgba(0, 0, 0, 0.3)', // translucent overlay
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white',
+              fontSize: '24px',
+            }}
+          >
+            <h1
+              style={{
+                fontSize: "5.5rem",
+                fontWeight: 700,
+                color: "var(--color-white)",
+                textAlign: "center",
+                marginBottom: "var(--spacing-lg)",
+              }}
+            >
+              Welcome to CineNiche!
+            </h1>
+          </div>
+        </div>
       </div>
+
 
       <div className="mt-4">
         {!user && (
