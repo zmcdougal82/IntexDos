@@ -921,8 +921,9 @@ const MovieDetailsPage = () => {
               </div>
 
               {/* User Reviews section with header and compact layout */}
-              <div style={{ margin: "var(--spacing-md) 0" }}>
+              <div style={{ margin: "var(--spacing-lg) 0" }}>
                 <div
+                  className="card"
                   style={{
                     display: "flex",
                     flexDirection: "column",
@@ -930,8 +931,9 @@ const MovieDetailsPage = () => {
                     backgroundColor: "var(--color-background)",
                     borderRadius: "var(--radius-md)",
                     border: "1px solid var(--color-border)",
-                    padding: "var(--spacing-md)",
-                    marginBottom: "var(--spacing-sm)",
+                    padding: "var(--spacing-lg)",
+                    marginBottom: "var(--spacing-md)",
+                    boxShadow: "var(--shadow-sm)",
                   }}
                 >
                   <div
@@ -939,14 +941,17 @@ const MovieDetailsPage = () => {
                       display: "flex",
                       justifyContent: "space-between",
                       alignItems: "center",
+                      borderBottom: "1px solid var(--color-border)",
+                      paddingBottom: "var(--spacing-sm)",
+                      marginBottom: "var(--spacing-sm)",
                     }}
                   >
                     <h3
                       style={{
-                        color: "var(--color-text)",
+                        color: "var(--color-primary)",
                         fontWeight: 600,
                         margin: 0,
-                        fontSize: "1.1rem",
+                        fontSize: "1.2rem",
                       }}
                     >
                       User Reviews
@@ -1067,21 +1072,25 @@ const MovieDetailsPage = () => {
               <div style={{ margin: "var(--spacing-md) 0" }}>
                 {/* All ratings grouped together */}
                 <div
+                  className="card"
                   style={{
                     backgroundColor: "var(--color-background)",
-                    padding: "var(--spacing-md)",
+                    padding: "var(--spacing-lg)",
                     borderRadius: "var(--radius-md)",
                     border: "1px solid var(--color-border)",
-                    marginBottom: "var(--spacing-md)",
+                    marginBottom: "var(--spacing-lg)",
+                    boxShadow: "var(--shadow-sm)",
                   }}
                 >
                   <h3
                     style={{
-                      color: "var(--color-text)",
+                      color: "var(--color-primary)",
                       fontWeight: 600,
-                      fontSize: "1.1rem",
+                      fontSize: "1.2rem",
                       marginTop: 0,
                       marginBottom: "var(--spacing-md)",
+                      borderBottom: "1px solid var(--color-border)",
+                      paddingBottom: "var(--spacing-sm)",
                     }}
                   >
                     Ratings
@@ -1151,18 +1160,31 @@ const MovieDetailsPage = () => {
                 </div>
               </div>
 
-              {/* Movie Trailer - positioned to align bottom with poster */}
+              {/* Movie Trailer */}
               <div 
+                className="card"
                 style={{ 
-                  margin: "0",
-                  marginTop: "auto",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "flex-end",
-                  position: "relative",
-                  top: "30px" /* Adjust this value to fine-tune the alignment */
+                  margin: "var(--spacing-lg) 0",
+                  padding: "var(--spacing-lg)",
+                  backgroundColor: "var(--color-background)",
+                  borderRadius: "var(--radius-md)",
+                  border: "1px solid var(--color-border)",
+                  boxShadow: "var(--shadow-sm)"
                 }}
               >
+                <h3 
+                  style={{ 
+                    color: "var(--color-primary)",
+                    fontWeight: 600,
+                    margin: 0,
+                    marginBottom: "var(--spacing-md)",
+                    fontSize: "1.2rem",
+                    borderBottom: "1px solid var(--color-border)",
+                    paddingBottom: "var(--spacing-sm)"
+                  }}
+                >
+                  Trailer
+                </h3>
                 <MovieTrailer
                   title={movie.title}
                   year={movie.releaseYear}
@@ -1182,6 +1204,7 @@ const MovieDetailsPage = () => {
                   padding: "var(--spacing-lg)",
                   border: "1px solid var(--color-border)",
                   borderRadius: "var(--radius-md)",
+                  boxShadow: "var(--shadow-sm)",
                 }}
               >
                 <h3
@@ -1300,8 +1323,28 @@ const MovieDetailsPage = () => {
               </div>
 
               {movie.description && (
-                <div style={{ margin: "var(--spacing-lg) 0" }}>
-                  <h3 style={{ color: "var(--color-text)", fontWeight: 600 }}>
+                <div 
+                  className="card"
+                  style={{ 
+                    margin: "var(--spacing-lg) 0",
+                    padding: "var(--spacing-lg)",
+                    backgroundColor: "var(--color-background)",
+                    borderRadius: "var(--radius-md)",
+                    border: "1px solid var(--color-border)",
+                    boxShadow: "var(--shadow-sm)"
+                  }}
+                >
+                  <h3 
+                    style={{ 
+                      color: "var(--color-primary)",
+                      fontWeight: 600,
+                      margin: 0,
+                      marginBottom: "var(--spacing-md)",
+                      fontSize: "1.2rem",
+                      borderBottom: "1px solid var(--color-border)",
+                      paddingBottom: "var(--spacing-sm)"
+                    }}
+                  >
                     Description
                   </h3>
                   <p
@@ -1309,6 +1352,7 @@ const MovieDetailsPage = () => {
                       lineHeight: 1.6,
                       color: "var(--color-text)",
                       fontSize: "1.05rem",
+                      margin: 0
                     }}
                   >
                     {movie.description}
@@ -1316,8 +1360,31 @@ const MovieDetailsPage = () => {
                 </div>
               )}
 
-              {/* Cast and Crew from TMDB with images - with reduced margin */}
-              <div style={{ margin: "var(--spacing-md) 0" }}>
+              {/* Cast and Crew from TMDB with images */}
+              <div 
+                className="card"
+                style={{ 
+                  margin: "var(--spacing-lg) 0",
+                  padding: "var(--spacing-lg) var(--spacing-lg) var(--spacing-sm)",
+                  backgroundColor: "var(--color-background)",
+                  borderRadius: "var(--radius-md)",
+                  border: "1px solid var(--color-border)",
+                  boxShadow: "var(--shadow-sm)"
+                }}
+              >
+                <h3 
+                  style={{ 
+                    color: "var(--color-primary)",
+                    fontWeight: 600,
+                    margin: 0,
+                    marginBottom: "var(--spacing-md)",
+                    fontSize: "1.2rem",
+                    borderBottom: "1px solid var(--color-border)",
+                    paddingBottom: "var(--spacing-sm)"
+                  }}
+                >
+                  Cast &amp; Crew
+                </h3>
                 <CastCrewScroller
                   title={movie.title}
                   year={movie.releaseYear}
