@@ -1,13 +1,13 @@
-import axios from 'axios';
+import axios from "axios";
 
 // Define the base URL for our API based on environment
 const getApiUrl = () => {
   // If running in production (like Azure static website)
-  if (window.location.hostname !== 'localhost') {
-    return 'https://moviesapp-api-fixed.azurewebsites.net/api';
+  if (window.location.hostname !== "localhost") {
+    return "https://moviesapp-api-fixed.azurewebsites.net/api";
   }
   // If running locally - use the Vite proxy to avoid CORS issues
-  return '/api';
+  return "/api";
 };
 
 const API_URL = getApiUrl();
@@ -16,16 +16,17 @@ const API_URL = getApiUrl();
 const api = axios.create({
   baseURL: API_URL,
   headers: {
-    'Content-Type': 'application/json'
-  }
+    "Content-Type": "application/json",
+  },
+  withCredentials: true,
 });
 
 // Add a request interceptor to include the JWT token in requests
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (token && config.headers) {
-      config.headers['Authorization'] = `Bearer ${token}`;
+      config.headers["Authorization"] = `Bearer ${token}`;
     }
     return config;
   },
@@ -90,7 +91,7 @@ export interface AuthResponse {
     email: string;
     name: string;
     role: string;
-  }
+  };
 }
 
 // User interfaces
@@ -118,7 +119,7 @@ export interface User {
 }
 
 export function isAdmin(user?: User | null): boolean {
-  return !!user && user.role === 'Admin';
+  return !!user && user.role === "Admin";
 }
 
 export interface LoginRequest {
@@ -162,74 +163,78 @@ export const movieApi = {
   getAll: (page = 1, pageSize = 20) =>
     api.get<Movie[]>(`/movies?page=${page}&pageSize=${pageSize}`),
 
-  getById: (id: string) =>
-    api.get<Movie>(`/movies/${id}`),
+  getById: (id: string) => api.get<Movie>(`/movies/${id}`),
 
   searchMovies: (query: string, page = 1, pageSize = 20) =>
-    api.get<Movie[]>(`/movies/search?query=${encodeURIComponent(query)}&page=${page}&pageSize=${pageSize}`),
+    api.get<Movie[]>(
+      `/movies/search?query=${encodeURIComponent(
+        query
+      )}&page=${page}&pageSize=${pageSize}`
+    ),
 
   getByGenre: (genre: string, page = 1, pageSize = 20) =>
-    api.get<Movie[]>(`/movies/genre/${genre}?page=${page}&pageSize=${pageSize}`),
-    
+    api.get<Movie[]>(
+      `/movies/genre/${genre}?page=${page}&pageSize=${pageSize}`
+    ),
+
   // Use JSON.stringify to properly format the array as JSON in the request body
   getByMultipleGenres: (genres: string[], page = 1, pageSize = 20) =>
-    api.post<Movie[]>(`/movies/genres?page=${page}&pageSize=${pageSize}`, genres, {
-      headers: {
-        'Content-Type': 'application/json'
+    api.post<Movie[]>(
+      `/movies/genres?page=${page}&pageSize=${pageSize}`,
+      genres,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
       }
-    }),
-    
+    ),
+
   // Add/Update movie
   updateMovie: (movie: Movie) =>
     api.put<Movie>(`/movies/${movie.showId}`, movie),
-    
+
   // Create new movie
-  createMovie: (movie: Partial<Movie>) =>
-    api.post<Movie>('/movies', movie),
-    
-// Delete movie
-deleteMovie: (id: string) =>
-  api.delete<void>(`/movies/${id}`, {
-    headers: {
-      'Authorization': `Bearer ${localStorage.getItem('token')}`
-    }
-  })
+  createMovie: (movie: Partial<Movie>) => api.post<Movie>("/movies", movie),
+
+  // Delete movie
+  deleteMovie: (id: string) =>
+    api.delete<void>(`/movies/${id}`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    }),
 };
 
 // API functions for Auth
 export const authApi = {
   login: (credentials: LoginRequest) =>
-    api.post<AuthResponse>('/auth/login', credentials),
+    api.post<AuthResponse>("/auth/login", credentials),
 
   register: (userData: RegisterRequest) =>
-    api.post<{ message: string }>('/auth/register', userData)
+    api.post<{ message: string }>("/auth/register", userData),
 };
 
 // API functions for Users
 export const userApi = {
-  getById: (id: string) =>
-    api.get<User>(`/users/${id}`),
+  getById: (id: string) => api.get<User>(`/users/${id}`),
 
   update: (id: string, userData: Partial<User>) =>
     api.put<void>(`/users/${id}`, userData),
 
-  delete: (id: string) =>
-    api.delete<void>(`/users/${id}`)
-}
+  delete: (id: string) => api.delete<void>(`/users/${id}`),
+};
 
 // API functions for Ratings
 export const ratingApi = {
-  getByMovie: (showId: string) =>
-    api.get<Rating[]>(`/ratings/movie/${showId}`),
+  getByMovie: (showId: string) => api.get<Rating[]>(`/ratings/movie/${showId}`),
 
-  getByUser: (userId: number) =>
-    api.get<Rating[]>(`/ratings/user/${userId}`),
+  getByUser: (userId: number) => api.get<Rating[]>(`/ratings/user/${userId}`),
 
-  addRating: (rating: Omit<Rating, 'timestamp'>) =>
-    api.post<Rating>('/ratings', rating),
+  addRating: (rating: Omit<Rating, "timestamp">) =>
+    api.post<Rating>("/ratings", rating),
 
   deleteRating: (userId: number, showId: string) =>
-    api.delete<void>(`/ratings/user/${userId}/movie/${showId}`)
+    api.delete<void>(`/ratings/user/${userId}/movie/${showId}`),
 };
 
 export default api;
