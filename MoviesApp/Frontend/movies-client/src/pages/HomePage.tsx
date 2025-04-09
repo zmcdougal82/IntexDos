@@ -261,9 +261,6 @@ const HomePage = () => {
                               padding: '20px',
                             }}
                           >
-                            <h1 style={{ fontSize: "5.5rem", fontWeight: 700, marginBottom: "1.5rem" }}>
-                              Welcome to CineNiche!
-                            </h1>
 
                             {!user && (
                               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
