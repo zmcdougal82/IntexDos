@@ -1,10 +1,44 @@
-// services/openaiApi.ts
-const API_URL = 'https://api.openai.com/v1/chat/completions';
+// Get the API base URL from api.ts to use our backend proxy
+const getApiUrl = () => {
+  // If we're running in local development, use the local proxy
+  if (window.location.hostname === 'localhost') {
+    return "http://localhost:3001/api";
+  }
+  
+  // For production, use the environment variable if it exists
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL;
+  }
+  
+  // Dynamically determine API URL for Azure
+  const currentDomain = window.location.hostname;
+  if (currentDomain.includes('azurewebsites.net')) {
+    const apiDomain = currentDomain.replace('client', 'api').replace('-web', '-api');
+    return `https://${apiDomain}/api`;
+  }
+  
+  // Fallback
+  return "https://moviesapp-api-fixed.azurewebsites.net/api";
+};
+
+// For direct OpenAI access in development, proxy in production
+const getOpenAiUrl = () => {
+  if (window.location.hostname === 'localhost') {
+    // In development, use OpenAI directly
+    return 'https://api.openai.com/v1/chat/completions';
+  }
+  
+  // In production, use our backend proxy 
+  // (we'll need to add a proxy endpoint for OpenAI in the backend)
+  return `${getApiUrl()}/proxy/openai/chat/completions`;
+};
+
+const API_URL = getOpenAiUrl();
 const API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
 
 // Check if API key is available and log a warning if it's not
-if (!API_KEY) {
-  console.warn('OpenAI API key is not available. Summary generation will be disabled.');
+if (window.location.hostname === 'localhost' && !API_KEY) {
+  console.warn('OpenAI API key is not available in development. Summary generation will be disabled.');
 }
 
 interface SummarizationOptions {
@@ -40,12 +74,19 @@ export const openaiApi = {
       }
       
       // Create request using OpenAI's chat completion API
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json'
+      };
+      
+      // In development, add the API key to headers
+      // In production, the backend will add it
+      if (window.location.hostname === 'localhost') {
+        headers['Authorization'] = `Bearer ${API_KEY}`;
+      }
+      
       const response = await fetch(API_URL, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${API_KEY}`,
-          'Content-Type': 'application/json'
-        },
+        headers,
         body: JSON.stringify({
           model: options.model || 'gpt-3.5-turbo',
           messages: [

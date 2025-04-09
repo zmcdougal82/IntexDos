@@ -106,6 +106,9 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+// Add HttpClient factory for API proxying
+builder.Services.AddHttpClient();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

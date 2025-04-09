@@ -1,38 +1,68 @@
 // TMDB API service for fetching movie and TV show data
 
-// TMDB API via our CORS proxy when needed
-// When in localhost, use the proxy server with the general /proxy endpoint
+// Get base URL for the API (using our backend proxy in production)
 export const getTmdbBaseUrl = () => {
-  // Always return the real TMDB URL as we'll encode it for the proxy if needed
+  // For reference, keep the actual TMDB URL
   return 'https://api.themoviedb.org/3';
 };
 
-// Get the actual URL to use for requests, using the proxy in development
+// Get the actual URL to use for requests
 export const getTmdbRequestUrl = (endpoint: string) => {
-  // Use local proxy in development
+  // For development environment
   if (window.location.hostname === 'localhost') {
-    // Use the working /proxy endpoint which accepts a full URL
+    // Use the local CORS proxy in development
     const targetUrl = encodeURIComponent(`${getTmdbBaseUrl()}${endpoint}`);
     return `http://localhost:3001/proxy?url=${targetUrl}`;
   }
   
-  // When deployed to Azure, TMDB requests should go direct since we don't have 
-  // a CORS proxy in production (and we don't need one for direct API requests)
-  return `${getTmdbBaseUrl()}${endpoint}`;
+  // For production environments, use our backend proxy
+  // This ensures the request works in Azure by letting the backend handle the API key
+  // and avoiding CORS issues
+  const apiBaseUrl = getApiUrl(); // Import this function from api.ts
+  return `${apiBaseUrl}/proxy/tmdb/${endpoint.replace(/^\/?/, '')}`;
+};
+
+// Get the API base URL from api.ts
+const getApiUrl = () => {
+  // If we're running in local development, use the local proxy
+  if (window.location.hostname === 'localhost') {
+    return "http://localhost:3001/api";
+  }
+  
+  // For production, use the environment variable if it exists
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL;
+  }
+  
+  // Dynamically determine API URL for Azure
+  const currentDomain = window.location.hostname;
+  if (currentDomain.includes('azurewebsites.net')) {
+    const apiDomain = currentDomain.replace('client', 'api').replace('-web', '-api');
+    return `https://${apiDomain}/api`;
+  }
+  
+  // Fallback
+  return "https://moviesapp-api-fixed.azurewebsites.net/api";
 };
 
 const TMDB_API_BASE_URL = getTmdbBaseUrl();
 
-// TMDB API key from environment variable
+// TMDB API key - not needed for most requests as the backend will handle this
+// but keep for reference
 const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 
-// Base URL for poster images (use proxy in development)
+// For debugging
+console.log("Using TMDB proxy through: ", getApiUrl());
+
+// Base URL for poster images
 export const getTmdbImageBaseUrl = () => {
+  // For development, use proxy
   if (window.location.hostname === 'localhost') {
-    // Use the working /proxy endpoint for images too
     return 'http://localhost:3001/proxy?url=' + encodeURIComponent('https://image.tmdb.org/t/p/w500');
   }
-  // In production, access TMDB images directly
+  
+  // For production environments, images can be accessed directly
+  // TMDB doesn't have CORS restrictions on their image server
   return 'https://image.tmdb.org/t/p/w500';
 };
 
@@ -195,7 +225,8 @@ const TMDB_GENRE_MAPPING: {[key: number]: string} = {
  */
 async function searchByTitle(query: string, type: 'movie' | 'tv' | 'multi' = 'multi', page: number = 1): Promise<TMDBSearchResult> {
   try {
-    const endpoint = `/search/${type}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&page=${page}`;
+    // Remove the API key from the endpoint - our backend will add it
+    const endpoint = `/search/${type}?query=${encodeURIComponent(query)}&page=${page}`;
     const response = await fetch(getTmdbRequestUrl(endpoint));
     
     if (!response.ok) {
@@ -215,7 +246,8 @@ async function searchByTitle(query: string, type: 'movie' | 'tv' | 'multi' = 'mu
  */
 async function getMovieDetails(movieId: number): Promise<TMDBMovieDetails> {
   try {
-    const endpoint = `/movie/${movieId}?api_key=${TMDB_API_KEY}&append_to_response=credits,videos`;
+    // Remove the API key as the backend will add it
+    const endpoint = `/movie/${movieId}?append_to_response=credits,videos`;
     const response = await fetch(getTmdbRequestUrl(endpoint));
     
     if (!response.ok) {
@@ -235,7 +267,8 @@ async function getMovieDetails(movieId: number): Promise<TMDBMovieDetails> {
  */
 async function getTVShowDetails(tvId: number): Promise<TMDBTVShowDetails> {
   try {
-    const endpoint = `/tv/${tvId}?api_key=${TMDB_API_KEY}&append_to_response=credits,videos`;
+    // Remove the API key
+    const endpoint = `/tv/${tvId}?append_to_response=credits,videos`;
     const response = await fetch(getTmdbRequestUrl(endpoint));
     
     if (!response.ok) {
@@ -540,7 +573,8 @@ async function getTrailer(title: string, year?: number | string, isTV: boolean =
     }
     
     // Fetch videos directly
-    const endpoint = `/${isTV ? 'tv' : 'movie'}/${tmdbId}/videos?api_key=${TMDB_API_KEY}`;
+    // Remove the API key
+    const endpoint = `/${isTV ? 'tv' : 'movie'}/${tmdbId}/videos`;
     const response = await fetch(getTmdbRequestUrl(endpoint));
     
     if (!response.ok) {
