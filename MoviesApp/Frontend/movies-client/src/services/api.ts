@@ -18,7 +18,6 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: true,
 });
 
 // Add a request interceptor to include the JWT token in requests
@@ -176,6 +175,11 @@ export const movieApi = {
     api.get<Movie[]>(
       `/movies/genre/${genre}?page=${page}&pageSize=${pageSize}`
     ),
+
+    
+  // Get total number of movies in the total db
+  getTotalMoviesCount: () =>
+    api.get<{ totalMovies: number }>('/movies/count'),
 
   // Use JSON.stringify to properly format the array as JSON in the request body
   getByMultipleGenres: (genres: string[], page = 1, pageSize = 20) =>
