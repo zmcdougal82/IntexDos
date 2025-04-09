@@ -244,52 +244,90 @@ const HomePage = () => {
             </h1>
                         {/* Register / Login CTA + Company Introduction */}
                         <div
-                            style={{
-                              position: 'absolute',
-                              top: 0,
-                              left: 0,
-                              width: '100%',
-                              height: '100%',
-                              zIndex: 2,
-                              backgroundColor: 'rgba(0, 0, 0, 0.4)',
-                              display: 'flex',
-                              flexDirection: 'column', // stack vertically
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              color: 'white',
-                              textAlign: 'center',
-                              padding: '20px',
-                            }}
-                          >
+  style={{
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    zIndex: 2,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    textAlign: 'center',
+    color: 'white',
+    padding: '20px',
+    gap: '1.5rem',
+  }}
+>
+  <h1
+    style={{
+      fontSize: "5.5rem",
+      fontWeight: 700,
+      margin: 0,
+      zIndex: 3,
+    }}
+  >
+    Welcome to CineNiche!
+  </h1>
 
-                            {!user && (
-                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-                                <p style={{ fontSize: '1.2rem', maxWidth: '700px' }}>
-                                  Sign up or log in to start discovering personalized movie and TV show recommendations tailored just for you!
-                                </p>
-                                <div style={{ display: 'flex', gap: '10px' }}>
-                                  <button onClick={handleLogin} style={{
-                            padding: "10px 20px",
-                            backgroundColor: "#007BFF",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "5px",
-                            cursor: "pointer",
-                            fontSize: "1rem",
-                          }}>Log In</button>
-                                  <button onClick={handleRegister} style={{
-                            padding: "10px 20px",
-                            backgroundColor: "#007BFF",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "5px",
-                            cursor: "pointer",
-                            fontSize: "1rem",
-                          }}>Register</button>
-                        </div>
-                      </div>
-                        )}
-                    </div>
+  {!user && (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: "1rem",
+      }}
+    >
+      <p
+        style={{
+          fontSize: "1.2rem",
+          maxWidth: "700px",
+          margin: 0,
+        }}
+      >
+        Sign up or log in to start discovering personalized movie and TV show
+        recommendations tailored just for you!
+      </p>
+      <div style={{ display: "flex", gap: "10px" }}>
+        <button
+          onClick={handleLogin}
+          style={{
+            padding: "10px 20px",
+            backgroundColor: "#007BFF",
+            color: "white",
+            border: "none",
+            borderRadius: "5px",
+            cursor: "pointer",
+            fontSize: "1rem",
+            fontWeight: 600,
+          }}
+        >
+          Log In
+        </button>
+        <button
+          onClick={handleRegister}
+          style={{
+            padding: "10px 20px",
+            backgroundColor: "#007BFF",
+            color: "white",
+            border: "none",
+            borderRadius: "5px",
+            cursor: "pointer",
+            fontSize: "1rem",
+            fontWeight: 600,
+          }}
+        >
+          Register
+        </button>
+      </div>
+    </div>
+  )}
+</div>
+ 
                   </div>
               </div>
         </div>
