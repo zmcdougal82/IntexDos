@@ -90,11 +90,19 @@ const AdminMoviesPage: React.FC = () => {
   
   // Search results and modal state
   const [searchResults, setSearchResults] = useState<TMDBResult[]>([]);
+  const [searchResultsPage, setSearchResultsPage] = useState(1);
+  const [searchResultsTotalPages, setSearchResultsTotalPages] = useState(1);
+  const [currentSearchQuery, setCurrentSearchQuery] = useState('');
+  const [currentSearchType, setCurrentSearchType] = useState<'movie' | 'tv' | 'multi'>('multi');
   const [showSearchResultsModal, setShowSearchResultsModal] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false); // To track whether search is for add or edit mode
   
   // Poster selection modal state
   const [posterSearchResults, setPosterSearchResults] = useState<TMDBResult[]>([]);
+  const [posterSearchPage, setPosterSearchPage] = useState(1);
+  const [posterSearchTotalPages, setPosterSearchTotalPages] = useState(1);
+  const [currentPosterQuery, setCurrentPosterQuery] = useState('');
+  const [currentPosterType, setCurrentPosterType] = useState<'movie' | 'tv'>('movie');
   const [showPosterModal, setShowPosterModal] = useState(false);
   const [posterForEditMode, setPosterForEditMode] = useState(false); // To track if poster search is for add or edit mode
   
@@ -1331,6 +1339,11 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
                         
                         // Search for the movie or TV show
                         const type = formData.type === 'TV Show' ? 'tv' : 'movie';
+                        // Store current search query and type for pagination
+                        setCurrentSearchQuery(formData.title);
+                        setCurrentSearchType(type);
+                        setSearchResultsPage(1); // Reset to page 1 for new search
+                        
                         const response = await tmdbApi.searchByTitle(formData.title, type);
                         
                         if (!response.results || response.results.length === 0) {
@@ -1338,6 +1351,9 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
                           setLoading(false);
                           return;
                         }
+                        
+                        // Store total pages for pagination
+                        setSearchResultsTotalPages(response.total_pages || 1);
                         
                         // If multiple results, show selection modal
                         if (response.results.length > 1) {
@@ -2009,7 +2025,45 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
               })}
             </div>
             
-            <div style={{marginTop: '20px', display: 'flex', justifyContent: 'flex-end'}}>
+            <div style={{marginTop: '20px', display: 'flex', justifyContent: 'space-between'}}>
+              <button
+                onClick={async () => {
+                  if (searchResultsPage < searchResultsTotalPages) {
+                    try {
+                      setLoading(true);
+                      // Load the next page
+                      const nextPage = searchResultsPage + 1;
+                      const response = await tmdbApi.searchByTitle(currentSearchQuery, currentSearchType, nextPage);
+                      
+                      if (response.results && response.results.length > 0) {
+                        // Append new results to existing results
+                        setSearchResults([...searchResults, ...response.results]);
+                        setSearchResultsPage(nextPage);
+                      }
+                    } catch (error) {
+                      console.error('Error loading more results:', error);
+                      setAlertType('error');
+                      setAlertTitle('Error');
+                      setAlertMessage('Failed to load more results. Please try again.');
+                      setShowAlertModal(true);
+                    } finally {
+                      setLoading(false);
+                    }
+                  }
+                }}
+                disabled={searchResultsPage >= searchResultsTotalPages || loading}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: searchResultsPage >= searchResultsTotalPages ? '#e0e0e0' : '#4285F4',
+                  color: searchResultsPage >= searchResultsTotalPages ? '#757575' : 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: searchResultsPage >= searchResultsTotalPages ? 'not-allowed' : 'pointer',
+                  display: searchResultsPage >= searchResultsTotalPages ? 'none' : 'block'
+                }}
+              >
+                {loading ? 'Loading...' : 'Load More'}
+              </button>
               <button
                 onClick={() => setShowSearchResultsModal(false)}
                 style={{
@@ -2018,7 +2072,8 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
                   color: 'white',
                   border: 'none',
                   borderRadius: '4px',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  marginLeft: 'auto'
                 }}
               >
                 Cancel
@@ -2128,7 +2183,53 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
               })}
             </div>
             
-            <div style={{marginTop: '20px', display: 'flex', justifyContent: 'flex-end'}}>
+            <div style={{marginTop: '20px', display: 'flex', justifyContent: 'space-between'}}>
+              <button
+                onClick={async () => {
+                  if (posterSearchPage < posterSearchTotalPages) {
+                    try {
+                      setLoading(true);
+                      // Load the next page
+                      const nextPage = posterSearchPage + 1;
+                      const response = await tmdbApi.searchByTitle(
+                        posterForEditMode ? editingMovie!.title : formData.title, 
+                        currentPosterType, 
+                        nextPage
+                      );
+                      
+                      if (response.results && response.results.length > 0) {
+                        // Filter results with posters
+                        const resultsWithPosters = response.results.filter(result => result.poster_path);
+                        if (resultsWithPosters.length > 0) {
+                          // Append new results to existing results
+                          setPosterSearchResults([...posterSearchResults, ...resultsWithPosters]);
+                          setPosterSearchPage(nextPage);
+                        }
+                      }
+                    } catch (error) {
+                      console.error('Error loading more posters:', error);
+                      setAlertType('error');
+                      setAlertTitle('Error');
+                      setAlertMessage('Failed to load more posters. Please try again.');
+                      setShowAlertModal(true);
+                    } finally {
+                      setLoading(false);
+                    }
+                  }
+                }}
+                disabled={posterSearchPage >= posterSearchTotalPages || loading}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: posterSearchPage >= posterSearchTotalPages ? '#e0e0e0' : '#4285F4',
+                  color: posterSearchPage >= posterSearchTotalPages ? '#757575' : 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: posterSearchPage >= posterSearchTotalPages ? 'not-allowed' : 'pointer',
+                  display: posterSearchPage >= posterSearchTotalPages ? 'none' : 'block'
+                }}
+              >
+                {loading ? 'Loading...' : 'Load More'}
+              </button>
               <button
                 onClick={() => setShowPosterModal(false)}
                 style={{
@@ -2137,7 +2238,8 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
                   color: 'white',
                   border: 'none',
                   borderRadius: '4px',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  marginLeft: 'auto'
                 }}
               >
                 Cancel

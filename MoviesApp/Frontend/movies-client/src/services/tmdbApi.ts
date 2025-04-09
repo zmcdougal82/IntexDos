@@ -122,11 +122,12 @@ const TMDB_GENRE_MAPPING: {[key: number]: string} = {
  * Search for a movie or TV show by title
  * @param query The search query (title)
  * @param type Optional type filter ('movie' or 'tv')
+ * @param page Optional page number for pagination (default: 1)
  */
-async function searchByTitle(query: string, type: 'movie' | 'tv' | 'multi' = 'multi'): Promise<TMDBSearchResult> {
+async function searchByTitle(query: string, type: 'movie' | 'tv' | 'multi' = 'multi', page: number = 1): Promise<TMDBSearchResult> {
   try {
     const response = await fetch(
-      `${TMDB_API_BASE_URL}/search/${type}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`
+      `${TMDB_API_BASE_URL}/search/${type}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&page=${page}`
     );
     
     if (!response.ok) {
