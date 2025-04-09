@@ -20,7 +20,7 @@ const getApiUrl = () => {
     }
     
     // Fallback to the known API endpoint
-    return "https://moviesapp-api.azurewebsites.net/api";
+    return "https://moviesapp-api-fixed.azurewebsites.net/api";
   }
   
   // If running locally - use the Vite proxy to avoid CORS issues
