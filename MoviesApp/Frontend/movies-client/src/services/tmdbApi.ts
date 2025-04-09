@@ -3,9 +3,8 @@
 // TMDB API base URL
 const TMDB_API_BASE_URL = 'https://api.themoviedb.org/3';
 
-// TMDB API key - this should ideally be stored in an environment variable
-// For now, we'll hardcode it for demonstration purposes
-const TMDB_API_KEY = '56cfecfb2042af273b7c51099340b62e'; // TMDB API key
+// TMDB API key from environment variable
+const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 
 // Base URL for poster images
 const TMDB_POSTER_BASE_URL = 'https://image.tmdb.org/t/p/w500';

@@ -3,9 +3,8 @@
 // OMDB API base URL
 const OMDB_API_BASE_URL = 'https://www.omdbapi.com/';
 
-// OMDB API key - ideally should be stored in an environment variable
-// Using the API key provided by the user
-const OMDB_API_KEY = '41c50967'; // User's personal API key
+// OMDB API key from environment variable
+const OMDB_API_KEY = import.meta.env.VITE_OMDB_API_KEY;
 
 interface OMDBRatings {
   Source: string;

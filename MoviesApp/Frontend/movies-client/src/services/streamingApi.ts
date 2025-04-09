@@ -3,8 +3,8 @@
 // TMDB API base URL from existing tmdbApi service
 const TMDB_API_BASE_URL = 'https://api.themoviedb.org/3';
 
-// TMDB API key - using the same one as in the tmdbApi service
-const TMDB_API_KEY = '56cfecfb2042af273b7c51099340b62e';
+// TMDB API key from environment variable
+const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 
 // Interface for Watch Provider
 interface WatchProvider {
