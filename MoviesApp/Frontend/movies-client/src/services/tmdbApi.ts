@@ -31,6 +31,22 @@ interface TMDBTVShow {
   genre_ids?: number[];
 }
 
+interface TMDBVideo {
+  id: string;
+  key: string;
+  name: string;
+  site: string;
+  size: number;
+  type: string;
+  official: boolean;
+  published_at: string;
+}
+
+interface TMDBVideosResponse {
+  id: number;
+  results: TMDBVideo[];
+}
+
 interface TMDBMovieDetails extends TMDBMovie {
   genres: { id: number; name: string }[];
   runtime?: number; // Movie duration in minutes
@@ -60,6 +76,7 @@ interface TMDBMovieDetails extends TMDBMovie {
       profile_path: string | null;
     }[];
   };
+  videos?: TMDBVideosResponse;
 }
 
 interface TMDBTVShowDetails extends TMDBTVShow {
@@ -168,7 +185,7 @@ async function searchByTitle(query: string, type: 'movie' | 'tv' | 'multi' = 'mu
 async function getMovieDetails(movieId: number): Promise<TMDBMovieDetails> {
   try {
     const response = await fetch(
-      `${TMDB_API_BASE_URL}/movie/${movieId}?api_key=${TMDB_API_KEY}&append_to_response=credits`
+      `${TMDB_API_BASE_URL}/movie/${movieId}?api_key=${TMDB_API_KEY}&append_to_response=credits,videos`
     );
     
     if (!response.ok) {
@@ -189,7 +206,7 @@ async function getMovieDetails(movieId: number): Promise<TMDBMovieDetails> {
 async function getTVShowDetails(tvId: number): Promise<TMDBTVShowDetails> {
   try {
     const response = await fetch(
-      `${TMDB_API_BASE_URL}/tv/${tvId}?api_key=${TMDB_API_KEY}&append_to_response=credits`
+      `${TMDB_API_BASE_URL}/tv/${tvId}?api_key=${TMDB_API_KEY}&append_to_response=credits,videos`
     );
     
     if (!response.ok) {
@@ -472,6 +489,74 @@ async function getCast(title: string, year?: number | string, isTV: boolean = fa
   }
 }
 
+/**
+ * Get trailer videos for a movie or TV show
+ * @param title The title to search for
+ * @param year Optional release year to refine the search
+ * @param isTV Whether this is a TV show or movie
+ * @returns Object with trailer info or null if not found
+ */
+async function getTrailer(title: string, year?: number | string, isTV: boolean = false): Promise<{
+  key: string;
+  name: string;
+  site: string;
+} | null> {
+  try {
+    // First, find the TMDB ID for this title
+    const tmdbId = await findTMDBId(title, year, isTV);
+    
+    if (!tmdbId) {
+      console.log(`Could not find TMDB ID for ${title}`);
+      return null;
+    }
+    
+    // Fetch videos directly
+    const response = await fetch(
+      `${TMDB_API_BASE_URL}/${isTV ? 'tv' : 'movie'}/${tmdbId}/videos?api_key=${TMDB_API_KEY}`
+    );
+    
+    if (!response.ok) {
+      throw new Error(`TMDB API error: ${response.status}`);
+    }
+    
+    const data: TMDBVideosResponse = await response.json();
+    
+    if (!data.results || data.results.length === 0) {
+      console.log(`No videos found for ${title}`);
+      return null;
+    }
+    
+    // Try to find an official trailer
+    let trailer = data.results.find(
+      video => video.type === 'Trailer' && video.official && video.site === 'YouTube'
+    );
+    
+    // If no official trailer, try any trailer
+    if (!trailer) {
+      trailer = data.results.find(video => video.type === 'Trailer' && video.site === 'YouTube');
+    }
+    
+    // If still no trailer, just use the first video
+    if (!trailer) {
+      trailer = data.results.find(video => video.site === 'YouTube');
+    }
+    
+    if (!trailer) {
+      console.log(`No suitable videos found for ${title}`);
+      return null;
+    }
+    
+    return {
+      key: trailer.key,
+      name: trailer.name,
+      site: trailer.site
+    };
+  } catch (error) {
+    console.error('Error getting trailer from TMDB:', error);
+    return null;
+  }
+}
+
 export const tmdbApi = {
   searchByTitle,
   getPosterUrl,
@@ -484,6 +569,7 @@ export const tmdbApi = {
   getDirectors,
   getCast,
   getProfileImageUrl,
+  getTrailer,
   POSTER_BASE_URL: TMDB_POSTER_BASE_URL
 };
 

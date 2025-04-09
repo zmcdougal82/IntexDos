@@ -4,6 +4,11 @@ import { Movie, Rating, User, movieApi, ratingApi } from "../services/api";
 import { tmdbApi } from "../services/tmdbApi";
 import RecommendedMovies from "../components/RecommendedMovies";
 import CastCrewScroller from "../components/CastCrewScroller";
+import ReviewSummary from "../components/ReviewSummary";
+import MovieTrailer from "../components/MovieTrailer";
+import ReviewModal from "../components/ReviewModal";
+import ExternalRatings from "../components/ExternalRatings";
+import WhereToWatch from "../components/WhereToWatch";
 
 const MovieDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -21,6 +26,7 @@ const MovieDetailsPage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [showThankYouModal, setShowThankYouModal] = useState(false);
   const [showReviewsModal, setShowReviewsModal] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
   // Larger, better looking fallback image for the details page
   const [posterUrl, setPosterUrl] = useState<string>(
     "https://placehold.co/480x720/2c3e50/FFFFFF?text=Poster+Coming+Soon&font=montserrat"
@@ -827,289 +833,127 @@ const MovieDetailsPage = () => {
                 )}
               </div>
               
-              {/* Rating functionality for desktop - moved from right column */}
-              <div
-                className="desktop-rating"
-                style={{
-                  margin: "var(--spacing-lg) 0",
-                }}
-              >
-                <h3 style={{ color: "var(--color-text)", fontWeight: 600 }}>
-                  Rate this {movie.type || "title"}
-                </h3>
-
-                {!user && (
-                  <p style={{ marginBottom: "var(--spacing-md)" }}>
-                    <a
-                      href="/login"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        navigate("/login", { state: { from: `/movie/${id}` } });
-                      }}
-                      style={{
-                        color: "var(--color-primary)",
-                        textDecoration: "none",
-                        fontWeight: 500,
-                      }}
-                    >
-                      Log in
-                    </a>{" "}
-                    to rate this {movie.type || "title"}
-                  </p>
-                )}
-
-                <div style={{ display: "flex", gap: "var(--spacing-sm)" }}>
-                  {[1, 2, 3, 4, 5].map((rating) => (
-                    <button
-                      key={rating}
-                      onClick={() => handleRatingChange(rating)}
-                      style={{
-                        width: "45px",
-                        height: "45px",
-                        border: "none",
-                        borderRadius: "50%",
-                        background: "transparent",
-                        color: userRating >= rating ? "gold" : "#d1d1d1",
-                        cursor: user ? "pointer" : "not-allowed",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: "36px",
-                        fontWeight: "bold",
-                        opacity: user ? 1 : 0.6,
-                        transition: "all var(--transition-normal)",
-                      }}
-                      disabled={!user}
-                      aria-label={`Rate ${rating} out of 5 stars`}
-                    >
-                      ★
-                    </button>
-                  ))}
-                </div>
-
-                {user && (
-                  <div style={{ marginTop: "var(--spacing-md)" }}>
-                    <h4
-                      style={{
-                        color: "var(--color-text)",
-                        fontWeight: 600,
-                        marginBottom: "var(--spacing-sm)",
-                      }}
-                    >
-                      Write a review
-                    </h4>
-                    <textarea
-                      value={userReview}
-                      onChange={handleReviewChange}
-                      placeholder="Share your thoughts about this title..."
-                      style={{
-                        width: "100%",
-                        minHeight: "120px",
-                        padding: "var(--spacing-md)",
-                        borderRadius: "var(--radius-md)",
-                        border: (ratingSubmitted && !isEditing) ? "1px solid #ccc" : "2px solid #666",
-                        boxShadow: (ratingSubmitted && !isEditing) ? "none" : "0 0 0 1px rgba(0, 0, 0, 0.05)",
-                        marginBottom: "var(--spacing-md)",
-                        fontFamily: "inherit",
-                        fontSize: "1rem",
-                        backgroundColor: (ratingSubmitted && !isEditing) ? "#f5f5f5" : "white",
-                        color: (ratingSubmitted && !isEditing) ? "#555" : "inherit",
-                        cursor: (ratingSubmitted && !isEditing) ? "default" : "text"
-                      }}
-                      disabled={!user || (ratingSubmitted && !isEditing)}
-                      readOnly={ratingSubmitted && !isEditing}
-                    />
-                    {ratingSubmitted ? (
-                      <button
-                        onClick={handleToggleEdit}
-                        style={{
-                          padding: "var(--spacing-sm) var(--spacing-lg)",
-                          backgroundColor: isEditing ? "var(--color-primary)" : "var(--color-secondary)",
-                          color: "white",
-                          border: "none",
-                          borderRadius: "var(--radius-md)",
-                          fontWeight: 500,
-                          cursor: "pointer"
-                        }}
-                      >
-                        {isEditing ? "Submit Changes" : "Edit Review"}
-                      </button>
-                    ) : (
-                      <button
-                        onClick={handleSubmitReview}
-                        style={{
-                          padding: "var(--spacing-sm) var(--spacing-lg)",
-                          backgroundColor: "var(--color-primary)",
-                          color: "white", 
-                          border: "none",
-                          borderRadius: "var(--radius-md)",
-                          fontWeight: 500,
-                          cursor: userRating > 0 ? "pointer" : "not-allowed",
-                          opacity: userRating > 0 ? 1 : 0.6
-                        }}
-                        disabled={userRating === 0}
-                      >
-                        Submit Review
-                      </button>
-                    )}
+              {/* Write a review button */}
+              <div style={{ margin: "var(--spacing-lg) 0" }}>
+                <button
+                  onClick={() => {
+                    if (!user) {
+                      navigate("/login", { state: { from: `/movie/${id}` } });
+                    } else {
+                      setShowReviewModal(true);
+                    }
+                  }}
+                  style={{
+                    padding: "var(--spacing-md) var(--spacing-lg)",
+                    backgroundColor: "var(--color-primary)",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "var(--radius-md)",
+                    width: "100%",
+                    fontWeight: 600,
+                    fontSize: "1rem",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "var(--spacing-sm)"
+                  }}
+                >
+                  <span style={{ fontSize: "1.2rem" }}>✏️</span>
+                  {ratingSubmitted ? "Edit your review" : "Write a review"}
+                </button>
+                
+                {ratingSubmitted && (
+                  <div style={{
+                    marginTop: "var(--spacing-sm)",
+                    textAlign: "center",
+                    color: "var(--color-success, green)",
+                    fontSize: "0.9rem",
+                    fontWeight: 500
+                  }}>
+                    <span>✓</span> You've reviewed this {movie.type || "title"}
                   </div>
                 )}
               </div>
               
-              {/* User Reviews section - concise summary */}
-              <div style={{ margin: "var(--spacing-lg) 0" }}>
-                <h3 style={{ color: "var(--color-text)", fontWeight: 600 }}>
-                  User Reviews
-                </h3>
+              {/* User Reviews section with header and compact layout */}
+              <div style={{ margin: "var(--spacing-md) 0" }}>
+                <div style={{ 
+                  display: "flex", 
+                  flexDirection: "column",
+                  gap: "var(--spacing-sm)",
+                  backgroundColor: "var(--color-background)",
+                  borderRadius: "var(--radius-md)",
+                  border: "1px solid var(--color-border)",
+                  padding: "var(--spacing-md)",
+                  marginBottom: "var(--spacing-sm)"
+                }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <h3 style={{ color: "var(--color-text)", fontWeight: 600, margin: 0, fontSize: "1.1rem" }}>
+                      User Reviews
+                    </h3>
+                    {ratings.filter(r => r.reviewText && r.reviewText.trim() !== "").length > 0 && (
+                      <button
+                        onClick={() => setShowReviewsModal(true)}
+                        style={{
+                          backgroundColor: "var(--color-primary)",
+                          color: "white",
+                          border: "none",
+                          borderRadius: "var(--radius-md)",
+                          padding: "4px 10px",
+                          cursor: "pointer",
+                          fontWeight: 500,
+                          fontSize: "0.9rem"
+                        }}
+                      >
+                        View All
+                      </button>
+                    )}
+                  </div>
 
-                <div
-                  style={{
-                    padding: "var(--spacing-md)",
-                    backgroundColor: "var(--color-background)",
-                    borderRadius: "var(--radius-md)",
-                    border: "1px solid var(--color-border)",
-                  }}
-                >
                   {ratings.filter(r => r.reviewText && r.reviewText.trim() !== "").length === 0 ? (
-                    <p style={{ color: "var(--color-text-light)", margin: "var(--spacing-md) 0" }}>
-                      No reviews yet. Be the first to review this {movie.type || "title"}!
-                    </p>
+                    <div style={{ color: "var(--color-text-light)" }}>
+                      No reviews yet. Be the first to review!
+                    </div>
                   ) : (
-                    <>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--spacing-md)" }}>
-                        <p style={{ margin: 0 }}>
-                          <span style={{ fontWeight: 600 }}>
-                            {ratings.filter(r => r.reviewText && r.reviewText.trim() !== "").length}
-                          </span> user {ratings.filter(r => r.reviewText && r.reviewText.trim() !== "").length === 1 ? "review" : "reviews"}
-                        </p>
-                        <button
-                          onClick={() => setShowReviewsModal(true)}
-                          style={{
-                            backgroundColor: "var(--color-primary)",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "var(--radius-md)",
-                            padding: "var(--spacing-sm) var(--spacing-md)",
-                            cursor: "pointer",
-                            fontWeight: 500,
-                          }}
-                        >
-                          View All Reviews
-                        </button>
-                      </div>
-                      
-                      {/* Preview of the most recent review */}
-                      {ratings.filter(r => r.reviewText && r.reviewText.trim() !== "").length > 0 && (
-                        <>
-                          <p style={{ fontWeight: 600, margin: "var(--spacing-md) 0 var(--spacing-sm)" }}>
-                            Most recent review:
-                          </p>
-                          <div
-                            style={{
-                              padding: "var(--spacing-md)",
-                              backgroundColor: "var(--color-background-light, #f8f8f8)",
-                              borderRadius: "var(--radius-md)",
-                              position: "relative",
+                    <div style={{ display: "flex", alignItems: "center", gap: "var(--spacing-md)" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <span 
+                            key={star} 
+                            style={{ 
+                              color: averageRating >= star ? "gold" : "#d1d1d1",
+                              fontSize: "1.1rem",
+                              lineHeight: 1
                             }}
                           >
-                            {/* Star rating of the most recent review */}
-                            <div
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "4px",
-                                marginBottom: "var(--spacing-sm)",
-                              }}
-                            >
-                              {(() => {
-                                // Store the first review in a variable
-                                const firstReview = ratings.filter(r => r.reviewText && r.reviewText.trim() !== "")[0];
-                                if (!firstReview) return null;
-                                
-                                return [1, 2, 3, 4, 5].map((star) => (
-                                  <span 
-                                    key={star} 
-                                    style={{ 
-                                      color: firstReview.ratingValue >= star ? "gold" : "#d1d1d1",
-                                      fontSize: "1.2rem",
-                                      lineHeight: 1
-                                    }}
-                                  >
-                                    ★
-                                  </span>
-                                ));
-                              })()}
-                            </div>
-                            
-                            {/* User info */}
-                            <div
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "var(--spacing-sm)",
-                                marginBottom: "var(--spacing-sm)",
-                              }}
-                            >
-                              <div
-                                style={{
-                                  width: "30px",
-                                  height: "30px",
-                                  borderRadius: "50%",
-                                  backgroundColor: "var(--color-secondary)",
-                                  color: "white",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  fontWeight: "bold",
-                                  fontSize: "1rem",
-                                }}
-                              >
-                                {(() => {
-                                  const firstReview = ratings.filter(r => r.reviewText && r.reviewText.trim() !== "")[0];
-                                  if (!firstReview || !firstReview.user || !firstReview.user.name) return "U";
-                                  return firstReview.user.name.charAt(0).toUpperCase();
-                                })()}
-                              </div>
-                              <p
-                                style={{
-                                  margin: 0,
-                                  fontWeight: 600,
-                                  color: "var(--color-text)",
-                                }}
-                              >
-                                {(() => {
-                                  const firstReview = ratings.filter(r => r.reviewText && r.reviewText.trim() !== "")[0];
-                                  if (!firstReview || !firstReview.user) return "Anonymous User";
-                                  return firstReview.user.name || "Anonymous User";
-                                })()}
-                              </p>
-                            </div>
-                            
-                            {/* Truncated review text */}
-                            {(() => {
-                              const firstReview = ratings.filter(r => r.reviewText && r.reviewText.trim() !== "")[0];
-                              if (!firstReview || !firstReview.reviewText) return null;
-                              
-                              return (
-                                <p
-                                  style={{
-                                    margin: 0,
-                                    color: "var(--color-text)",
-                                    lineHeight: 1.5,
-                                  }}
-                                >
-                                  {firstReview.reviewText.length > 150
-                                    ? `${firstReview.reviewText.substring(0, 150)}...`
-                                    : firstReview.reviewText}
-                                </p>
-                              );
-                            })()}
-                          </div>
-                        </>
-                      )}
-                    </>
+                            ★
+                          </span>
+                        ))}
+                        <span style={{ fontSize: "0.9rem", color: "var(--color-text)", marginLeft: "2px" }}>
+                          ({averageRating.toFixed(1)})
+                        </span>
+                      </div>
+                      <span style={{ fontSize: "0.9rem" }}>
+                        <span style={{ fontWeight: 600 }}>
+                          {ratings.filter(r => r.reviewText && r.reviewText.trim() !== "").length}
+                        </span> {ratings.filter(r => r.reviewText && r.reviewText.trim() !== "").length === 1 ? "review" : "reviews"}
+                      </span>
+                    </div>
                   )}
                 </div>
+                
+                {ratings.filter(r => r.reviewText && r.reviewText.trim() !== "").length > 0 && (
+                  <div style={{ marginBottom: "var(--spacing-md)" }}>
+                    <ReviewSummary 
+                      reviews={ratings
+                        .filter(r => r.reviewText && r.reviewText.trim() !== "")
+                        .map(r => r.reviewText || "")}
+                      title={movie.title}
+                      isLoading={loading}
+                    />
+                  </div>
+                )}
               </div>
             </div>
 
@@ -1126,48 +970,124 @@ const MovieDetailsPage = () => {
                 {movie.title}
               </h1>
 
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  margin: "var(--spacing-md) 0",
-                }}
-              >
-                <div
-                  style={{
-                    backgroundColor: "transparent",
-                    color: "var(--color-text)",
-                    fontWeight: "bold",
-                    padding: "6px 12px",
-                    borderRadius: "var(--radius-md)",
-                    marginRight: "var(--spacing-md)",
-                    fontSize: "1.1rem",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                  }}
-                >
-                  {/* Show average rating as stars */}
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <span 
-                      key={star} 
-                      style={{ 
-                        color: averageRating >= star ? "gold" : "#d1d1d1",
-                        fontSize: "1.6rem",
-                        fontWeight: "bold",
-                        lineHeight: 1
-                      }}
-                    >
-                      ★
-                    </span>
-                  ))}
-                  <span style={{ fontSize: "0.9rem", color: "var(--color-text)" }}>
-                    ({averageRating.toFixed(1)})
-                  </span>
+              <div style={{ margin: "var(--spacing-md) 0" }}>
+                {/* All ratings grouped together */}
+                <div style={{ 
+                  backgroundColor: 'var(--color-background)',
+                  padding: 'var(--spacing-md)',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--color-border)',
+                  marginBottom: 'var(--spacing-md)'
+                }}>
+                  <h3 style={{ 
+                    color: 'var(--color-text)', 
+                    fontWeight: 600, 
+                    fontSize: '1.1rem',
+                    marginTop: 0,
+                    marginBottom: 'var(--spacing-md)'
+                  }}>
+                    Ratings
+                  </h3>
+                  
+                  <div style={{ display: "flex", flexDirection: "column", gap: "var(--spacing-md)" }}>
+                    {/* Our site ratings with label */}
+                    <div style={{ 
+                      display: "flex", 
+                      alignItems: "center", 
+                      flexWrap: "wrap", 
+                      gap: "var(--spacing-md)"
+                    }}>
+                      <div style={{ minWidth: "100px", fontWeight: "500", color: "var(--color-text-light)" }}>
+                        Site Rating:
+                      </div>
+                      <div style={{ 
+                        display: "flex", 
+                        alignItems: "center", 
+                        gap: "var(--spacing-md)"
+                      }}>
+                        <div style={{
+                          backgroundColor: "transparent",
+                          color: "var(--color-text)",
+                          fontWeight: "bold",
+                          padding: "6px 12px",
+                          borderRadius: "var(--radius-md)",
+                          fontSize: "1.1rem",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                        }}>
+                          {/* Show average rating as stars */}
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <span 
+                              key={star} 
+                              style={{ 
+                                color: averageRating >= star ? "gold" : "#d1d1d1",
+                                fontSize: "1.6rem",
+                                fontWeight: "bold",
+                                lineHeight: 1
+                              }}
+                            >
+                              ★
+                            </span>
+                          ))}
+                          <span style={{ fontSize: "0.9rem", color: "var(--color-text)" }}>
+                            ({averageRating.toFixed(1)})
+                          </span>
+                        </div>
+                        <span style={{ color: "var(--color-text-light)" }}>
+                          {ratings.length} {ratings.length === 1 ? "rating" : "ratings"}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    {/* External ratings with label */}
+                    <div style={{ 
+                      display: "flex", 
+                      alignItems: "center", 
+                      flexWrap: "wrap", 
+                      gap: "var(--spacing-md)"
+                    }}>
+                      <div style={{ minWidth: "100px", fontWeight: "500", color: "var(--color-text-light)" }}>
+                        External:
+                      </div>
+                      <ExternalRatings 
+                        title={movie.title}
+                        year={movie.releaseYear}
+                        isTV={movie.type === "TV Show"}
+                        compact={true}
+                      />
+                    </div>
+                    
+                    {/* Where to Watch with label */}
+                    <div style={{ 
+                      display: "flex", 
+                      alignItems: "flex-start", 
+                      flexWrap: "wrap", 
+                      gap: "var(--spacing-md)"
+                    }}>
+                      <div style={{ minWidth: "100px", fontWeight: "500", color: "var(--color-text-light)" }}>
+                        Watch On:
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <WhereToWatch 
+                          title={movie.title}
+                          year={movie.releaseYear}
+                          isTV={movie.type === "TV Show"}
+                          compact={true}
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <span style={{ color: "var(--color-text-light)" }}>
-                  {ratings.length} {ratings.length === 1 ? "rating" : "ratings"}
-                </span>
+              </div>
+              
+              {/* Movie Trailer */}
+              <div style={{ margin: "var(--spacing-md) 0" }}>
+                <MovieTrailer 
+                  title={movie.title}
+                  year={movie.releaseYear}
+                  isTV={movie.type === "TV Show"}
+                />
               </div>
 
               {/* Movie Info Box */}
@@ -1274,8 +1194,8 @@ const MovieDetailsPage = () => {
                 </div>
               )}
 
-              {/* Cast and Crew from TMDB with images */}
-              <div style={{ margin: "var(--spacing-lg) 0" }}>
+              {/* Cast and Crew from TMDB with images - with reduced margin */}
+              <div style={{ margin: "var(--spacing-md) 0" }}>
                 <CastCrewScroller 
                   title={movie.title}
                   year={movie.releaseYear}
@@ -1289,17 +1209,66 @@ const MovieDetailsPage = () => {
           </div>
         </div>
       </div>
-
-      <div
-        className="recommended-movies-section card"
-        style={{
-          paddingTop: "var(--spacing-l)",
-          paddingBottom: "var(--spacing-xl)",
-          marginBottom: "1.0rem",
+      
+      {/* ReviewModal for adding/editing ratings */}
+      <ReviewModal
+        isOpen={showReviewModal}
+        onClose={() => setShowReviewModal(false)}
+        movieId={id || ""}
+        movieTitle={movie?.title || ""}
+        userId={user?.userId || parseInt(user?.id || "0")}
+        existingRating={userRating}
+        existingReview={userReview}
+        onReviewSubmitted={async () => {
+          // Refresh ratings for this movie
+          if (id) {
+            const ratingsResponse = await ratingApi.getByMovie(id);
+            setRatings(ratingsResponse.data);
+            
+            // Find user's updated rating
+            if (user) {
+              let userRatingObj = null;
+              if (user.userId) {
+                userRatingObj = ratingsResponse.data.find(
+                  (r) => r.userId === user.userId
+                );
+              }
+              if (!userRatingObj && user.id) {
+                const numericId = parseInt(user.id);
+                if (!isNaN(numericId)) {
+                  userRatingObj = ratingsResponse.data.find(
+                    (r) => r.userId === numericId
+                  );
+                }
+              }
+              if (userRatingObj) {
+                setUserRating(userRatingObj.ratingValue);
+                setUserReview(userRatingObj.reviewText || "");
+                setRatingSubmitted(true);
+              }
+            }
+            
+            // Show thank you message
+            setShowThankYouModal(true);
+          }
         }}
-      >
-        {/* Recommended Movies section */}
-        <RecommendedMovies showId={currentShowId} />
+      />
+
+      {/* Top Suggestions / Recommended Movies section with clearer title */}
+      <div className="card" style={{ marginBottom: "1.0rem" }}>
+        <h3 style={{ 
+          color: "var(--color-primary)", 
+          fontWeight: 600, 
+          margin: "var(--spacing-md) 0",
+          paddingLeft: "var(--spacing-lg)",
+        }}>
+          Top Suggestions
+        </h3>
+        <div style={{
+          paddingBottom: "var(--spacing-xl)",
+        }}>
+          <RecommendedMovies showId={currentShowId} />
+        </div>
       </div>
     </div>
   );
