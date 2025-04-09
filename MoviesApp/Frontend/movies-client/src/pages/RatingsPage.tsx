@@ -123,23 +123,38 @@ const RatingsPage = () => {
         setUser(parsedUser);
         
         // Fetch user's ratings with movie details
-        const fetchRatings = async () => {
-          try {
-            // The userId from auth response is a string, but the API expects a number
-            console.log('User from localStorage:', parsedUser);
-            // In the AuthController, the ID is returned as a string. Convert it to number if needed.
-            const userId = parsedUser.id ? parseInt(parsedUser.id) : parsedUser.userId;
-            console.log('Fetching ratings for user ID:', userId);
-            
-            const response = await ratingApi.getByUser(userId);
-            console.log('Ratings API response:', response.data);
-            setRatings(response.data);
-          } catch (err) {
-            console.error('Error fetching ratings:', err);
-          } finally {
-            setLoading(false);
-          }
-        };
+            const fetchRatings = async () => {
+              try {
+                // The userId from auth response is a string, but the API expects a number
+                console.log('User from localStorage:', parsedUser);
+                // In the AuthController, the ID is returned as a string. Convert it to number if needed.
+                const userId = parsedUser.id ? parseInt(parsedUser.id) : parsedUser.userId;
+                console.log('Fetching ratings for user ID:', userId);
+                
+                const response = await ratingApi.getByUser(userId);
+                console.log('Ratings API response:', response.data);
+                
+                // Validate that movies are properly loaded
+                const validRatings = response.data.filter(rating => {
+                  if (!rating.movie) {
+                    console.warn(`Rating for showId ${rating.showId} has no movie data`);
+                    return false;
+                  }
+                  return true;
+                });
+                
+                if (validRatings.length !== response.data.length) {
+                  console.warn(`Some ratings (${response.data.length - validRatings.length}) were filtered out due to missing movie data`);
+                }
+                
+                console.log('Valid ratings with movie data:', validRatings.length);
+                setRatings(validRatings);
+              } catch (err) {
+                console.error('Error fetching ratings:', err);
+              } finally {
+                setLoading(false);
+              }
+            };
         
         fetchRatings();
       } catch (e) {

@@ -15,12 +15,41 @@ interface MovieFormData {
   duration?: string;
   description?: string;
   posterUrl?: string;
+  // Movie genres
   Action?: number;
   Adventure?: number;
   Comedies?: number;
   Dramas?: number;
   HorrorMovies?: number;
   Thrillers?: number;
+  Documentaries?: number;
+  FamilyMovies?: number;
+  Fantasy?: number;
+  Musicals?: number;
+  // TV genres
+  TVAction?: number;
+  TVComedies?: number;
+  TVDramas?: number;
+  Docuseries?: number;
+  KidsTV?: number;
+  RealityTV?: number;
+  Children?: number;
+  // Additional genres
+  DocumentariesInternationalMovies?: number;
+  DramasInternationalMovies?: number;
+  DramasRomanticMovies?: number;
+  ComediesRomanticMovies?: number;
+  AnimeSeriesInternationalTVShows?: number;
+  BritishTVShowsDocuseriesInternationalTVShows?: number;
+  InternationalTVShowsRomanticTVShowsTVDramas?: number;
+  TalkShowsTVComedies?: number;
+  CrimeTVShowsDocuseries?: number;
+  LanguageTVShows?: number;
+  NatureTV?: number;
+  Spirituality?: number;
+  ComediesDramasInternationalMovies?: number;
+  ComediesInternationalMovies?: number;
+  InternationalMoviesThrillers?: number;
 }
 
 const AdminMoviesPage: React.FC = () => {
@@ -34,6 +63,14 @@ const AdminMoviesPage: React.FC = () => {
   const [totalMovies, setTotalMovies] = useState(0);
   const [editingMovie, setEditingMovie] = useState<MovieFormData | null>(null);
   const [isAdding, setIsAdding] = useState(false);
+  
+  // Search and filter states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedType, setSelectedType] = useState<string>('');
+  const [selectedGenre, setSelectedGenre] = useState<string>('');
+  const [yearFrom, setYearFrom] = useState<number | undefined>(undefined);
+  const [yearTo, setYearTo] = useState<number | undefined>(undefined);
+  const [showFilters, setShowFilters] = useState(false);
   const [formData, setFormData] = useState<MovieFormData>({
     showId: '',
     title: '',
@@ -63,19 +100,64 @@ const AdminMoviesPage: React.FC = () => {
     }
   }, [navigate]);
 
-  // Fetch movies on page/size change
+  // Fetch movies with search and filters
   useEffect(() => {
     const fetchMovies = async () => {
       if (!user) return;
       
       try {
         setLoading(true);
-        const response = await movieApi.getAll(currentPage, pageSize);
-        setMovies(response.data);
         
-        // In a real app, the API would return total count for pagination
-        // Here we're just approximating
-        setTotalMovies(currentPage * pageSize + (response.data.length === pageSize ? pageSize : 0));
+        let response;
+        let filteredMovies;
+        
+        // If search query exists, use search endpoint
+        if (searchQuery) {
+          response = await movieApi.searchMovies(searchQuery);
+          filteredMovies = response.data;
+        } else {
+          // Otherwise, get all movies
+          response = await movieApi.getAll(currentPage, pageSize);
+          filteredMovies = response.data;
+        }
+        
+        // Apply type filter if selected
+        if (selectedType) {
+          filteredMovies = filteredMovies.filter(movie => movie.type === selectedType);
+        }
+        
+        // Apply genre filter if selected
+        if (selectedGenre) {
+          filteredMovies = filteredMovies.filter(movie => {
+            // Need to cast to 'any' to access dynamic property
+            return (movie as any)[selectedGenre] === 1;
+          });
+        }
+        
+        // Apply year range filters if specified
+        if (yearFrom !== undefined) {
+          filteredMovies = filteredMovies.filter(movie => 
+            movie.releaseYear !== undefined && movie.releaseYear >= yearFrom
+          );
+        }
+        
+        if (yearTo !== undefined) {
+          filteredMovies = filteredMovies.filter(movie => 
+            movie.releaseYear !== undefined && movie.releaseYear <= yearTo
+          );
+        }
+        
+        setMovies(filteredMovies);
+        
+            // When searching or filtering is active, set total count based on filtered results
+            // This ensures accurate pagination for search results
+            if (searchQuery || selectedType || selectedGenre || yearFrom || yearTo) {
+              // For search/filter results, we have all results at once, so we know the exact count
+              setTotalMovies(filteredMovies.length);
+            } else {
+              // For regular pagination (no search/filter), approximate based on current page and page size
+              setTotalMovies(currentPage * pageSize + (response.data.length === pageSize ? pageSize : 0));
+            }
         
         setError(null);
       } catch (err) {
@@ -87,7 +169,7 @@ const AdminMoviesPage: React.FC = () => {
     };
 
     fetchMovies();
-  }, [currentPage, pageSize, user]);
+  }, [currentPage, pageSize, user, searchQuery, selectedType, selectedGenre, yearFrom, yearTo]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target as HTMLInputElement;
@@ -117,19 +199,66 @@ const AdminMoviesPage: React.FC = () => {
     try {
       setLoading(true);
       
-      // Create the movie object from form data
-      const movieData: Movie = {
-        showId: formData.showId,
+      // Set a default poster URL if none provided
+      const defaultPosterUrl = "https://placehold.co/320x480/2c3e50/FFFFFF?text=No+Poster+Available&font=montserrat";
+      
+      // Create the movie object from form data, including genre fields
+      // Explicitly create a new object WITHOUT the showId property to avoid sending empty string
+      const { showId, ...movieDataWithoutId } = formData;
+      
+      // Create the movie object with required fields and default values
+      const movieData = {
         title: formData.title,
-        type: formData.type,
-        director: formData.director,
-        cast: formData.cast,
-        country: formData.country,
+        type: formData.type || 'Movie',
+        director: formData.director || '',
+        cast: formData.cast || '',
+        country: formData.country || '',
         releaseYear: formData.releaseYear,
-        rating: formData.rating,
-        duration: formData.duration,
-        description: formData.description,
-        posterUrl: formData.posterUrl
+        rating: formData.rating || '',
+        duration: formData.duration || '',
+        description: formData.description || '',
+        posterUrl: formData.posterUrl || defaultPosterUrl,
+        
+        // Include all genre fields with proper defaults
+        // Movie genres
+        Action: formData.Action || 0,
+        Adventure: formData.Adventure || 0,
+        Comedies: formData.Comedies || 0,
+        Dramas: formData.Dramas || 0,
+        HorrorMovies: formData.HorrorMovies || 0,
+        Thrillers: formData.Thrillers || 0,
+        Documentaries: formData.Documentaries || 0,
+        FamilyMovies: formData.FamilyMovies || 0,
+        Fantasy: formData.Fantasy || 0,
+        Musicals: formData.Musicals || 0,
+        
+        // TV genres
+        TVAction: formData.TVAction || 0,
+        TVComedies: formData.TVComedies || 0,
+        TVDramas: formData.TVDramas || 0,
+        Docuseries: formData.Docuseries || 0,
+        KidsTV: formData.KidsTV || 0,
+        RealityTV: formData.RealityTV || 0,
+        Children: formData.Children || 0,
+        
+        // Other genres
+        DocumentariesInternationalMovies: formData.DocumentariesInternationalMovies || 0,
+        DramasInternationalMovies: formData.DramasInternationalMovies || 0,
+        DramasRomanticMovies: formData.DramasRomanticMovies || 0,
+        ComediesRomanticMovies: formData.ComediesRomanticMovies || 0,
+        
+        // Additional required genre fields from backend model
+        AnimeSeriesInternationalTVShows: formData.AnimeSeriesInternationalTVShows || 0,
+        BritishTVShowsDocuseriesInternationalTVShows: formData.BritishTVShowsDocuseriesInternationalTVShows || 0,
+        ComediesDramasInternationalMovies: formData.ComediesDramasInternationalMovies || 0,
+        ComediesInternationalMovies: formData.ComediesInternationalMovies || 0,
+        CrimeTVShowsDocuseries: formData.CrimeTVShowsDocuseries || 0,
+        InternationalMoviesThrillers: formData.InternationalMoviesThrillers || 0,
+        InternationalTVShowsRomanticTVShowsTVDramas: formData.InternationalTVShowsRomanticTVShowsTVDramas || 0,
+        LanguageTVShows: formData.LanguageTVShows || 0,
+        NatureTV: formData.NatureTV || 0,
+        Spirituality: formData.Spirituality || 0,
+        TalkShowsTVComedies: formData.TalkShowsTVComedies || 0
       };
       
       // Use the API to create the movie
@@ -164,7 +293,10 @@ const AdminMoviesPage: React.FC = () => {
     try {
       setLoading(true);
       
-      // Create the movie object from form data
+      // Set a default poster URL if none provided
+      const defaultPosterUrl = "https://placehold.co/320x480/2c3e50/FFFFFF?text=No+Poster+Available&font=montserrat";
+      
+      // Create the movie object from form data, including genre fields
       const movieData: Movie = {
         showId: editingMovie.showId,
         title: editingMovie.title,
@@ -176,7 +308,48 @@ const AdminMoviesPage: React.FC = () => {
         rating: editingMovie.rating,
         duration: editingMovie.duration,
         description: editingMovie.description,
-        posterUrl: editingMovie.posterUrl
+        posterUrl: editingMovie.posterUrl || defaultPosterUrl,
+        
+        // Include all genre fields with proper defaults
+        // Movie genres
+        Action: editingMovie.Action || 0,
+        Adventure: editingMovie.Adventure || 0,
+        Comedies: editingMovie.Comedies || 0,
+        Dramas: editingMovie.Dramas || 0,
+        HorrorMovies: editingMovie.HorrorMovies || 0,
+        Thrillers: editingMovie.Thrillers || 0,
+        Documentaries: editingMovie.Documentaries || 0,
+        FamilyMovies: editingMovie.FamilyMovies || 0,
+        Fantasy: editingMovie.Fantasy || 0,
+        Musicals: editingMovie.Musicals || 0,
+        
+        // TV genres
+        TVAction: editingMovie.TVAction || 0,
+        TVComedies: editingMovie.TVComedies || 0,
+        TVDramas: editingMovie.TVDramas || 0,
+        Docuseries: editingMovie.Docuseries || 0,
+        KidsTV: editingMovie.KidsTV || 0,
+        RealityTV: editingMovie.RealityTV || 0,
+        Children: editingMovie.Children || 0,
+        
+        // Other genres
+        DocumentariesInternationalMovies: editingMovie.DocumentariesInternationalMovies || 0,
+        DramasInternationalMovies: editingMovie.DramasInternationalMovies || 0,
+        DramasRomanticMovies: editingMovie.DramasRomanticMovies || 0,
+        ComediesRomanticMovies: editingMovie.ComediesRomanticMovies || 0,
+        
+        // Additional required genre fields
+        AnimeSeriesInternationalTVShows: editingMovie.AnimeSeriesInternationalTVShows || 0,
+        BritishTVShowsDocuseriesInternationalTVShows: editingMovie.BritishTVShowsDocuseriesInternationalTVShows || 0,
+        ComediesDramasInternationalMovies: editingMovie.ComediesDramasInternationalMovies || 0,
+        ComediesInternationalMovies: editingMovie.ComediesInternationalMovies || 0,
+        CrimeTVShowsDocuseries: editingMovie.CrimeTVShowsDocuseries || 0,
+        InternationalMoviesThrillers: editingMovie.InternationalMoviesThrillers || 0,
+        InternationalTVShowsRomanticTVShowsTVDramas: editingMovie.InternationalTVShowsRomanticTVShowsTVDramas || 0,
+        LanguageTVShows: editingMovie.LanguageTVShows || 0,
+        NatureTV: editingMovie.NatureTV || 0,
+        Spirituality: editingMovie.Spirituality || 0,
+        TalkShowsTVComedies: editingMovie.TalkShowsTVComedies || 0
       };
       
       // Use the API to update the movie
@@ -220,6 +393,63 @@ const AdminMoviesPage: React.FC = () => {
     }
   };
 
+  // Function to get the selected genre from form data
+  const getSelectedGenre = (data: MovieFormData): string => {
+    if (data.Action === 1) return "Action";
+    if (data.Adventure === 1) return "Adventure";
+    if (data.Comedies === 1) return "Comedies";
+    if (data.Dramas === 1) return "Dramas";
+    if (data.HorrorMovies === 1) return "HorrorMovies";
+    if (data.Thrillers === 1) return "Thrillers";
+    if (data.Documentaries === 1) return "Documentaries";
+    if (data.FamilyMovies === 1) return "FamilyMovies";
+    if (data.Fantasy === 1) return "Fantasy";
+    if (data.Musicals === 1) return "Musicals";
+    if (data.TVAction === 1) return "TVAction";
+    if (data.TVComedies === 1) return "TVComedies";
+    if (data.TVDramas === 1) return "TVDramas";
+    if (data.Docuseries === 1) return "Docuseries";
+    if (data.KidsTV === 1) return "KidsTV";
+    if (data.RealityTV === 1) return "RealityTV";
+    if (data.Children === 1) return "Children";
+    return "";
+  };
+  
+  // Function to handle genre dropdown change
+  const handleGenreChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedGenre = e.target.value;
+    
+    // Reset all genre fields
+    const updatedFormData: MovieFormData = {
+      ...formData,
+      Action: 0,
+      Adventure: 0,
+      Comedies: 0,
+      Dramas: 0,
+      HorrorMovies: 0,
+      Thrillers: 0,
+      Documentaries: 0,
+      FamilyMovies: 0,
+      Fantasy: 0,
+      Musicals: 0
+    };
+    
+    // Set the selected genre to 1
+    if (selectedGenre) {
+      // Define the genres we support for the dropdown
+      const validGenres = ['Action', 'Adventure', 'Comedies', 'Dramas', 'HorrorMovies', 
+                          'Thrillers', 'Documentaries', 'FamilyMovies', 'Fantasy', 'Musicals'];
+      
+      // Only set if it's a valid genre field
+      if (validGenres.includes(selectedGenre)) {
+        // Explicitly use type assertion
+        (updatedFormData as any)[selectedGenre] = 1;
+      }
+    }
+    
+    setFormData(updatedFormData);
+  };
+
   const startEdit = (movie: Movie) => {
     setEditingMovie({
       showId: movie.showId,
@@ -232,7 +462,14 @@ const AdminMoviesPage: React.FC = () => {
       rating: movie.rating,
       duration: movie.duration,
       description: movie.description,
-      posterUrl: movie.posterUrl
+      posterUrl: movie.posterUrl,
+      // Add genre fields
+      Action: movie.Action,
+      Adventure: movie.Adventure,
+      Comedies: movie.Comedies,
+      Dramas: movie.Dramas,
+      HorrorMovies: movie.HorrorMovies,
+      Thrillers: movie.Thrillers
     });
   };
 
@@ -286,7 +523,7 @@ const AdminMoviesPage: React.FC = () => {
             justifyContent: 'space-between', 
             alignItems: 'center',
             flexWrap: 'wrap',
-            marginBottom: 'var(--spacing-lg)'
+            marginBottom: 'var(--spacing-md)'
           }}>
             <h2 style={{ margin: 0 }}>Movie Management</h2>
             
@@ -312,6 +549,147 @@ const AdminMoviesPage: React.FC = () => {
                 <option value="50">50</option>
               </select>
             </div>
+          </div>
+          
+          {/* Search Bar */}
+          <div style={{ marginBottom: 'var(--spacing-md)' }}>
+            <div style={{ display: 'flex', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)' }}>
+              <input
+                type="text"
+                placeholder="Search titles, directors, or actors..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{ flex: 1, padding: 'var(--spacing-sm)' }}
+              />
+              <button
+                onClick={() => {
+                  // Reset page when searching
+                  setCurrentPage(1);
+                }}
+                style={{
+                  backgroundColor: 'var(--color-primary)',
+                  color: 'white',
+                  border: 'none',
+                  padding: 'var(--spacing-sm) var(--spacing-md)',
+                  borderRadius: 'var(--radius-md)',
+                  cursor: 'pointer'
+                }}
+              >
+                Search
+              </button>
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                style={{
+                  backgroundColor: 'var(--color-secondary)',
+                  color: 'white',
+                  border: 'none',
+                  padding: 'var(--spacing-sm) var(--spacing-md)',
+                  borderRadius: 'var(--radius-md)',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 'var(--spacing-xs)'
+                }}
+              >
+                <span>{showFilters ? 'Hide Filters' : 'Show Filters'}</span>
+              </button>
+            </div>
+            
+            {/* Additional Filters */}
+            {showFilters && (
+              <div style={{ 
+                backgroundColor: 'var(--color-background)', 
+                padding: 'var(--spacing-md)',
+                borderRadius: 'var(--radius-md)',
+                marginBottom: 'var(--spacing-md)'
+              }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-md)' }}>
+                  <div style={{ minWidth: '200px', flex: 1 }}>
+                    <label htmlFor="typeFilter" style={{ display: 'block', marginBottom: 'var(--spacing-xs)' }}>Type</label>
+                    <select
+                      id="typeFilter"
+                      value={selectedType}
+                      onChange={(e) => setSelectedType(e.target.value)}
+                      style={{ width: '100%', padding: 'var(--spacing-sm)' }}
+                    >
+                      <option value="">All Types</option>
+                      <option value="Movie">Movies</option>
+                      <option value="TV Show">TV Shows</option>
+                      <option value="Documentary">Documentaries</option>
+                    </select>
+                  </div>
+                  
+                  <div style={{ minWidth: '200px', flex: 1 }}>
+                    <label htmlFor="genreFilter" style={{ display: 'block', marginBottom: 'var(--spacing-xs)' }}>Genre</label>
+                    <select
+                      id="genreFilter"
+                      value={selectedGenre}
+                      onChange={(e) => setSelectedGenre(e.target.value)}
+                      style={{ width: '100%', padding: 'var(--spacing-sm)' }}
+                    >
+                      <option value="">All Genres</option>
+                      <option value="Action">Action</option>
+                      <option value="Adventure">Adventure</option>
+                      <option value="Comedies">Comedy</option>
+                      <option value="Dramas">Drama</option>
+                      <option value="HorrorMovies">Horror</option>
+                      <option value="Thrillers">Thriller</option>
+                      <option value="Documentaries">Documentary</option>
+                      <option value="FamilyMovies">Family</option>
+                      <option value="Fantasy">Fantasy</option>
+                      <option value="Musicals">Musical</option>
+                    </select>
+                  </div>
+                  
+                  <div style={{ minWidth: '200px', flex: 1 }}>
+                    <label style={{ display: 'block', marginBottom: 'var(--spacing-xs)' }}>Release Year</label>
+                    <div style={{ display: 'flex', gap: 'var(--spacing-sm)' }}>
+                      <input
+                        type="number"
+                        placeholder="From"
+                        value={yearFrom || ''}
+                        onChange={(e) => setYearFrom(e.target.value ? parseInt(e.target.value) : undefined)}
+                        style={{ flex: 1, padding: 'var(--spacing-sm)' }}
+                        min="1900"
+                        max="2099"
+                      />
+                      <input
+                        type="number"
+                        placeholder="To"
+                        value={yearTo || ''}
+                        onChange={(e) => setYearTo(e.target.value ? parseInt(e.target.value) : undefined)}
+                        style={{ flex: 1, padding: 'var(--spacing-sm)' }}
+                        min="1900"
+                        max="2099"
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 'var(--spacing-md)' }}>
+                  <button
+                    onClick={() => {
+                      setSearchQuery('');
+                      setSelectedType('');
+                      setSelectedGenre('');
+                      setYearFrom(undefined);
+                      setYearTo(undefined);
+                      setCurrentPage(1);
+                    }}
+                    style={{
+                      backgroundColor: 'var(--color-error)',
+                      color: 'white',
+                      border: 'none',
+                      padding: 'var(--spacing-sm) var(--spacing-md)',
+                      borderRadius: 'var(--radius-md)',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Clear All Filters
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
       
           {/* Movies Table */}
@@ -460,18 +838,7 @@ const AdminMoviesPage: React.FC = () => {
           <div style={modalContentStyle}>
             <h2>Add New Movie</h2>
             <form onSubmit={handleAddMovie}>
-              <div style={formGroupStyle}>
-                <label htmlFor="showId">Movie ID *</label>
-                <input
-                  type="text"
-                  id="showId"
-                  name="showId"
-                  value={formData.showId}
-                  onChange={handleInputChange}
-                  style={inputStyle}
-                  required
-                />
-              </div>
+              {/* Movie ID is now auto-generated */}
               
               <div style={formGroupStyle}>
                 <label htmlFor="title">Title *</label>
@@ -563,73 +930,27 @@ const AdminMoviesPage: React.FC = () => {
                 />
               </div>
               
-              <h3>Genres</h3>
-              <div style={checkboxGroupStyle}>
-                <div style={checkboxContainerStyle}>
-                  <input
-                    type="checkbox"
-                    id="Action"
-                    name="Action"
-                    checked={formData.Action === 1}
-                    onChange={handleInputChange}
-                  />
-                  <label htmlFor="Action">Action</label>
-                </div>
-                
-                <div style={checkboxContainerStyle}>
-                  <input
-                    type="checkbox"
-                    id="Adventure"
-                    name="Adventure"
-                    checked={formData.Adventure === 1}
-                    onChange={handleInputChange}
-                  />
-                  <label htmlFor="Adventure">Adventure</label>
-                </div>
-                
-                <div style={checkboxContainerStyle}>
-                  <input
-                    type="checkbox"
-                    id="Comedies"
-                    name="Comedies"
-                    checked={formData.Comedies === 1}
-                    onChange={handleInputChange}
-                  />
-                  <label htmlFor="Comedies">Comedy</label>
-                </div>
-                
-                <div style={checkboxContainerStyle}>
-                  <input
-                    type="checkbox"
-                    id="Dramas"
-                    name="Dramas"
-                    checked={formData.Dramas === 1}
-                    onChange={handleInputChange}
-                  />
-                  <label htmlFor="Dramas">Drama</label>
-                </div>
-                
-                <div style={checkboxContainerStyle}>
-                  <input
-                    type="checkbox"
-                    id="HorrorMovies"
-                    name="HorrorMovies"
-                    checked={formData.HorrorMovies === 1}
-                    onChange={handleInputChange}
-                  />
-                  <label htmlFor="HorrorMovies">Horror</label>
-                </div>
-                
-                <div style={checkboxContainerStyle}>
-                  <input
-                    type="checkbox"
-                    id="Thrillers"
-                    name="Thrillers"
-                    checked={formData.Thrillers === 1}
-                    onChange={handleInputChange}
-                  />
-                  <label htmlFor="Thrillers">Thriller</label>
-                </div>
+              <div style={formGroupStyle}>
+                <label htmlFor="genre">Primary Genre</label>
+                <select
+                  id="genre"
+                  name="genre"
+                  value={getSelectedGenre(formData)}
+                  onChange={handleGenreChange}
+                  style={inputStyle}
+                >
+                  <option value="">Select a genre</option>
+                  <option value="Action">Action</option>
+                  <option value="Adventure">Adventure</option>
+                  <option value="Comedies">Comedy</option>
+                  <option value="Dramas">Drama</option>
+                  <option value="HorrorMovies">Horror</option>
+                  <option value="Thrillers">Thriller</option>
+                  <option value="Documentaries">Documentary</option>
+                  <option value="FamilyMovies">Family</option>
+                  <option value="Fantasy">Fantasy</option>
+                  <option value="Musicals">Musical</option>
+                </select>
               </div>
               
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
@@ -749,6 +1070,75 @@ const AdminMoviesPage: React.FC = () => {
                   onChange={(e) => setEditingMovie({...editingMovie, posterUrl: e.target.value})}
                   style={inputStyle}
                 />
+              </div>
+              
+              <h3>Genres</h3>
+              <div style={checkboxGroupStyle}>
+                <div style={checkboxContainerStyle}>
+                  <input
+                    type="checkbox"
+                    id="edit-Action"
+                    name="Action"
+                    checked={editingMovie.Action === 1}
+                    onChange={(e) => setEditingMovie({...editingMovie, Action: e.target.checked ? 1 : 0})}
+                  />
+                  <label htmlFor="edit-Action">Action</label>
+                </div>
+                
+                <div style={checkboxContainerStyle}>
+                  <input
+                    type="checkbox"
+                    id="edit-Adventure"
+                    name="Adventure"
+                    checked={editingMovie.Adventure === 1}
+                    onChange={(e) => setEditingMovie({...editingMovie, Adventure: e.target.checked ? 1 : 0})}
+                  />
+                  <label htmlFor="edit-Adventure">Adventure</label>
+                </div>
+                
+                <div style={checkboxContainerStyle}>
+                  <input
+                    type="checkbox"
+                    id="edit-Comedies"
+                    name="Comedies"
+                    checked={editingMovie.Comedies === 1}
+                    onChange={(e) => setEditingMovie({...editingMovie, Comedies: e.target.checked ? 1 : 0})}
+                  />
+                  <label htmlFor="edit-Comedies">Comedy</label>
+                </div>
+                
+                <div style={checkboxContainerStyle}>
+                  <input
+                    type="checkbox"
+                    id="edit-Dramas"
+                    name="Dramas"
+                    checked={editingMovie.Dramas === 1}
+                    onChange={(e) => setEditingMovie({...editingMovie, Dramas: e.target.checked ? 1 : 0})}
+                  />
+                  <label htmlFor="edit-Dramas">Drama</label>
+                </div>
+                
+                <div style={checkboxContainerStyle}>
+                  <input
+                    type="checkbox"
+                    id="edit-HorrorMovies"
+                    name="HorrorMovies"
+                    checked={editingMovie.HorrorMovies === 1}
+                    onChange={(e) => setEditingMovie({...editingMovie, HorrorMovies: e.target.checked ? 1 : 0})}
+                  />
+                  <label htmlFor="edit-HorrorMovies">Horror</label>
+                </div>
+                
+                <div style={checkboxContainerStyle}>
+                  <input
+                    type="checkbox"
+                    id="edit-Thrillers"
+                    name="Thrillers"
+                    checked={editingMovie.Thrillers === 1}
+                    onChange={(e) => setEditingMovie({...editingMovie, Thrillers: e.target.checked ? 1 : 0})}
+                  />
+                  <label htmlFor="edit-Thrillers">Thriller</label>
+                </div>
               </div>
               
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>

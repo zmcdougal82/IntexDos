@@ -40,7 +40,18 @@ namespace MoviesApp.API.Controllers
             var ratings = await _context.Ratings
                 .Where(r => r.UserId == userId)
                 .Include(r => r.Movie)
+                .OrderByDescending(r => r.Timestamp)  // Show newest ratings first
                 .ToListAsync();
+
+            // Ensure all movie data is loaded
+            foreach (var rating in ratings)
+            {
+                if (rating.Movie != null)
+                {
+                    // Force load of the movie entity
+                    await _context.Entry(rating.Movie).ReloadAsync();
+                }
+            }
 
             return ratings;
         }

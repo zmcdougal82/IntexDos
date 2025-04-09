@@ -47,7 +47,39 @@ export interface Movie {
   duration?: string;
   description?: string;
   posterUrl?: string;
-  // We'll omit all the genre flags for simplicity in the interface
+  // Genre flags
+  Action?: number;
+  Adventure?: number;
+  Comedies?: number;
+  Dramas?: number;
+  HorrorMovies?: number;
+  Thrillers?: number;
+  Documentaries?: number;
+  DocumentariesInternationalMovies?: number;
+  DramasInternationalMovies?: number;
+  DramasRomanticMovies?: number;
+  ComediesRomanticMovies?: number;
+  AnimeSeriesInternationalTVShows?: number;
+  BritishTVShowsDocuseriesInternationalTVShows?: number;
+  InternationalTVShowsRomanticTVShowsTVDramas?: number;
+  TalkShowsTVComedies?: number;
+  CrimeTVShowsDocuseries?: number;
+  LanguageTVShows?: number;
+  NatureTV?: number;
+  Spirituality?: number;
+  ComediesDramasInternationalMovies?: number;
+  ComediesInternationalMovies?: number;
+  InternationalMoviesThrillers?: number;
+  FamilyMovies?: number;
+  Fantasy?: number;
+  Musicals?: number;
+  TVAction?: number;
+  TVComedies?: number;
+  TVDramas?: number;
+  Docuseries?: number;
+  KidsTV?: number;
+  RealityTV?: number;
+  Children?: number;
 }
 
 // Auth response interface
@@ -152,7 +184,7 @@ export const movieApi = {
     api.put<Movie>(`/movies/${movie.showId}`, movie),
     
   // Create new movie
-  createMovie: (movie: Movie) =>
+  createMovie: (movie: Partial<Movie>) =>
     api.post<Movie>('/movies', movie),
     
   // Delete movie

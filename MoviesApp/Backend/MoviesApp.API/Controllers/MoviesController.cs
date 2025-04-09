@@ -27,6 +27,7 @@ namespace MoviesApp.API.Controllers
         public async Task<ActionResult<IEnumerable<Movie>>> GetMovies([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
             return await _context.Movies
+                .OrderBy(m => m.ShowId) // Add ordering for consistent results
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
@@ -52,12 +53,16 @@ namespace MoviesApp.API.Controllers
         {
             if (string.IsNullOrEmpty(query))
             {
-                return await _context.Movies.Take(20).ToListAsync();
+                return await _context.Movies
+                    .OrderBy(m => m.ShowId) // Add ordering for consistent results
+                    .Take(20)
+                    .ToListAsync();
             }
 
             return await _context.Movies
                 .Where(m => m.Title.Contains(query) || 
                        (m.Description != null && m.Description.Contains(query)))
+                .OrderBy(m => m.ShowId) // Add ordering for consistent results
                 .Take(50)
                 .ToListAsync();
         }
@@ -184,6 +189,7 @@ namespace MoviesApp.API.Controllers
                 query = query.Where(predicate);
                 
                 return await query
+                    .OrderBy(m => m.ShowId) // Add ordering for consistent results
                     .Skip((page - 1) * pageSize)
                     .Take(pageSize)
                     .ToListAsync();
@@ -332,6 +338,7 @@ namespace MoviesApp.API.Controllers
                 }
                 
                 return await query
+                    .OrderBy(m => m.ShowId) // Add ordering for consistent results
                     .Skip((page - 1) * pageSize)
                     .Take(pageSize)
                     .ToListAsync();
@@ -349,6 +356,57 @@ namespace MoviesApp.API.Controllers
         {
             try
             {
+                // Auto-generate ShowId if not provided
+                if (string.IsNullOrEmpty(movie.ShowId))
+                {
+                    // Generate a unique ID using current timestamp to avoid collisions
+                    string timestampId = DateTime.Now.Ticks.ToString();
+                    movie.ShowId = $"s{timestampId.Substring(Math.Max(0, timestampId.Length - 10))}";
+                    
+                    // Make sure this ID doesn't already exist
+                    while (await _context.Movies.AnyAsync(m => m.ShowId == movie.ShowId))
+                    {
+                        // If it exists, generate a new one with a small delay
+                        await Task.Delay(10); // Small delay to get a different timestamp
+                        timestampId = DateTime.Now.Ticks.ToString();
+                        movie.ShowId = $"s{timestampId.Substring(Math.Max(0, timestampId.Length - 10))}";
+                    }
+                }
+                
+                // Initialize all genre fields to 0 if not set
+                movie.Action ??= 0;
+                movie.Adventure ??= 0;
+                movie.AnimeSeriesInternationalTVShows ??= 0;
+                movie.BritishTVShowsDocuseriesInternationalTVShows ??= 0;
+                movie.Children ??= 0;
+                movie.Comedies ??= 0;
+                movie.ComediesDramasInternationalMovies ??= 0;
+                movie.ComediesInternationalMovies ??= 0;
+                movie.ComediesRomanticMovies ??= 0;
+                movie.CrimeTVShowsDocuseries ??= 0;
+                movie.Documentaries ??= 0;
+                movie.DocumentariesInternationalMovies ??= 0;
+                movie.Docuseries ??= 0;
+                movie.Dramas ??= 0;
+                movie.DramasInternationalMovies ??= 0;
+                movie.DramasRomanticMovies ??= 0;
+                movie.FamilyMovies ??= 0;
+                movie.Fantasy ??= 0;
+                movie.HorrorMovies ??= 0;
+                movie.InternationalMoviesThrillers ??= 0;
+                movie.InternationalTVShowsRomanticTVShowsTVDramas ??= 0;
+                movie.KidsTV ??= 0;
+                movie.LanguageTVShows ??= 0;
+                movie.Musicals ??= 0;
+                movie.NatureTV ??= 0;
+                movie.RealityTV ??= 0;
+                movie.Spirituality ??= 0;
+                movie.TVAction ??= 0;
+                movie.TVComedies ??= 0;
+                movie.TVDramas ??= 0;
+                movie.TalkShowsTVComedies ??= 0;
+                movie.Thrillers ??= 0;
+                
                 _context.Movies.Add(movie);
                 await _context.SaveChangesAsync();
 
@@ -388,6 +446,40 @@ namespace MoviesApp.API.Controllers
                 existingMovie.Duration = movie.Duration;
                 existingMovie.Description = movie.Description;
                 existingMovie.PosterUrl = movie.PosterUrl;
+                
+                // Update genre fields
+                existingMovie.Action = movie.Action;
+                existingMovie.Adventure = movie.Adventure;
+                existingMovie.AnimeSeriesInternationalTVShows = movie.AnimeSeriesInternationalTVShows;
+                existingMovie.BritishTVShowsDocuseriesInternationalTVShows = movie.BritishTVShowsDocuseriesInternationalTVShows;
+                existingMovie.Children = movie.Children;
+                existingMovie.Comedies = movie.Comedies;
+                existingMovie.ComediesDramasInternationalMovies = movie.ComediesDramasInternationalMovies;
+                existingMovie.ComediesInternationalMovies = movie.ComediesInternationalMovies;
+                existingMovie.ComediesRomanticMovies = movie.ComediesRomanticMovies;
+                existingMovie.CrimeTVShowsDocuseries = movie.CrimeTVShowsDocuseries;
+                existingMovie.Documentaries = movie.Documentaries;
+                existingMovie.DocumentariesInternationalMovies = movie.DocumentariesInternationalMovies;
+                existingMovie.Docuseries = movie.Docuseries;
+                existingMovie.Dramas = movie.Dramas;
+                existingMovie.DramasInternationalMovies = movie.DramasInternationalMovies;
+                existingMovie.DramasRomanticMovies = movie.DramasRomanticMovies;
+                existingMovie.FamilyMovies = movie.FamilyMovies;
+                existingMovie.Fantasy = movie.Fantasy;
+                existingMovie.HorrorMovies = movie.HorrorMovies;
+                existingMovie.InternationalMoviesThrillers = movie.InternationalMoviesThrillers;
+                existingMovie.InternationalTVShowsRomanticTVShowsTVDramas = movie.InternationalTVShowsRomanticTVShowsTVDramas;
+                existingMovie.KidsTV = movie.KidsTV;
+                existingMovie.LanguageTVShows = movie.LanguageTVShows;
+                existingMovie.Musicals = movie.Musicals;
+                existingMovie.NatureTV = movie.NatureTV;
+                existingMovie.RealityTV = movie.RealityTV;
+                existingMovie.Spirituality = movie.Spirituality;
+                existingMovie.TVAction = movie.TVAction;
+                existingMovie.TVComedies = movie.TVComedies;
+                existingMovie.TVDramas = movie.TVDramas;
+                existingMovie.TalkShowsTVComedies = movie.TalkShowsTVComedies;
+                existingMovie.Thrillers = movie.Thrillers;
 
                 // Mark as modified
                 _context.Entry(existingMovie).State = EntityState.Modified;
