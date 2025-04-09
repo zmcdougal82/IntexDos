@@ -114,10 +114,30 @@ const MovieDetailsPage = () => {
             // Create properly formatted URL with the movie title
             const properFileName = movieResponse.data.title + ".jpg";
 
-            // Format according to the correct pattern with unencoded spaces and the new SAS token
-            setPosterUrl(
-              `https://moviesappsa79595.blob.core.windows.net/movie-posters/Movie Posters/${properFileName}?${sasToken}`
-            );
+            try {
+              // Properly encode the path components for compatibility with Azure
+              const encodedPosterPath = encodeURIComponent("Movie Posters");
+              const encodedFileName = encodeURIComponent(properFileName);
+              
+              // Format with properly encoded URL components for Azure
+              setPosterUrl(
+                `https://moviesappsa79595.blob.core.windows.net/movie-posters/${encodedPosterPath}/${encodedFileName}?${sasToken}`
+              );
+            } catch (error) {
+              console.error(`Error constructing Azure URL for ${movieResponse.data.title}:`, error);
+              // Fall back to TMDB if there's an error constructing the URL
+              const tmdbSuccess = await fetchTMDBPoster(
+                movieResponse.data.title,
+                movieResponse.data.releaseYear,
+                movieResponse.data.type === "TV Show"
+              );
+              
+              if (!tmdbSuccess) {
+                setPosterUrl(
+                  "https://placehold.co/480x720/2c3e50/FFFFFF?text=Poster+Coming+Soon&font=montserrat"
+                );
+              }
+            }
           } else {
             // If not from expected source, use as is
             setPosterUrl(url);
@@ -752,10 +772,10 @@ const MovieDetailsPage = () => {
         >
           <div
             style={{
-              display: "flex",
-              flexDirection: "row",
+              display: "grid",
+              gridTemplateColumns: "320px 1fr",
               gap: "var(--spacing-xl)",
-              flexWrap: "wrap",
+              alignItems: "start",
             }}
           >
             {/* Movie poster */}
@@ -1443,23 +1463,32 @@ const MovieDetailsPage = () => {
         }}
       />
 
-      {/* Top Suggestions / Recommended Movies section with clearer title */}
-      <div className="card" style={{ marginBottom: "1.0rem" }}>
+      {/* Top Suggestions / Recommended Movies section */}
+      <div 
+        className="card" 
+        style={{ 
+          marginBottom: "var(--spacing-lg)",
+          padding: "var(--spacing-lg)",
+          backgroundColor: "var(--color-background)",
+          borderRadius: "var(--radius-md)",
+          border: "1px solid var(--color-border)",
+          boxShadow: "var(--shadow-sm)"
+        }}
+      >
         <h3
           style={{
             color: "var(--color-primary)",
             fontWeight: 600,
-            margin: "var(--spacing-md) 0",
-            paddingLeft: "var(--spacing-lg)",
+            margin: 0,
+            marginBottom: "var(--spacing-lg)",
+            fontSize: "1.2rem",
+            borderBottom: "1px solid var(--color-border)",
+            paddingBottom: "var(--spacing-sm)"
           }}
         >
           Top Suggestions
         </h3>
-        <div
-          style={{
-            paddingBottom: "var(--spacing-xl)",
-          }}
-        >
+        <div>
           <RecommendedMovies showId={currentShowId} />
         </div>
       </div>

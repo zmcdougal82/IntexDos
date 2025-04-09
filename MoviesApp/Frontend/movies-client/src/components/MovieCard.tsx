@@ -65,8 +65,18 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onClick }) => {
         // This matches the format: "Movie Title.jpg"
         const properFileName = movie.title + '.jpg';
         
-        // Format according to the correct pattern with unencoded spaces and the new SAS token
-        setPosterUrl(`https://moviesappsa79595.blob.core.windows.net/movie-posters/Movie Posters/${properFileName}?${sasToken}`);
+        try {
+          // Properly encode the path components for compatibility with Azure
+          const encodedPosterPath = encodeURIComponent("Movie Posters");
+          const encodedFileName = encodeURIComponent(properFileName);
+          
+          // Format with properly encoded URL components for Azure
+          setPosterUrl(`https://moviesappsa79595.blob.core.windows.net/movie-posters/${encodedPosterPath}/${encodedFileName}?${sasToken}`);
+        } catch (error) {
+          console.error(`Error constructing Azure URL for ${movie.title}:`, error);
+          // Try TMDB immediately as a backup
+          fetchTMDBPoster().catch(() => setPosterUrl(defaultImage));
+        }
       } else {
         // If not from expected source, use as is
         setPosterUrl(movie.posterUrl);
