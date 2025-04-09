@@ -569,30 +569,8 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
     return null;
   };
   
-  // Utility function to map TMDB TV ratings to our application's rating options
-  const _mapTVRatingToOptions = (tmdbRating: string): string => {
-    if (!tmdbRating) return '';
-    
-    // Map TMDB TV content ratings to our dropdown options
-    const ratingMap: {[key: string]: string} = {
-      // US TV Ratings
-      'TV-Y': 'TV-Y',
-      'TV-Y7': 'TV-Y7',
-      'TV-G': 'TV-G',
-      'TV-PG': 'TV-PG',
-      'TV-14': 'TV-14',
-      'TV-MA': 'TV-MA',
-      // Common alternate codes
-      'NR': 'Not Rated',
-      'G': 'TV-G',
-      'PG': 'TV-PG',
-      '14': 'TV-14',
-      'MA': 'TV-MA'
-    };
-    
-    return ratingMap[tmdbRating] || '';
-  };
-  
+
+
   // Map of genre property names to display names
   const genreMapping: {[key: string]: string} = {
     Action: "Action",
@@ -697,45 +675,8 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
   };
   
  
-  // Function to get a movie genre from form data
-  const _getMovieGenre = (movieData: MovieFormData): string => {
-    const movieGenres = [
-      'Action', 'Adventure', 'Comedies', 'Dramas', 'HorrorMovies', 'Thrillers',
-      'Documentaries', 'FamilyMovies', 'Fantasy', 'Musicals',
-      'DramasRomanticMovies', 'ComediesRomanticMovies', 'DocumentariesInternationalMovies',
-      'DramasInternationalMovies', 'ComediesInternationalMovies', 'InternationalMoviesThrillers',
-      'ComediesDramasInternationalMovies'
-    ];
-    
-    // Find the first active movie genre
-    for (const genre of movieGenres) {
-      if ((movieData as any)[genre] === 1) {
-        return genre;
-      }
-    }
-    
-    return "";
-  };
-  
-  // Function to get a TV genre from form data
-  const _getTVGenre = (movieData: MovieFormData): string => {
-    const tvGenres = [
-      'TVAction', 'TVComedies', 'TVDramas', 'Docuseries', 'KidsTV', 'RealityTV',
-      'TalkShowsTVComedies', 'AnimeSeriesInternationalTVShows',
-      'BritishTVShowsDocuseriesInternationalTVShows', 'InternationalTVShowsRomanticTVShowsTVDramas',
-      'CrimeTVShowsDocuseries', 'LanguageTVShows', 'NatureTV', 'Children'
-    ];
-    
-    // Find the first active TV genre
-    for (const genre of tvGenres) {
-      if ((movieData as any)[genre] === 1) {
-        return genre;
-      }
-    }
-    
-    return "";
-  };
-  
+ 
+
   // Function to handle genre dropdown change for adding movies
   const handleGenreChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedGenre = e.target.value;
@@ -771,61 +712,7 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
     setFormData(updatedFormData);
   };
   
-  // Function to handle genre change in edit mode
-  const handleEditGenreChange = (genreKey: string, contentType: 'movie' | 'tv') => {
-    if (!editingMovie) return;
-    
-    // Create a copy of the current editing movie
-    const updatedMovie = { ...editingMovie };
-    
-    // Reset all genre fields of the specified type
-    if (contentType === 'movie') {
-      // Reset movie genres
-      updatedMovie.Action = 0;
-      updatedMovie.Adventure = 0;
-      updatedMovie.Comedies = 0;
-      updatedMovie.Dramas = 0;
-      updatedMovie.HorrorMovies = 0;
-      updatedMovie.Thrillers = 0;
-      updatedMovie.Documentaries = 0;
-      updatedMovie.FamilyMovies = 0;
-      updatedMovie.Fantasy = 0;
-      updatedMovie.Musicals = 0;
-      updatedMovie.DramasRomanticMovies = 0;
-      updatedMovie.ComediesRomanticMovies = 0;
-      updatedMovie.DocumentariesInternationalMovies = 0;
-      updatedMovie.DramasInternationalMovies = 0;
-      updatedMovie.ComediesInternationalMovies = 0;
-      updatedMovie.InternationalMoviesThrillers = 0;
-      updatedMovie.ComediesDramasInternationalMovies = 0;
-    } else {
-      // Reset TV genres
-      updatedMovie.TVAction = 0;
-      updatedMovie.TVComedies = 0;
-      updatedMovie.TVDramas = 0;
-      updatedMovie.Docuseries = 0;
-      updatedMovie.KidsTV = 0;
-      updatedMovie.RealityTV = 0;
-      updatedMovie.TalkShowsTVComedies = 0;
-      updatedMovie.AnimeSeriesInternationalTVShows = 0;
-      updatedMovie.BritishTVShowsDocuseriesInternationalTVShows = 0;
-      updatedMovie.InternationalTVShowsRomanticTVShowsTVDramas = 0;
-      updatedMovie.CrimeTVShowsDocuseries = 0;
-      updatedMovie.LanguageTVShows = 0;
-      updatedMovie.NatureTV = 0;
-      updatedMovie.Children = 0;
-    }
-    
-    // Set the selected genre if one was chosen
-    if (genreKey) {
-      (updatedMovie as any)[genreKey] = 1;
-    }
-    
-    // Update the editing movie state
-    setEditingMovie(updatedMovie);
-    
-    console.log(`Updated genre to ${genreKey} for ${contentType}:`, updatedMovie);
-  };
+ 
   
   // Function to add a new genre
   const handleAddGenre = (genreKey: string, contentType: 'movie' | 'tv') => {
