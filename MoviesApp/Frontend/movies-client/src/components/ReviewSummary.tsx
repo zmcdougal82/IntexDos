@@ -72,6 +72,14 @@ const ReviewSummary: React.FC<ReviewSummaryProps> = ({ reviews, title, isLoading
       setError(null);
       setSummary('');
 
+      // Check if OpenAI API key is available
+      if (!import.meta.env.VITE_OPENAI_API_KEY) {
+        console.error('OpenAI API key is not available');
+        setError('OpenAI API key is not configured. Summary generation is disabled.');
+        setIsGeneratingSummary(false);
+        return;
+      }
+
       // Log for debugging
       console.log(`Attempting to generate summary for ${reviews.length} reviews for "${title}"`);
 

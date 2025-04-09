@@ -2,6 +2,11 @@
 const API_URL = 'https://api.openai.com/v1/chat/completions';
 const API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
 
+// Check if API key is available and log a warning if it's not
+if (!API_KEY) {
+  console.warn('OpenAI API key is not available. Summary generation will be disabled.');
+}
+
 interface SummarizationOptions {
   maxLength?: number;
   minLength?: number;
@@ -29,6 +34,11 @@ export const openaiApi = {
     const maxTokens = Math.ceil((options.maxLength || 120) / 4);
     
     try {
+      // Check if API key is available
+      if (!API_KEY) {
+        return "Error: OpenAI API key is not configured. Summary generation is disabled.";
+      }
+      
       // Create request using OpenAI's chat completion API
       const response = await fetch(API_URL, {
         method: 'POST',
