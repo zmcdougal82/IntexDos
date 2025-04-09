@@ -14,6 +14,12 @@ import Navbar from "./components/Navbar";
 import CookieConsentBanner from "./components/CookieConsentBanner";
 
 function App() {
+
+  const onLogout = () => {
+    // Clear user data and localStorage
+    localStorage.removeItem('userId');
+  };
+
   return (
     <Router>
       <div

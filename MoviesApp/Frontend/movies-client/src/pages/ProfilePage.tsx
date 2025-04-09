@@ -136,6 +136,7 @@ const ProfilePage = () => {
     }
     
     localStorage.removeItem('userId'); //remove the current saved userId
+    onLogout(); // Call onLogout to clear any session data
     setModalOpen(false); // close the modal after confirming
   };
   
@@ -508,3 +509,7 @@ const ProfilePage = () => {
 
 
 export default ProfilePage;
+function onLogout() {
+  throw new Error('Function not implemented.');
+}
+
