@@ -13,8 +13,10 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, onConfirm
     <div style={modalBackgroundStyle}>
       <div style={modalStyle}>
         <h2>Are you sure you want to delete your profile? This action cannot be undone.</h2>
-        <button onClick={onConfirm}>Confirm</button>
-        <button onClick={onCancel}>Cancel</button>
+        <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+            <button style={{backgroundColor: '#8B0000'}}onClick={onConfirm}>Confirm</button>
+            <button onClick={onCancel}>Cancel</button>
+        </div>
       </div>
     </div>
   );
