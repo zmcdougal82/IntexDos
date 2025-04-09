@@ -629,9 +629,9 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
   };
   
   // Improved genre detection with deduplication to prevent duplicate genres
-  const getAllGenres = (data: MovieFormData): string[] => {
+  const getAllGenres = (movieData: MovieFormData): string[] => {
     console.log("IMPROVED GENRE DETECTION WITH DEDUPLICATION");
-    console.log("Content type:", data.type);
+    console.log("Content type:", movieData.type);
     
     // Use a Set to automatically deduplicate genres
     const genreSet = new Set<string>();
@@ -641,7 +641,7 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
     
     // Method 1: Direct property matching
     for (const key in genreMapping) {
-      if ((data as any)[key] === 1) {
+      if ((movieData as any)[key] === 1) {
         console.log(`Found active genre ${key} with value 1`);
         genreSet.add(genreMapping[key]);
         processedKeys.add(key.toLowerCase());
@@ -654,13 +654,13 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
       lowercaseKeyMap[key.toLowerCase()] = key;
     });
     
-    Object.keys(data).forEach(dataKey => {
+    Object.keys(movieData).forEach(dataKey => {
       const dataKeyLower = dataKey.toLowerCase();
       
       // Only process if we haven't already found this genre AND it's a valid genre with value 1
       if (!processedKeys.has(dataKeyLower) && 
           lowercaseKeyMap[dataKeyLower] && 
-          (data as any)[dataKey] === 1) {
+          (movieData as any)[dataKey] === 1) {
         
         const originalKey = lowercaseKeyMap[dataKeyLower];
         console.log(`Found unique genre via lowercase match: ${dataKey} -> ${originalKey}`);
@@ -672,12 +672,12 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
     // If no genres found after all detection methods, use fallbacks as last resort
     if (genreSet.size === 0) {
       // For TV Shows
-      if (data.type === 'TV Show') {
+      if (movieData.type === 'TV Show') {
         console.log("NO GENRES FOUND FOR TV SHOW - USING FALLBACK LOGIC");
         genreSet.add("TV Drama");
       } 
       // For Movies
-      else if (!data.type || data.type === 'Movie') {
+      else if (!movieData.type || movieData.type === 'Movie') {
         console.log("NO GENRES FOUND FOR MOVIE - USING FALLBACK LOGIC");
         genreSet.add("Drama");
       }
@@ -696,6 +696,8 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
   };
   
  
+  // Function to get a movie genre from form data
+  const getMovieGenre = (movieData: MovieFormData): string => {
     const movieGenres = [
       'Action', 'Adventure', 'Comedies', 'Dramas', 'HorrorMovies', 'Thrillers',
       'Documentaries', 'FamilyMovies', 'Fantasy', 'Musicals',
@@ -706,16 +708,16 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
     
     // Find the first active movie genre
     for (const genre of movieGenres) {
-      if ((data as any)[genre] === 1) {
+      if ((movieData as any)[genre] === 1) {
         return genre;
       }
-    
+    }
     
     return "";
   };
   
   // Function to get a TV genre from form data
-  
+  const getTVGenre = (movieData: MovieFormData): string => {
     const tvGenres = [
       'TVAction', 'TVComedies', 'TVDramas', 'Docuseries', 'KidsTV', 'RealityTV',
       'TalkShowsTVComedies', 'AnimeSeriesInternationalTVShows',
@@ -725,10 +727,10 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
     
     // Find the first active TV genre
     for (const genre of tvGenres) {
-      if ((data as any)[genre] === 1) {
+      if ((movieData as any)[genre] === 1) {
         return genre;
       }
-    
+    }
     
     return "";
   };
@@ -1554,13 +1556,8 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
                         setIsEditMode(false); // We're in Add mode
                         setShowSearchResultsModal(true);
                         setLoading(false);
+                        // No need for additional code here - selection is handled in the modal
                         return;
-                        
-                        try {
-                          // Update form data based on result type
-                          if ('name' in result) {
-                            // It's a TV show - fetch detailed information
-                            const tvDetails = await tmdbApi.getTVShowDetails(result.id);
                             
                             // Extract creator(s) as director(s)
                             let directors = '';
