@@ -837,6 +837,7 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
 
   // Generate pagination controls
   const totalPages = Math.ceil(totalMovies / pageSize);
+  const allPages = Math.ceil(totalMovies / pageSize);
   const pageNumbers = [];
   for (let i = 1; i <= totalPages; i++) {
     pageNumbers.push(i);
@@ -1339,31 +1340,17 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
             {/* Generate page numbers dynamically */}
             {(() => {
               const pageNumbersToShow = [];
-              const range = 1; // Number of pages to show before and after the current page
+              
+              // We will always show the current page, one previous page, and one next page.
+              const startPage = Math.max(currentPage - 1, 1);  // Start at currentPage - 1, but ensure it’s not less than 1
+              const endPage = Math.min(currentPage + 1, totalPages);  // End at currentPage + 1, but ensure it’s not more than totalPages
 
-              // Calculate start and end page numbers to show (current page in the middle)
-              let startPage = Math.max(currentPage - range, 1);
-              let endPage = Math.min(currentPage + range, totalPages);
-
-              // Adjust if near the beginning or end of the pagination
-              if (currentPage - startPage < range) {
-                endPage = Math.min(endPage + (range - (currentPage - startPage)), totalPages);
-              }
-              if (endPage - currentPage < range) {
-                startPage = Math.max(startPage - (range - (endPage - currentPage)), 1);
-              }
-
-              // Add the pages: two before, current, and two after the current page
+              // Always show the current page, the previous one, and the next one
               for (let i = startPage; i <= endPage; i++) {
                 pageNumbersToShow.push(i);
               }
 
-              // Ensure the total number of page buttons is 5 (if there are at least 5 pages)
-              if (totalPages >= 5 && pageNumbersToShow.length < 5) {
-                if (pageNumbersToShow[0] !== 1) pageNumbersToShow.unshift(1);
-                if (pageNumbersToShow[pageNumbersToShow.length - 1] !== totalPages) pageNumbersToShow.push(totalPages);
-              }
-
+              // Return the page buttons
               return pageNumbersToShow.map(number => (
                 <button
                   key={number}
@@ -1402,16 +1389,16 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
 
             {/* Last Page Button */}
             <button
-              onClick={() => setCurrentPage(totalPages)}
-              disabled={currentPage === totalPages || totalPages === 0}
+              onClick={() => setCurrentPage(allPages)}  // Use allPages for the "Last" button
+              disabled={currentPage === allPages || allPages === 0}
               style={{
                 padding: 'var(--spacing-xs) var(--spacing-md)',
-                backgroundColor: currentPage === totalPages || totalPages === 0 ? 'var(--color-background)' : 'var(--color-primary)',
-                color: currentPage === totalPages || totalPages === 0 ? 'var(--color-text-light)' : 'white',
-                border: `1px solid ${currentPage === totalPages || totalPages === 0 ? 'var(--color-border)' : 'var(--color-primary)'}`,
+                backgroundColor: currentPage === allPages || allPages === 0 ? 'var(--color-background)' : 'var(--color-primary)',
+                color: currentPage === allPages || allPages === 0 ? 'var(--color-text-light)' : 'white',
+                border: `1px solid ${currentPage === allPages || allPages === 0 ? 'var(--color-border)' : 'var(--color-primary)'}`,
                 borderRadius: 'var(--radius-md)',
-                cursor: currentPage === totalPages || totalPages === 0 ? 'not-allowed' : 'pointer',
-                opacity: currentPage === totalPages || totalPages === 0 ? 0.7 : 1,
+                cursor: currentPage === allPages || allPages === 0 ? 'not-allowed' : 'pointer',
+                opacity: currentPage === allPages || allPages === 0 ? 0.7 : 1,
               }}
             >
               Last
@@ -1419,8 +1406,9 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
           </div>
 
           <div className="text-center" style={{ color: 'var(--color-text-light)', fontSize: '0.875rem' }}>
-            Showing page {currentPage} of {totalPages || 1}
+            Showing page {currentPage} of {allPages || 1}
           </div>
+
 
           {/*  */}
 
