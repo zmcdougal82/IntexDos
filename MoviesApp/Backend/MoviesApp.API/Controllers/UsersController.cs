@@ -188,6 +188,40 @@ namespace MoviesApp.API.Controllers
             return NoContent();
         }
 
+        // DELETE: api/Users/5
+        [HttpDelete("{id}")]
+        [Authorize] // Require authentication for all users
+        public async Task<IActionResult> DeleteUser(int id)
+        {
+            // Retrieve the user from the database
+            var user = await _context.Users.FindAsync(id);
+
+            if (user == null)
+            {
+                return NotFound(); // User not found
+            }
+
+            // Ensure that the user is trying to delete their own profile
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdClaim, out int currentUserId))
+            {
+                return BadRequest("Invalid user ID in token");
+            }
+
+            // Check if the logged-in user is the same as the user they want to delete
+            if (currentUserId != id)
+            {
+                return Forbid("You can only delete your own profile.");
+            }
+
+            // Remove the user from the database
+            _context.Users.Remove(user);
+            await _context.SaveChangesAsync();
+
+            return NoContent(); // Return 204 No Content on successful deletion
+        }
+
+
         private bool UserExists(int id)
         {
             return _context.Users.Any(e => e.UserId == id);

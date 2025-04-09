@@ -207,8 +207,11 @@ export const userApi = {
     api.get<User>(`/users/${id}`),
 
   update: (id: string, userData: Partial<User>) =>
-    api.put<void>(`/users/${id}`, userData)
-};
+    api.put<void>(`/users/${id}`, userData),
+
+  delete: (id: string) =>
+    api.delete<void>(`/users/${id}`)
+}
 
 // API functions for Ratings
 export const ratingApi = {

@@ -101,6 +101,34 @@ const ProfilePage = () => {
     }
   };
   
+  const handleDelete = async () => {
+    const confirmDelete = window.confirm('Are you sure you want to delete your profile? This action cannot be undone.');
+    if (!confirmDelete) return; // If the user cancels, stop the delete process
+  
+    try {
+      if (!user || !user.userId) {
+        console.error("User data is missing required fields.");
+        return;
+      }
+  
+      const currentUserId = String(user.userId);
+  
+      const response = await userApi.delete(currentUserId);
+      if (response.status === 200 || response.status === 204) {
+        console.log("Profile successfully deleted");
+        localStorage.removeItem('userId');
+        navigate('/login'); // Redirect to login page after successful deletion
+      } else {
+        console.error("Failed to delete user, received response:", response);
+      }
+    } catch (error) {
+      console.error("Failed to delete user:", error);
+      if (axios.isAxiosError(error)) {
+        console.error("Axios error details:", error.response);
+      }
+    }
+  };
+  
   
 
   if (loading) {
@@ -187,7 +215,28 @@ const ProfilePage = () => {
                     }}>
                     Edit Profile
                     </button>
-                  </div>
+              </div>
+
+              <div style={{
+                    display: 'inline-block',
+                    padding: '3px 8px',
+                    borderRadius: 'var(--radius-sm)',
+                    fontSize: '0.75rem',
+                    fontWeight: 'bold',
+                    marginTop: 'var(--spacing-xs)'
+                  }}>
+                    {/* Smaller Edit button underneath profile role */}
+                    <button onClick={handleDelete} style={{
+                      marginTop: 'var(--spacing-md)',
+                      padding: 'var(--spacing-sm)',
+                      fontSize: '0.875rem', // smaller size
+                      backgroundColor: 'var(--color-danger)',
+                      color: 'white',
+                      borderRadius: 'var(--radius-sm)'
+                    }}>
+                    Delete Profile
+                    </button>
+              </div>
 
             </div>
 
