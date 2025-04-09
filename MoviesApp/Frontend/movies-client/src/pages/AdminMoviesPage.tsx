@@ -1389,16 +1389,16 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
 
             {/* Last Page Button */}
             <button
-              onClick={() => setCurrentPage(allPages)}
-              disabled={currentPage === totalPages || totalPages === 0}
+              onClick={() => setCurrentPage(allPages)}  // Use allPages for the "Last" button
+              disabled={currentPage === allPages || allPages === 0}
               style={{
                 padding: 'var(--spacing-xs) var(--spacing-md)',
-                backgroundColor: currentPage === totalPages || totalPages === 0 ? 'var(--color-background)' : 'var(--color-primary)',
-                color: currentPage === totalPages || totalPages === 0 ? 'var(--color-text-light)' : 'white',
-                border: `1px solid ${currentPage === totalPages || totalPages === 0 ? 'var(--color-border)' : 'var(--color-primary)'}`,
+                backgroundColor: currentPage === allPages || allPages === 0 ? 'var(--color-background)' : 'var(--color-primary)',
+                color: currentPage === allPages || allPages === 0 ? 'var(--color-text-light)' : 'white',
+                border: `1px solid ${currentPage === allPages || allPages === 0 ? 'var(--color-border)' : 'var(--color-primary)'}`,
                 borderRadius: 'var(--radius-md)',
-                cursor: currentPage === totalPages || totalPages === 0 ? 'not-allowed' : 'pointer',
-                opacity: currentPage === totalPages || totalPages === 0 ? 0.7 : 1,
+                cursor: currentPage === allPages || allPages === 0 ? 'not-allowed' : 'pointer',
+                opacity: currentPage === allPages || allPages === 0 ? 0.7 : 1,
               }}
             >
               Last
