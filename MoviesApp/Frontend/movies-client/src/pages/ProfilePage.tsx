@@ -311,57 +311,130 @@ const ProfilePage = () => {
                   <h3>Edit Your Profile</h3>
                   <form>
                     <div style={{ marginBottom: 'var(--spacing-md)' }}>
-                      <label>Email</label>
-                      <input type="email" name="email" value={editData?.email || ''} onChange={handleInputChange} />
+                      <label>Name</label>
+                      <input
+                        type="text"
+                        name="name"
+                        value={editData?.name || ''}
+                        onChange={handleInputChange}
+                      />
                     </div>
+
+                    <div style={{ marginBottom: 'var(--spacing-md)' }}>
+                      <label>Email</label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={editData?.email || ''}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+
                     <div style={{ marginBottom: 'var(--spacing-md)' }}>
                       <label>Age</label>
-                      <input type="number" name="age" value={editData?.age || ''} onChange={handleInputChange} />
+                      <input
+                        type="number"
+                        name="age"
+                        value={editData?.age || ''}
+                        onChange={handleInputChange}
+                      />
                     </div>
+
                     <div style={{ marginBottom: 'var(--spacing-md)' }}>
                       <label>Gender</label>
-                      <input type="text" name="gender" value={editData?.gender || ''} onChange={handleInputChange} />
+                      <input
+                        type="text"
+                        name="gender"
+                        value={editData?.gender || ''}
+                        onChange={handleInputChange}
+                      />
                     </div>
+
                     <div style={{ marginBottom: 'var(--spacing-md)' }}>
                       <label>Location</label>
-                      <input type="text" name="city" value={editData?.city || ''} onChange={handleInputChange} placeholder="City" />
-                      <input type="text" name="state" value={editData?.state || ''} onChange={handleInputChange} placeholder="State" />
-                      <input type="text" name="zip" value={editData?.zip || ''} onChange={handleInputChange} placeholder="Zip" />
+                      <input
+                        type="text"
+                        name="city"
+                        value={editData?.city || ''}
+                        onChange={handleInputChange}
+                        placeholder="City"
+                      />
+                      <input
+                        type="text"
+                        name="state"
+                        value={editData?.state || ''}
+                        onChange={handleInputChange}
+                        placeholder="State"
+                      />
+                      <input
+                        type="text"
+                        name="zip"
+                        value={editData?.zip || ''}
+                        onChange={handleInputChange}
+                        placeholder="Zip"
+                      />
                     </div>
 
                     {/* Streaming services */}
                     <div style={{ marginBottom: 'var(--spacing-md)' }}>
                       <label>Streaming Services</label>
-                      {/* Streaming services */}
-                      <div style={{ marginBottom: 'var(--spacing-md)' }}>
-                        <label>Streaming Services</label>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-sm)' }}>
-                          {streamingServices.map(service => (
-                            <label key={service.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
+                        {streamingServices.map((service) => (
+                          <div
+                            key={service.id}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              padding: 'var(--spacing-sm)',
+                              border: '1px solid var(--color-border)',
+                              borderRadius: 'var(--radius-md)',
+                              justifyContent: 'space-between', // Distribute the checkbox and label evenly
+                            }}
+                          >
+                            <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
                               <input
                                 type="checkbox"
+                                id={service.id}
                                 name={service.id}
                                 checked={!!(editData && editData[service.id as keyof EditableUser])}
                                 onChange={handleStreamingServiceChange}
+                                style={{ marginRight: 'var(--spacing-sm)' }}
                               />
-                              {service.name}
-                            </label>
-                          ))}
-                        </div>
+                            </div>
+                            <div>{service.name}</div>
+                          </div>
+                        ))}
                       </div>
-
                     </div>
 
                     <div style={{ display: 'flex', gap: 'var(--spacing-md)', justifyContent: 'center' }}>
-                      <button type="button" onClick={handleCancel} style={{ padding: 'var(--spacing-sm)', backgroundColor: 'var(--color-border)', color: 'white', borderRadius: 'var(--radius-sm)' }}>
+                      <button
+                        type="button"
+                        onClick={handleCancel}
+                        style={{
+                          padding: 'var(--spacing-sm)',
+                          backgroundColor: 'var(--color-border)',
+                          color: 'white',
+                          borderRadius: 'var(--radius-sm)',
+                        }}
+                      >
                         Cancel
                       </button>
-                      <button type="button" onClick={handleSubmitChanges} style={{ padding: 'var(--spacing-sm)', backgroundColor: 'var(--color-primary)', color: 'white', borderRadius: 'var(--radius-sm)' }}>
+                      <button
+                        type="button"
+                        onClick={handleSubmitChanges}
+                        style={{
+                          padding: 'var(--spacing-sm)',
+                          backgroundColor: 'var(--color-primary)',
+                          color: 'white',
+                          borderRadius: 'var(--radius-sm)',
+                        }}
+                      >
                         Submit Changes
                       </button>
                     </div>
-
                   </form>
+
                 </div>
               )}
             </div>
