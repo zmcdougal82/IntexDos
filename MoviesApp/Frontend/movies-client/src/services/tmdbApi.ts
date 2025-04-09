@@ -33,6 +33,17 @@ interface TMDBTVShow {
 
 interface TMDBMovieDetails extends TMDBMovie {
   genres: { id: number; name: string }[];
+  runtime?: number; // Movie duration in minutes
+  production_countries?: { iso_3166_1: string; name: string }[];
+  release_dates?: {
+    results: {
+      iso_3166_1: string;
+      release_dates: {
+        certification: string;
+        type: number;
+      }[];
+    }[];
+  };
   credits?: {
     cast: {
       id: number;
@@ -58,6 +69,15 @@ interface TMDBTVShowDetails extends TMDBTVShow {
     name: string;
     profile_path: string | null;
   }[];
+  origin_country?: string[];
+  production_countries?: { iso_3166_1: string; name: string }[];
+  episode_run_time?: number[];
+  content_ratings?: {
+    results: {
+      iso_3166_1: string;
+      rating: string;
+    }[];
+  };
   credits?: {
     cast: {
       id: number;

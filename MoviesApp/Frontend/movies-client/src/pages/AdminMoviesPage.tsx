@@ -539,6 +539,60 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
   setShowConfirmModal(true);
 };
 
+  // Utility function to convert minutes to a readable format (e.g., 155 → "2h 35m")
+  const formatDuration = (minutes: number): string => {
+    if (!minutes) return '';
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+  };
+
+  // Utility function to convert readable format to minutes (e.g., "2h 35m" → 155)
+  const parseDuration = (formattedDuration: string): number | null => {
+    if (!formattedDuration) return null;
+    
+    // Handle existing string formats in the database
+    const hoursMatch = formattedDuration.match(/(\d+)h/);
+    const minutesMatch = formattedDuration.match(/(\d+)m/);
+    
+    if (hoursMatch || minutesMatch) {
+      const hours = hoursMatch ? parseInt(hoursMatch[1], 10) : 0;
+      const minutes = minutesMatch ? parseInt(minutesMatch[1], 10) : 0;
+      return hours * 60 + minutes;
+    }
+    
+    // If it's just a number string, parse it directly
+    if (!isNaN(Number(formattedDuration))) {
+      return parseInt(formattedDuration, 10);
+    }
+    
+    return null;
+  };
+  
+  // Utility function to map TMDB TV ratings to our application's rating options
+  const mapTVRatingToOptions = (tmdbRating: string): string => {
+    if (!tmdbRating) return '';
+    
+    // Map TMDB TV content ratings to our dropdown options
+    const ratingMap: {[key: string]: string} = {
+      // US TV Ratings
+      'TV-Y': 'TV-Y',
+      'TV-Y7': 'TV-Y7',
+      'TV-G': 'TV-G',
+      'TV-PG': 'TV-PG',
+      'TV-14': 'TV-14',
+      'TV-MA': 'TV-MA',
+      // Common alternate codes
+      'NR': 'Not Rated',
+      'G': 'TV-G',
+      'PG': 'TV-PG',
+      '14': 'TV-14',
+      'MA': 'TV-MA'
+    };
+    
+    return ratingMap[tmdbRating] || '';
+  };
+  
   // Map of genre property names to display names
   const genreMapping: {[key: string]: string} = {
     Action: "Action",
@@ -1540,6 +1594,36 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
                                 .join(', ');
                             }
                             
+                            // Extract country information
+                            let country = '';
+                            if (tvDetails.origin_country && tvDetails.origin_country.length > 0) {
+                              country = tvDetails.origin_country.join(', ');
+                            } else if (tvDetails.production_countries && tvDetails.production_countries.length > 0) {
+                              country = tvDetails.production_countries.map((c: any) => c.name).join(', ');
+                            }
+                            
+                            // Determine appropriate TV rating
+                            let rating = '';
+                            if (tvDetails.content_ratings && tvDetails.content_ratings.results) {
+                              // Try to get US rating first, then fallback to first available
+                              const usRating = tvDetails.content_ratings.results.find((r: any) => r.iso_3166_1 === 'US');
+                              if (usRating) {
+                                rating = usRating.rating;
+                              } else if (tvDetails.content_ratings.results.length > 0) {
+                                rating = tvDetails.content_ratings.results[0].rating;
+                              }
+                            }
+                            
+                            // Extract duration from episode runtimes (average or first)
+                            let duration = '';
+                            if (tvDetails.episode_run_time && tvDetails.episode_run_time.length > 0) {
+                              // Use the average episode length or first one if only one value
+                              const minutes = tvDetails.episode_run_time[0];
+                              if (minutes) {
+                                duration = minutes.toString();
+                              }
+                            }
+                            
                             // Map genres to our format
                             const genreMapping: {[key: string]: number} = {};
                             if (tvDetails.genres && tvDetails.genres.length > 0) {
@@ -1573,6 +1657,9 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
                               posterUrl: tvDetails.poster_path ? `${tmdbApi.POSTER_BASE_URL}${tvDetails.poster_path}` : undefined,
                               director: directors || '',
                               cast: cast || '',
+                              country: country || '',
+                              rating: mapTVRatingToOptions(rating) || '',
+                              duration: duration || '',
                               ...genreMapping
                             });
                           } else {
@@ -1598,6 +1685,25 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
                                 .slice(0, 5)
                                 .map(actor => actor.name)
                                 .join(', ');
+                            }
+                            
+                            // Extract country information
+                            let country = '';
+                            if (movieDetails.production_countries && movieDetails.production_countries.length > 0) {
+                              country = movieDetails.production_countries.map(c => c.name).join(', ');
+                            }
+                            
+                            // Extract rating information (certification)
+                            let rating = '';
+                            if (movieDetails.release_dates && movieDetails.release_dates.results) {
+                              // Try to find US rating first
+                              const usRelease = movieDetails.release_dates.results.find(r => r.iso_3166_1 === 'US');
+                              if (usRelease && usRelease.release_dates && usRelease.release_dates.length > 0) {
+                                const certification = usRelease.release_dates.find(d => d.certification)?.certification;
+                                if (certification) {
+                                  rating = certification;
+                                }
+                              }
                             }
                             
                             // Map genres to our format
@@ -1626,6 +1732,12 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
                               genreMapping.Dramas = 1;
                             }
                             
+                            // Get duration in minutes (stored as a string)
+                            let durationMinutes = '';
+                            if (movieDetails.runtime) {
+                              durationMinutes = movieDetails.runtime.toString();
+                            }
+                            
                             setFormData({
                               ...formData,
                               title: movieDetails.title,
@@ -1635,6 +1747,9 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
                               posterUrl: movieDetails.poster_path ? `${tmdbApi.POSTER_BASE_URL}${movieDetails.poster_path}` : undefined,
                               director: directors || '',
                               cast: cast || '',
+                              country: country || '',
+                              rating: rating || '',
+                              duration: durationMinutes,
                               ...genreMapping
                             });
                           }
@@ -1732,6 +1847,86 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
                   onChange={handleInputChange}
                   style={inputStyle}
                 />
+              </div>
+              
+              <div style={formGroupStyle}>
+                <label htmlFor="country">Country</label>
+                <input
+                  type="text"
+                  id="country"
+                  name="country"
+                  value={formData.country || ''}
+                  onChange={handleInputChange}
+                  style={inputStyle}
+                />
+              </div>
+              
+              <div style={{ display: 'flex', gap: '15px' }}>
+                <div style={formGroupStyle}>
+                  <label htmlFor="rating">Rating</label>
+                  <select
+                    id="rating"
+                    name="rating"
+                    value={formData.rating || ''}
+                    onChange={handleInputChange}
+                    style={inputStyle}
+                  >
+                    <option value="">Select a rating</option>
+                    {formData.type === 'Movie' ? (
+                      // Movie ratings
+                      <>
+                        <option value="G">G</option>
+                        <option value="PG">PG</option>
+                        <option value="PG-13">PG-13</option>
+                        <option value="R">R</option>
+                        <option value="NC-17">NC-17</option>
+                        <option value="Not Rated">Not Rated</option>
+                      </>
+                    ) : (
+                      // TV ratings
+                      <>
+                        <option value="TV-Y">TV-Y (All Children)</option>
+                        <option value="TV-Y7">TV-Y7 (Older Children)</option>
+                        <option value="TV-G">TV-G (General Audience)</option>
+                        <option value="TV-PG">TV-PG (Parental Guidance)</option>
+                        <option value="TV-14">TV-14 (Parents Strongly Cautioned)</option>
+                        <option value="TV-MA">TV-MA (Mature Audience)</option>
+                      </>
+                    )}
+                  </select>
+                </div>
+                
+                <div style={formGroupStyle}>
+                  <label htmlFor="duration">Duration (minutes)</label>
+                  <input
+                    type="number"
+                    id="duration"
+                    name="duration"
+                    value={parseDuration(formData.duration || '') || ''}
+                    onChange={(e) => {
+                      const minutes = parseInt(e.target.value);
+                      if (!isNaN(minutes)) {
+                        setFormData({
+                          ...formData,
+                          duration: minutes.toString()
+                        });
+                      } else {
+                        setFormData({
+                          ...formData,
+                          duration: ''
+                        });
+                      }
+                    }}
+                    style={inputStyle}
+                    min="1"
+                    placeholder="Enter total minutes"
+                  />
+                  {formData.duration && !isNaN(parseInt(formData.duration)) && (
+                    <small style={{ color: '#666', display: 'block', marginTop: '5px' }}>
+                      Display format: {formatDuration(parseInt(formData.duration))}
+                    </small>
+                  )}
+                </div>
               </div>
               
               <div style={formGroupStyle}>
@@ -1988,6 +2183,31 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
                             .join(', ');
                         }
                         
+                        // Extract country information
+                        let country = '';
+                        if (movieDetails.production_countries && movieDetails.production_countries.length > 0) {
+                          country = movieDetails.production_countries.map(c => c.name).join(', ');
+                        }
+                        
+                        // Extract rating information (certification)
+                        let rating = '';
+                        if (movieDetails.release_dates && movieDetails.release_dates.results) {
+                          // Try to find US rating first
+                          const usRelease = movieDetails.release_dates.results.find(r => r.iso_3166_1 === 'US');
+                          if (usRelease && usRelease.release_dates && usRelease.release_dates.length > 0) {
+                            const certification = usRelease.release_dates.find(d => d.certification)?.certification;
+                            if (certification) {
+                              rating = certification;
+                            }
+                          }
+                        }
+                        
+                        // Get duration in minutes (stored as a string)
+                        let durationMinutes = '';
+                        if (movieDetails.runtime) {
+                          durationMinutes = movieDetails.runtime.toString();
+                        }
+                        
                         // Map genres to our format
                         const genreMapping: {[key: string]: number} = {};
                         if (movieDetails.genres && movieDetails.genres.length > 0) {
@@ -2023,6 +2243,9 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
                           posterUrl: movieDetails.poster_path ? `${tmdbApi.POSTER_BASE_URL}${movieDetails.poster_path}` : undefined,
                           director: directors || '',
                           cast: cast || '',
+                          country: country || '',
+                          rating: rating || '',
+                          duration: durationMinutes,
                           ...genreMapping
                         });
                       } else {
@@ -2631,26 +2854,191 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
                         
                         // Update form data based on result type
                         if ('name' in result) {
-                          // It's a TV show
+                          // It's a TV show - fetch detailed information
+                          const tvDetails = await tmdbApi.getTVShowDetails(result.id);
+                          
+                          // Extract creator(s) as director(s)
+                          let directors = '';
+                          if (tvDetails.created_by && tvDetails.created_by.length > 0) {
+                            directors = tvDetails.created_by.map(creator => creator.name).join(', ');
+                          } else if (tvDetails.credits?.crew) {
+                            // Look for directors or writers in crew
+                            const directorsList = tvDetails.credits.crew
+                              .filter(person => person.job === 'Director' || person.job === 'Writer' || person.department === 'Writing')
+                              .map(person => person.name)
+                              .slice(0, 3); // Take max 3 directors/writers
+                            
+                            if (directorsList.length > 0) {
+                              directors = directorsList.join(', ');
+                            }
+                          }
+                          
+                          // Extract cast (take top 5)
+                          let cast = '';
+                          if (tvDetails.credits?.cast && tvDetails.credits.cast.length > 0) {
+                            cast = tvDetails.credits.cast
+                              .slice(0, 5)
+                              .map(actor => actor.name)
+                              .join(', ');
+                          }
+                          
+                          // Extract country information
+                          let country = '';
+                          if (tvDetails.origin_country && tvDetails.origin_country.length > 0) {
+                            country = tvDetails.origin_country.join(', ');
+                          } else if (tvDetails.production_countries && tvDetails.production_countries.length > 0) {
+                            country = tvDetails.production_countries.map((c: any) => c.name).join(', ');
+                          }
+                          
+                          // Determine appropriate TV rating
+                          let rating = '';
+                          if (tvDetails.content_ratings && tvDetails.content_ratings.results) {
+                            // Try to get US rating first, then fallback to first available
+                            const usRating = tvDetails.content_ratings.results.find((r: any) => r.iso_3166_1 === 'US');
+                            if (usRating) {
+                              rating = usRating.rating;
+                            } else if (tvDetails.content_ratings.results.length > 0) {
+                              rating = tvDetails.content_ratings.results[0].rating;
+                            }
+                          }
+                          
+                          // Extract duration from episode runtimes (average or first)
+                          let duration = '';
+                          if (tvDetails.episode_run_time && tvDetails.episode_run_time.length > 0) {
+                            // Use the average episode length or first one if only one value
+                            const minutes = tvDetails.episode_run_time[0];
+                            if (minutes) {
+                              duration = minutes.toString();
+                            }
+                          }
+                          
+                          // Map genres to our format
+                          const genreMapping: {[key: string]: number} = {};
+                          if (tvDetails.genres && tvDetails.genres.length > 0) {
+                            tvDetails.genres.forEach(genre => {
+                              const mappedGenre = genre.name.toLowerCase();
+                              
+                              // Handle common TV genres
+                              if (mappedGenre.includes('drama')) genreMapping.TVDramas = 1;
+                              if (mappedGenre.includes('comedy')) genreMapping.TVComedies = 1;
+                              if (mappedGenre.includes('action')) genreMapping.TVAction = 1;
+                              if (mappedGenre.includes('documentary')) genreMapping.Docuseries = 1;
+                              if (mappedGenre.includes('kids')) genreMapping.KidsTV = 1;
+                              if (mappedGenre.includes('reality')) genreMapping.RealityTV = 1;
+                              if (mappedGenre.includes('talk')) genreMapping.TalkShowsTVComedies = 1;
+                              if (mappedGenre.includes('news')) genreMapping.NatureTV = 1;
+                              if (mappedGenre.includes('crime')) genreMapping.CrimeTVShowsDocuseries = 1;
+                            });
+                          }
+                          
+                          // Set TVDramas as default if no other genres were mapped
+                          if (Object.keys(genreMapping).length === 0) {
+                            genreMapping.TVDramas = 1;
+                          }
+                          
                           setEditingMovie({
                             ...editingMovie,
-                            title: result.name,
+                            title: tvDetails.name,
                             type: 'TV Show',
-                            releaseYear: result.first_air_date ? new Date(result.first_air_date).getFullYear() : undefined,
-                            description: result.overview,
-                            posterUrl: result.poster_path ? `${tmdbApi.POSTER_BASE_URL}${result.poster_path}` : editingMovie.posterUrl,
+                            releaseYear: tvDetails.first_air_date ? new Date(tvDetails.first_air_date).getFullYear() : undefined,
+                            description: tvDetails.overview,
+                            posterUrl: tvDetails.poster_path ? `${tmdbApi.POSTER_BASE_URL}${tvDetails.poster_path}` : editingMovie.posterUrl,
+                            director: directors || editingMovie.director || '',
+                            cast: cast || editingMovie.cast || '',
+                            country: country || editingMovie.country || '',
+                            rating: mapTVRatingToOptions(rating) || editingMovie.rating || '',
+                            duration: duration || editingMovie.duration || '',
                             // If no genres are set, default to TVDramas
                             ...(Object.keys(currentGenres).length === 0 ? { TVDramas: 1 } : currentGenres)
                           });
                         } else {
-                          // It's a movie
+                          // It's a movie - fetch detailed information
+                          const movieDetails = await tmdbApi.getMovieDetails(result.id);
+                          
+                          // Extract director(s)
+                          let directors = '';
+                          if (movieDetails.credits?.crew) {
+                            const directorCrew = movieDetails.credits.crew
+                              .filter(person => person.job === 'Director')
+                              .map(person => person.name);
+                            
+                            if (directorCrew.length > 0) {
+                              directors = directorCrew.join(', ');
+                            }
+                          }
+                          
+                          // Extract cast (take top 5)
+                          let cast = '';
+                          if (movieDetails.credits?.cast && movieDetails.credits.cast.length > 0) {
+                            cast = movieDetails.credits.cast
+                              .slice(0, 5)
+                              .map(actor => actor.name)
+                              .join(', ');
+                          }
+                          
+                          // Extract country information
+                          let country = '';
+                          if (movieDetails.production_countries && movieDetails.production_countries.length > 0) {
+                            country = movieDetails.production_countries.map(c => c.name).join(', ');
+                          }
+                          
+                          // Extract rating information (certification)
+                          let rating = '';
+                          if (movieDetails.release_dates && movieDetails.release_dates.results) {
+                            // Try to find US rating first
+                            const usRelease = movieDetails.release_dates.results.find(r => r.iso_3166_1 === 'US');
+                            if (usRelease && usRelease.release_dates && usRelease.release_dates.length > 0) {
+                              const certification = usRelease.release_dates.find(d => d.certification)?.certification;
+                              if (certification) {
+                                rating = certification;
+                              }
+                            }
+                          }
+                          
+                          // Get duration in minutes (stored as a string)
+                          let durationMinutes = '';
+                          if (movieDetails.runtime) {
+                            durationMinutes = movieDetails.runtime.toString();
+                          }
+                          
+                          // Map genres to our format
+                          const genreMapping: {[key: string]: number} = {};
+                          if (movieDetails.genres && movieDetails.genres.length > 0) {
+                            movieDetails.genres.forEach(genre => {
+                              const mappedGenre = genre.name.toLowerCase();
+                              
+                              // Handle common movie genres
+                              if (mappedGenre.includes('drama')) genreMapping.Dramas = 1;
+                              if (mappedGenre.includes('comedy')) genreMapping.Comedies = 1;
+                              if (mappedGenre.includes('action')) genreMapping.Action = 1;
+                              if (mappedGenre.includes('adventure')) genreMapping.Adventure = 1;
+                              if (mappedGenre.includes('horror')) genreMapping.HorrorMovies = 1;
+                              if (mappedGenre.includes('thriller')) genreMapping.Thrillers = 1;
+                              if (mappedGenre.includes('documentary')) genreMapping.Documentaries = 1;
+                              if (mappedGenre.includes('family')) genreMapping.FamilyMovies = 1;
+                              if (mappedGenre.includes('fantasy')) genreMapping.Fantasy = 1;
+                              if (mappedGenre.includes('musical') || mappedGenre.includes('music')) genreMapping.Musicals = 1;
+                              if (mappedGenre.includes('romance')) genreMapping.DramasRomanticMovies = 1;
+                            });
+                          }
+                          
+                          // Set Dramas as default if no other genres were mapped
+                          if (Object.keys(genreMapping).length === 0) {
+                            genreMapping.Dramas = 1;
+                          }
+                          
                           setEditingMovie({
                             ...editingMovie,
-                            title: result.title,
+                            title: movieDetails.title,
                             type: 'Movie',
-                            releaseYear: result.release_date ? new Date(result.release_date).getFullYear() : undefined,
-                            description: result.overview,
-                            posterUrl: result.poster_path ? `${tmdbApi.POSTER_BASE_URL}${result.poster_path}` : editingMovie.posterUrl,
+                            releaseYear: movieDetails.release_date ? new Date(movieDetails.release_date).getFullYear() : undefined,
+                            description: movieDetails.overview,
+                            posterUrl: movieDetails.poster_path ? `${tmdbApi.POSTER_BASE_URL}${movieDetails.poster_path}` : editingMovie.posterUrl,
+                            director: directors || editingMovie.director || '',
+                            cast: cast || editingMovie.cast || '',
+                            country: country || editingMovie.country || '',
+                            rating: rating || editingMovie.rating || '',
+                            duration: durationMinutes || editingMovie.duration || '',
                             // If no genres are set, default to Dramas
                             ...(Object.keys(currentGenres).length === 0 ? { Dramas: 1 } : currentGenres)
                           });
@@ -2710,6 +3098,86 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
                   onChange={(e) => setEditingMovie({...editingMovie, director: e.target.value})}
                   style={inputStyle}
                 />
+              </div>
+              
+              <div style={formGroupStyle}>
+                <label htmlFor="edit-country">Country</label>
+                <input
+                  type="text"
+                  id="edit-country"
+                  name="country"
+                  value={editingMovie.country || ''}
+                  onChange={(e) => setEditingMovie({...editingMovie, country: e.target.value})}
+                  style={inputStyle}
+                />
+              </div>
+              
+              <div style={{ display: 'flex', gap: '15px' }}>
+                <div style={formGroupStyle}>
+                  <label htmlFor="edit-rating">Rating</label>
+                  <select
+                    id="edit-rating"
+                    name="rating"
+                    value={editingMovie.rating || ''}
+                    onChange={(e) => setEditingMovie({...editingMovie, rating: e.target.value})}
+                    style={inputStyle}
+                  >
+                    <option value="">Select a rating</option>
+                    {editingMovie.type === 'Movie' ? (
+                      // Movie ratings
+                      <>
+                        <option value="G">G</option>
+                        <option value="PG">PG</option>
+                        <option value="PG-13">PG-13</option>
+                        <option value="R">R</option>
+                        <option value="NC-17">NC-17</option>
+                        <option value="Not Rated">Not Rated</option>
+                      </>
+                    ) : (
+                      // TV ratings
+                      <>
+                        <option value="TV-Y">TV-Y (All Children)</option>
+                        <option value="TV-Y7">TV-Y7 (Older Children)</option>
+                        <option value="TV-G">TV-G (General Audience)</option>
+                        <option value="TV-PG">TV-PG (Parental Guidance)</option>
+                        <option value="TV-14">TV-14 (Parents Strongly Cautioned)</option>
+                        <option value="TV-MA">TV-MA (Mature Audience)</option>
+                      </>
+                    )}
+                  </select>
+                </div>
+                
+                <div style={formGroupStyle}>
+                  <label htmlFor="edit-duration">Duration (minutes)</label>
+                  <input
+                    type="number"
+                    id="edit-duration"
+                    name="duration"
+                    value={parseDuration(editingMovie.duration || '') || ''}
+                    onChange={(e) => {
+                      const minutes = parseInt(e.target.value);
+                      if (!isNaN(minutes)) {
+                        setEditingMovie({
+                          ...editingMovie,
+                          duration: minutes.toString()
+                        });
+                      } else {
+                        setEditingMovie({
+                          ...editingMovie,
+                          duration: ''
+                        });
+                      }
+                    }}
+                    style={inputStyle}
+                    min="1"
+                    placeholder="Enter total minutes"
+                  />
+                  {editingMovie.duration && !isNaN(parseInt(editingMovie.duration)) && (
+                    <small style={{ color: '#666', display: 'block', marginTop: '5px' }}>
+                      Display format: {formatDuration(parseInt(editingMovie.duration))}
+                    </small>
+                  )}
+                </div>
               </div>
               
               <div style={formGroupStyle}>
@@ -2903,13 +3371,13 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
                   {(!editingMovie.type || editingMovie.type === 'Movie') && (
                     <div style={formGroupStyle}>
                       <label htmlFor="edit-movie-genre">Add Movie Genre</label>
-                      <div style={{display: 'flex', gap: '10px'}}>
-                        <select
-                          id="edit-movie-genre"
-                          value=""
-                          onChange={(e) => handleAddGenre(e.target.value, 'movie')}
-                          style={{...inputStyle, flex: 1}}
-                        >
+                        <div style={{display: 'flex', gap: '10px', alignItems: 'center'}}>
+                          <select
+                            id="edit-movie-genre"
+                            value=""
+                            onChange={(e) => handleAddGenre(e.target.value, 'movie')}
+                            style={{...inputStyle, flex: 1}}
+                          >
                           <option value="">Select a genre to add</option>
                           {/* Movie genres */}
                           <option value="Action">Action</option>
