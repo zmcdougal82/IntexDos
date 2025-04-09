@@ -449,7 +449,7 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
   
   // Use custom confirmation modal instead of built-in confirm
   setConfirmTitle('Confirm Deletion');
-  setConfirmMessage(`Are you sure you want to delete "${movieTitle}" (ID: ${movieId})? This action cannot be undone.`);
+  setConfirmMessage(`Are you sure you want to delete "${movieTitle}"? This action cannot be undone.`);
   
   // Set up the callback function to execute if confirmed
   setConfirmCallback(() => async () => {
@@ -905,12 +905,11 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
       <div className="mt-4 mb-5">
         <div style={{ 
           display: 'flex', 
-          justifyContent: 'space-between', 
+          justifyContent: 'flex-end', 
           alignItems: 'center', 
           flexWrap: 'wrap',
           marginBottom: 'var(--spacing-lg)'
         }}>
-            
           
           {/* Add Film Button */}
           <button
@@ -2189,17 +2188,26 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
                   if (posterSearchPage < posterSearchTotalPages) {
                     try {
                       setLoading(true);
+                      console.log("Loading more posters. Current page:", posterSearchPage, "Total pages:", posterSearchTotalPages);
+                      
                       // Load the next page
                       const nextPage = posterSearchPage + 1;
+                      const query = posterForEditMode ? editingMovie!.title : formData.title;
+                      console.log("Using query:", query, "Type:", currentPosterType, "Page:", nextPage);
+                      
                       const response = await tmdbApi.searchByTitle(
-                        posterForEditMode ? editingMovie!.title : formData.title, 
+                        query, 
                         currentPosterType, 
                         nextPage
                       );
                       
+                      console.log("Got response for page", nextPage, "Total pages:", response.total_pages, "Results:", response.results?.length);
+                      
                       if (response.results && response.results.length > 0) {
                         // Filter results with posters
                         const resultsWithPosters = response.results.filter(result => result.poster_path);
+                        console.log("Found", resultsWithPosters.length, "results with posters");
+                        
                         if (resultsWithPosters.length > 0) {
                           // Append new results to existing results
                           setPosterSearchResults([...posterSearchResults, ...resultsWithPosters]);
@@ -2217,15 +2225,14 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
                     }
                   }
                 }}
-                disabled={posterSearchPage >= posterSearchTotalPages || loading}
+                disabled={(posterSearchPage >= posterSearchTotalPages) || loading}
                 style={{
                   padding: '10px 20px',
-                  backgroundColor: posterSearchPage >= posterSearchTotalPages ? '#e0e0e0' : '#4285F4',
-                  color: posterSearchPage >= posterSearchTotalPages ? '#757575' : 'white',
+                  backgroundColor: (posterSearchPage >= posterSearchTotalPages) ? '#e0e0e0' : '#4285F4',
+                  color: (posterSearchPage >= posterSearchTotalPages) ? '#757575' : 'white',
                   border: 'none',
                   borderRadius: '4px',
-                  cursor: posterSearchPage >= posterSearchTotalPages ? 'not-allowed' : 'pointer',
-                  display: posterSearchPage >= posterSearchTotalPages ? 'none' : 'block'
+                  cursor: (posterSearchPage >= posterSearchTotalPages) ? 'not-allowed' : 'pointer'
                 }}
               >
                 {loading ? 'Loading...' : 'Load More'}
@@ -2618,6 +2625,12 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
                           
                           // Search more broadly for similar titles
                           const type = editingMovie.type === 'TV Show' ? 'tv' : 'movie';
+                          // Store current type for pagination
+                          setCurrentPosterType(type);
+                          // Store current query for pagination
+                          setCurrentPosterQuery(editingMovie.title);
+                          // Reset to page 1 for new search
+                          setPosterSearchPage(1);
                           
                           // Do a search for similar titles
                           const response = await tmdbApi.searchByTitle(editingMovie.title, type);
@@ -2627,6 +2640,9 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
                             setLoading(false);
                             return;
                           }
+                          
+                          // Store total pages for pagination
+                          setPosterSearchTotalPages(response.total_pages || 1);
                           
                           // Get all results with posters
                           const resultsWithPosters = response.results.filter(result => result.poster_path);
