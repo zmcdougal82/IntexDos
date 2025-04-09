@@ -20,8 +20,11 @@ const Navbar = () => {
   
   const handleLogout = () => {
     localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    localStorage.removeItem('userId');
     setUser(null);
-    navigate('/');
+    // Use window.location.href instead of navigate to refresh the page
+    window.location.href = '/';
   };
   
   return (
