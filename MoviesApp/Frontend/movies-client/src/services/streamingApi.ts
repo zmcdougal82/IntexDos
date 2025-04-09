@@ -3,29 +3,6 @@
 // Import the base URL functions from tmdbApi to ensure consistency
 import { getTmdbBaseUrl, getTmdbImageBaseUrl, getTmdbRequestUrl } from './tmdbApi';
 
-// Get the API base URL from api.ts
-const getApiUrl = () => {
-  // If we're running in local development, use the local proxy
-  if (window.location.hostname === 'localhost') {
-    return "http://localhost:3001/api";
-  }
-  
-  // For production, use the environment variable if it exists
-  if (import.meta.env.VITE_API_BASE_URL) {
-    return import.meta.env.VITE_API_BASE_URL;
-  }
-  
-  // Dynamically determine API URL for Azure
-  const currentDomain = window.location.hostname;
-  if (currentDomain.includes('azurewebsites.net')) {
-    const apiDomain = currentDomain.replace('client', 'api').replace('-web', '-api');
-    return `https://${apiDomain}/api`;
-  }
-  
-  // Fallback
-  return "https://moviesapp-api-fixed.azurewebsites.net/api";
-};
-
 // We still need this for constructing endpoints
 const TMDB_API_BASE_URL = getTmdbBaseUrl();
 

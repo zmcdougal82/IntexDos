@@ -47,9 +47,13 @@ const getApiUrl = () => {
 
 const TMDB_API_BASE_URL = getTmdbBaseUrl();
 
-// TMDB API key - not needed for most requests as the backend will handle this
-// but keep for reference
+// TMDB API key - needed for local development, backend handles in production
 const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY;
+
+// Log key availability for debugging
+if (!TMDB_API_KEY && window.location.hostname === 'localhost') {
+  console.warn('TMDB API key is not available in development environment');
+}
 
 // For debugging
 console.log("Using TMDB proxy through: ", getApiUrl());

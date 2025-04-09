@@ -19,6 +19,49 @@ namespace MoviesApp.API.Controllers
             _configuration = configuration;
         }
 
+        [HttpPost("openai/{**endpoint}")]
+        public async Task<IActionResult> ProxyOpenAi(string endpoint)
+        {
+            try
+            {
+                var openAiApiKey = _configuration["ExternalApis:OpenAiApiKey"];
+                if (string.IsNullOrEmpty(openAiApiKey))
+                {
+                    return BadRequest("OpenAI API key is not configured");
+                }
+
+                var httpClient = _httpClientFactory.CreateClient();
+                var apiUrl = $"https://api.openai.com/{endpoint}";
+                
+                // Read the request body
+                using var reader = new StreamReader(Request.Body);
+                var requestBody = await reader.ReadToEndAsync();
+                
+                // Create a new request to OpenAI
+                var content = new StringContent(requestBody, System.Text.Encoding.UTF8, "application/json");
+                
+                // Add OpenAI API key to the headers
+                httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", openAiApiKey);
+                
+                // Forward the request to OpenAI
+                var response = await httpClient.PostAsync(apiUrl, content);
+                
+                // Read the content as string
+                var responseContent = await response.Content.ReadAsStringAsync();
+                
+                // Set the response status code to match the proxied response
+                Response.StatusCode = (int)response.StatusCode;
+                
+                // Set content type
+                var contentType = response.Content.Headers.ContentType?.ToString() ?? "application/json";
+                return Content(responseContent, contentType);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message });
+            }
+        }
+
         [HttpGet("tmdb/{**endpoint}")]
         public async Task<IActionResult> ProxyTmdb(string endpoint)
         {
