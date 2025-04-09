@@ -242,7 +242,7 @@ const PrivacyPage: React.FC = () => {
             data under this Privacy Policy is:
           </p>
           <p>
-            CineStream Media Ltd. 850 Streamline St., Suite 200 Los Angeles, CA
+            CineNiche Media Ltd. 850 Streamline St., Suite 200 Los Angeles, CA
             90028 United States
           </p>
           <p>
