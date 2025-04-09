@@ -250,13 +250,13 @@ const HomePage = () => {
     alignItems: "center",
     justifyContent: "center",
     textAlign: "center",
-    gap: "1.5rem", // added gap between children
   }}
 >
-  <p>
+  <p style={{ marginTop: "1.5rem" }}>
     Sign up or log in to start discovering personalized movie and TV
     show recommendations tailored just for you!
   </p>
+
   <div
     style={{
       display: "flex",
