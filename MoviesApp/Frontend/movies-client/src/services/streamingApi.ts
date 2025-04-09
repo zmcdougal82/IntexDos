@@ -83,13 +83,17 @@ async function getStreamingProviders(
 ): Promise<StreamingServiceInfo[]> {
   try {
     const contentType = isTV ? 'tv' : 'movie';
-    // Make sure we're importing the updated getTmdbRequestUrl from tmdbApi.ts
+    // Import the getTmdbRequestUrl from tmdbApi.ts
     const { getTmdbRequestUrl } = await import('./tmdbApi');
     const endpoint = `/${contentType}/${tmdbId}/watch/providers?api_key=${TMDB_API_KEY}`;
     
     console.log(`Fetching streaming providers for ${contentType} ID: ${tmdbId}`);
     
-    const response = await fetch(getTmdbRequestUrl(endpoint));
+    // Use the imported function to get the correct URL for either development or production
+    const apiUrl = getTmdbRequestUrl(endpoint);
+    console.log(`Using API URL for streaming providers: ${apiUrl}`);
+    
+    const response = await fetch(apiUrl);
     
     if (!response.ok) {
       throw new Error(`TMDB API error: ${response.status}`);

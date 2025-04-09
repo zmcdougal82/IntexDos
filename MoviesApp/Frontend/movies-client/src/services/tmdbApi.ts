@@ -9,11 +9,15 @@ export const getTmdbBaseUrl = () => {
 
 // Get the actual URL to use for requests, using the proxy in development
 export const getTmdbRequestUrl = (endpoint: string) => {
+  // Use local proxy in development
   if (window.location.hostname === 'localhost') {
     // Use the working /proxy endpoint which accepts a full URL
     const targetUrl = encodeURIComponent(`${getTmdbBaseUrl()}${endpoint}`);
     return `http://localhost:3001/proxy?url=${targetUrl}`;
   }
+  
+  // When deployed to Azure, TMDB requests should go direct since we don't have 
+  // a CORS proxy in production (and we don't need one for direct API requests)
   return `${getTmdbBaseUrl()}${endpoint}`;
 };
 
@@ -28,6 +32,7 @@ export const getTmdbImageBaseUrl = () => {
     // Use the working /proxy endpoint for images too
     return 'http://localhost:3001/proxy?url=' + encodeURIComponent('https://image.tmdb.org/t/p/w500');
   }
+  // In production, access TMDB images directly
   return 'https://image.tmdb.org/t/p/w500';
 };
 

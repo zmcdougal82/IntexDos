@@ -4,8 +4,10 @@
 // When in localhost, use the proxy server
 const getOmdbBaseUrl = () => {
   if (window.location.hostname === 'localhost') {
+    // In local development, use the CORS proxy
     return 'http://localhost:3001/omdb';
   }
+  // In production, use the direct API (CORS is already handled in web.config for Azure)
   return 'https://www.omdbapi.com';
 };
 
@@ -13,6 +15,11 @@ const OMDB_API_BASE_URL = getOmdbBaseUrl();
 
 // OMDB API key from environment variable
 const OMDB_API_KEY = import.meta.env.VITE_OMDB_API_KEY;
+
+// Check if API key is available and log a warning if it's not
+if (!OMDB_API_KEY) {
+  console.warn('OMDB API key is not configured. External ratings will not be available.');
+}
 
 console.log('Using OMDB API URL:', OMDB_API_BASE_URL);
 
@@ -83,7 +90,9 @@ async function getMovieByTitle(title: string, year?: number | string, isTV: bool
     
     console.log(`Fetching movie data from: ${OMDB_API_BASE_URL}${params}`);
     
-    // Make API request with CORS mode and additional options
+    // Make API request with additional options
+    // Note: Using 'no-cors' will make the response opaque and unusable, so we use 'cors'
+    // The Azure web.config includes CORS headers that should make this work
     const response = await fetch(`${OMDB_API_BASE_URL}${params}`, {
       method: 'GET',
       mode: 'cors',

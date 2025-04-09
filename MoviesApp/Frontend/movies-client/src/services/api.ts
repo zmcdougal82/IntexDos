@@ -13,6 +13,17 @@ const getApiUrl = () => {
     return import.meta.env.VITE_API_BASE_URL;
   }
   
+  // Dynamically determine API URL based on deployment
+  // This helps with Azure deployments where the backend and frontend
+  // may be on different domains
+  const currentDomain = window.location.hostname;
+  if (currentDomain.includes('azurewebsites.net')) {
+    // If we're deployed to Azure Web Apps, determine the backend URL dynamically
+    const apiDomain = currentDomain.replace('client', 'api').replace('-web', '-api');
+    console.log('Azure deployment detected, using API URL based on current domain');
+    return `https://${apiDomain}/api`;
+  }
+  
   // Fallback to the known API endpoint
   return "https://moviesapp-api-fixed.azurewebsites.net/api";
 };
