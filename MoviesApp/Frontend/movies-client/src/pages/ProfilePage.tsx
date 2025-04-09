@@ -225,7 +225,7 @@ const ProfilePage = () => {
                     fontWeight: 'bold',
                     marginTop: 'var(--spacing-xs)'
                   }}>
-                    {/* Smaller Edit button underneath profile role */}
+                    {/* Smaller Delete button underneath Edit button */}
                     <button onClick={handleDelete} style={{
                       marginTop: 'var(--spacing-md)',
                       padding: 'var(--spacing-sm)',
