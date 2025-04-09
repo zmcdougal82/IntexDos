@@ -406,6 +406,17 @@ const ProfilePage = () => {
                       />
                     </div>
 
+                    {/* Phone Number */}
+                    <div style={{ marginBottom: 'var(--spacing-md)' }}>
+                      <label>Phone Number</label>
+                      <input
+                        type="tel"
+                        name="phone"
+                        value={editData?.phone || ''}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+
                     {/* Age */}
                     <div style={{ marginBottom: 'var(--spacing-md)' }}>
                       <label>Age</label>
