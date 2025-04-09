@@ -88,8 +88,6 @@ const ExternalRatings: React.FC<ExternalRatingsProps> = ({
     return rating.replace('%', '');
   };
 
-  // Removing unused formatMetacriticRating function
-
   // Return null if there are no ratings to display
   if (!isLoading && !imdbRating && !rottenTomatoesRating && !metacriticRating) {
     return null;

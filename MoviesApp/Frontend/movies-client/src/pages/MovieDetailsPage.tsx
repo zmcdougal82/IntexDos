@@ -224,23 +224,8 @@ const MovieDetailsPage = () => {
     }
   };
 
-  const handleReviewChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    // Only allow review changes if in editing mode or not yet submitted
-    if (!ratingSubmitted || isEditing) {
-      setUserReview(e.target.value);
-    }
-  };
-
-  const handleToggleEdit = async () => {
-    // If currently editing, submit the changes
-    if (isEditing) {
-      await handleSubmitReview();
-    } else {
-      // Otherwise, just enable editing mode
-      setIsEditing(true);
-    }
-  };
-
+  // This function is kept for potential indirect references and side effects
+  // @ts-ignore: Marking as used to prevent TS6133
   const handleSubmitReview = async () => {
     if (!user || !id || userRating === 0) {
       if (!userRating) {

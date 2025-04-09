@@ -132,8 +132,6 @@ const CastCrewScroller: React.FC<CastCrewScrollerProps> = ({
     </div>
   );
 
-  // Removed unused renderScrollSection function
-
   if (loading) {
     return (
       <div style={{ padding: '20px 0' }}>
