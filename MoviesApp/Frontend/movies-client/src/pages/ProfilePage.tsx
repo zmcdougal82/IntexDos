@@ -127,6 +127,7 @@ const ProfilePage = () => {
         localStorage.removeItem('userId');
         setUser(null);
         window.location.href = '/login'; // Redirect to login page after successful deletion
+        window.location.reload();
       } else {
         console.error("Failed to delete user, received response:", response);
       }
