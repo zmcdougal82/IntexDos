@@ -1339,7 +1339,7 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
             {/* Generate page numbers dynamically */}
             {(() => {
               const pageNumbersToShow = [];
-              const range = 2; // Number of pages to show before and after the current page
+              const range = 1; // Number of pages to show before and after the current page
 
               // Calculate start and end page numbers to show (current page in the middle)
               let startPage = Math.max(currentPage - range, 1);
