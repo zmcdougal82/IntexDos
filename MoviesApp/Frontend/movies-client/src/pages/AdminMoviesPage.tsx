@@ -1006,7 +1006,7 @@ const AdminMoviesPage: React.FC = () => {
   // Generate pagination controls
   const totalPages = Math.ceil(totalMovies / pageSize);
   const pageNumbers = [];
-  for (let i = 1; i <= totalPages; i++) {
+  for (let i = 1; i <= allContent; i++) {
     pageNumbers.push(i);
   }
 
