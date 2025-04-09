@@ -24,6 +24,12 @@ const CookieConsentBanner = () => {
     localStorage.setItem("cookie-consent-dismissed", "true"); // Stores the user's consent
   };
 
+  // Handle rejecting cookies
+  const handleReject = () => {
+    setVisible(false);
+    localStorage.setItem("cookie-consent-dismissed", "false"); // Explicit rejection
+  };
+
   // Handle the privacy policy navigation using a regular <a> tag
   const handleLearnMore = (
     e: React.MouseEvent<HTMLAnchorElement, MouseEvent>
@@ -45,7 +51,7 @@ const CookieConsentBanner = () => {
           . {/* Use regular <a> tag with onClick */}
         </p>
         <button onClick={handleDismiss}>I Accept</button>
-        <button>No Thank you</button>
+        <button onClick={handleReject}>No Thank you</button>
       </div>
     )
   );
