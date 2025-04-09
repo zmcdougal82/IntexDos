@@ -244,58 +244,57 @@ const HomePage = () => {
             </h1>
                         {/* Register / Login CTA + Company Introduction */}
                         <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                textAlign: "center",
-              }}
-            >
-            <br />
-              <p>
-                Sign up or log in to start discovering personalized movie and TV
-                show recommendations tailored just for you!
-              </p>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  gap: "10px",
-                }}
-              >
-                <button
-                  onClick={handleLogin}
-                  style={{
-                    padding: "10px 20px",
-                    backgroundColor: "#007BFF",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "5px",
-                    cursor: "pointer",
-                    fontSize: "1rem",
-                    marginTop: "1rem",
-                  }}
-                >
-                  Log In
-                </button>
-                <button
-                  onClick={handleRegister}
-                  style={{
-                    padding: "10px 20px",
-                    backgroundColor: "#007BFF",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "5px",
-                    cursor: "pointer",
-                    fontSize: "1rem",
-                    marginTop: "1rem",
-                  }}
-                >
-                  Register
-                </button>
-              </div>
-          </div>
+  style={{
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    textAlign: "center",
+    gap: "1.5rem", // added gap between children
+  }}
+>
+  <p>
+    Sign up or log in to start discovering personalized movie and TV
+    show recommendations tailored just for you!
+  </p>
+  <div
+    style={{
+      display: "flex",
+      justifyContent: "center",
+      gap: "10px",
+    }}
+  >
+    <button
+      onClick={handleLogin}
+      style={{
+        padding: "10px 20px",
+        backgroundColor: "#007BFF",
+        color: "white",
+        border: "none",
+        borderRadius: "5px",
+        cursor: "pointer",
+        fontSize: "1rem",
+      }}
+    >
+      Log In
+    </button>
+    <button
+      onClick={handleRegister}
+      style={{
+        padding: "10px 20px",
+        backgroundColor: "#007BFF",
+        color: "white",
+        border: "none",
+        borderRadius: "5px",
+        cursor: "pointer",
+        fontSize: "1rem",
+      }}
+    >
+      Register
+    </button>
+  </div>
+</div>
+
         </div>
       </div>
     </div>
