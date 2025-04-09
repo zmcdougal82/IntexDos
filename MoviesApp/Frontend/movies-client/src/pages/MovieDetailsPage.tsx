@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Movie, Rating, User, movieApi, ratingApi } from "../services/api";
 import { tmdbApi } from "../services/tmdbApi";
 import RecommendedMovies from "../components/RecommendedMovies";
+import CastCrewScroller from "../components/CastCrewScroller";
 
 const MovieDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -1080,24 +1081,16 @@ const MovieDetailsPage = () => {
                 </div>
               )}
 
-              {movie.director && (
-                <div style={{ margin: "var(--spacing-lg) 0" }}>
-                  <h3 style={{ color: "var(--color-text)", fontWeight: 600 }}>
-                    Director
-                  </h3>
-                  <p>{movie.director}</p>
-                </div>
-              )}
-
-              {movie.cast && (
-                <div style={{ margin: "var(--spacing-lg) 0" }}>
-                  <h3 style={{ color: "var(--color-text)", fontWeight: 600 }}>
-                    Cast
-                  </h3>
-                  <p>{movie.cast}</p>
-                </div>
-              )}
-
+              {/* Cast and Crew from TMDB with images */}
+              <div style={{ margin: "var(--spacing-lg) 0" }}>
+                <CastCrewScroller 
+                  title={movie.title}
+                  year={movie.releaseYear}
+                  isTV={movie.type === "TV Show"}
+                  maxCastMembers={15}
+                />
+              </div>
+              
               {/* Rating functionality removed from here (now shown in the left column) */}
             </div>
           </div>

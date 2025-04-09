@@ -291,6 +291,187 @@ async function getPosterUrlWithFallback(
 }
 
 // Export the API functions
+/**
+ * Search for a movie in TMDB by title and year
+ * @param title The movie title to search for
+ * @param year Optional release year to refine the search
+ * @param isTV Whether this is a TV show or movie
+ * @returns A TMDB movie or TV ID if found, null otherwise
+ */
+async function findTMDBId(title: string, year?: number | string, isTV: boolean = false): Promise<number | null> {
+  try {
+    // Search for the movie or TV show
+    const type = isTV ? 'tv' : 'movie';
+    const searchResults = await searchByTitle(title, type);
+    
+    // If no results found, return null
+    if (!searchResults.results || searchResults.results.length === 0) {
+      console.log(`No TMDB results found for ${title}`);
+      return null;
+    }
+    
+    // Find the best match based on title and year if provided
+    let bestMatch = searchResults.results[0];
+    
+    if (year && searchResults.results.length > 1) {
+      // Parse year if it's a string
+      const yearNum = typeof year === 'string' ? parseInt(year) : year;
+      
+      // Try to find a better match using the year
+      const matchByYear = searchResults.results.find((result: any) => {
+        const resultYear = isTV
+          ? new Date((result as TMDBTVShow).first_air_date).getFullYear()
+          : new Date((result as TMDBMovie).release_date).getFullYear();
+        
+        return resultYear === yearNum;
+      });
+      
+      if (matchByYear) {
+        bestMatch = matchByYear;
+      }
+    }
+    
+    // Return the TMDB ID of the best match
+    return bestMatch.id;
+  } catch (error) {
+    console.error('Error finding TMDB ID:', error);
+    return null;
+  }
+}
+
+/**
+ * Get full cast and crew information for a movie or TV show
+ * @param title The title to search for
+ * @param year Optional release year to refine the search
+ * @param isTV Whether this is a TV show or movie
+ * @returns Credits information or null if not found
+ */
+async function getCredits(title: string, year?: number | string, isTV: boolean = false): Promise<{
+  cast: {
+    id: number;
+    name: string;
+    character: string;
+    profile_path: string | null;
+    order: number;
+  }[];
+  crew: {
+    id: number;
+    name: string;
+    job: string;
+    department: string;
+    profile_path: string | null;
+  }[];
+} | null> {
+  try {
+    // First, find the TMDB ID for this title
+    const tmdbId = await findTMDBId(title, year, isTV);
+    
+    if (!tmdbId) {
+      console.log(`Could not find TMDB ID for ${title}`);
+      return null;
+    }
+    
+    // Fetch the details with credits
+    const details = isTV 
+      ? await getTVShowDetails(tmdbId)
+      : await getMovieDetails(tmdbId);
+    
+    if (!details?.credits) {
+      console.log(`No credits found for ${title}`);
+      return null;
+    }
+    
+    return details.credits;
+  } catch (error) {
+    console.error('Error getting credits from TMDB:', error);
+    return null;
+  }
+}
+
+/**
+ * Get the profile image URL for a person
+ * @param profilePath The profile path from TMDB
+ * @returns Full URL to the profile image or null if not available
+ */
+function getProfileImageUrl(profilePath: string | null): string | null {
+  if (!profilePath) return null;
+  return `${TMDB_POSTER_BASE_URL}${profilePath}`;
+}
+
+/**
+ * Get the directors for a movie or TV show
+ * @param title The title to search for
+ * @param year Optional release year to refine the search
+ * @param isTV Whether this is a TV show or movie
+ * @returns Array of directors with name and profile image URL
+ */
+async function getDirectors(title: string, year?: number | string, isTV: boolean = false): Promise<{
+  name: string;
+  profileUrl: string | null;
+  job: string;
+}[]> {
+  try {
+    const credits = await getCredits(title, year, isTV);
+    
+    if (!credits) return [];
+    
+    // For movies, directors have the job title "Director"
+    // For TV shows, look for "Creator" or "Executive Producer"
+    const directors = credits.crew.filter(person => {
+      if (isTV) {
+        return person.job === "Creator" || 
+               person.job === "Executive Producer" || 
+               person.job === "Series Director";
+      } else {
+        return person.job === "Director";
+      }
+    });
+    
+    return directors.map(director => ({
+      name: director.name,
+      profileUrl: getProfileImageUrl(director.profile_path),
+      job: director.job
+    }));
+  } catch (error) {
+    console.error('Error getting directors from TMDB:', error);
+    return [];
+  }
+}
+
+/**
+ * Get the main cast for a movie or TV show
+ * @param title The title to search for
+ * @param year Optional release year to refine the search
+ * @param isTV Whether this is a TV show or movie
+ * @param limit Optional limit on the number of cast members to return (default: 10)
+ * @returns Array of cast members with name, character and profile image URL
+ */
+async function getCast(title: string, year?: number | string, isTV: boolean = false, limit: number = 10): Promise<{
+  name: string;
+  character: string;
+  profileUrl: string | null;
+}[]> {
+  try {
+    const credits = await getCredits(title, year, isTV);
+    
+    if (!credits) return [];
+    
+    // Get cast members sorted by their order (main cast first)
+    const sortedCast = [...credits.cast]
+      .sort((a, b) => a.order - b.order)
+      .slice(0, limit);
+    
+    return sortedCast.map(actor => ({
+      name: actor.name,
+      character: actor.character,
+      profileUrl: getProfileImageUrl(actor.profile_path)
+    }));
+  } catch (error) {
+    console.error('Error getting cast from TMDB:', error);
+    return [];
+  }
+}
+
 export const tmdbApi = {
   searchByTitle,
   getPosterUrl,
@@ -298,6 +479,11 @@ export const tmdbApi = {
   getMovieDetails,
   getTVShowDetails,
   mapGenreIdsToGenres,
+  findTMDBId,
+  getCredits,
+  getDirectors,
+  getCast,
+  getProfileImageUrl,
   POSTER_BASE_URL: TMDB_POSTER_BASE_URL
 };
 
