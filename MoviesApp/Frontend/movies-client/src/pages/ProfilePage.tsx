@@ -461,8 +461,8 @@ const ProfilePage = () => {
                       <label>Streaming Services</label>
                       <div
                         style={{
-                          display: 'flex',
-                          flexDirection: 'column',
+                          display: 'grid',
+                          gridTemplateColumns: '1fr 1fr',
                           gap: 'var(--spacing-sm)',
                         }}
                       >
@@ -483,9 +483,7 @@ const ProfilePage = () => {
                                 type="checkbox"
                                 id={service.id}
                                 name={service.id}
-                                checked={
-                                  !!(editData && editData[service.id as keyof EditableUser])
-                                }
+                                checked={!!(editData && editData[service.id as keyof EditableUser])}
                                 onChange={handleStreamingServiceChange}
                                 style={{ marginRight: 'var(--spacing-sm)' }}
                               />
