@@ -21,7 +21,7 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: true, // Enable sending credentials with cross-origin requests (needed for auth)
+  withCredentials: false, // Enable sending credentials with cross-origin requests (needed for auth)
 });
 
 // Add a request interceptor to include the JWT token in requests
