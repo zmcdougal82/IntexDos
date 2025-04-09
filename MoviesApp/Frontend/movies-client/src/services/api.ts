@@ -192,6 +192,31 @@ export const movieApi = {
     api.delete<void>(`/movies/${id}`)
 };
 
+export const recommendationApi = {
+  getRecommendations: async (userId: string, showIds: string[]) => {
+    const azureUrl = "http://ceb7e7b5-8803-4cba-92cc-e88bb007b189.eastus2.azurecontainer.io/score";
+    const apiKey = "n4pwHgWR3uYGGB2nfvCuO52k0jiOsl8c";
+
+    const headers = {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${apiKey}`,
+    };
+
+    const data = {
+      Inputs: {
+        input1: showIds.map((showId) => ({
+          user_id: userId,
+          show_id: showId,
+        })),
+      },
+    };
+
+    const response = await axios.post(azureUrl, data, { headers });
+    return response.data.Results.WebServiceOutput0;
+  }
+};
+
+
 // API functions for Auth
 export const authApi = {
   login: (credentials: LoginRequest) =>
