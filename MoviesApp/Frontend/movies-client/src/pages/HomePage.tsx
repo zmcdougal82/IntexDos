@@ -229,6 +229,7 @@ const HomePage = () => {
               justifyContent: 'center',
               color: 'white',
               fontSize: '24px',
+              gap: '1.5rem',
             }}
           >
             <h1
@@ -237,13 +238,14 @@ const HomePage = () => {
                 fontWeight: 700,
                 color: "var(--color-white)",
                 textAlign: "center",
-                marginBottom: "var(--spacing-lg)",
+                marginBottom: 0,
               }}
             >
               Welcome to CineNiche!
             </h1>
-                        {/* Register / Login CTA + Company Introduction */}
-                        <div
+                       {/* Register / Login CTA + Company Introduction */}
+<br />
+<div
   style={{
     position: 'absolute',
     top: 0,
@@ -262,16 +264,7 @@ const HomePage = () => {
     gap: '1.5rem',
   }}
 >
-  <h1
-    style={{
-      fontSize: "5.5rem",
-      fontWeight: 700,
-      margin: 0,
-      zIndex: 3,
-    }}
-  >
-    Welcome to CineNiche!
-  </h1>
+
 
   {!user && (
     <div
@@ -282,21 +275,12 @@ const HomePage = () => {
         gap: "1rem",
       }}
     >
-      <p
-        style={{
-          fontSize: "1.2rem",
-          maxWidth: "700px",
-          margin: 0,
-        }}
-      >
-        Sign up or log in to start discovering personalized movie and TV show
-        recommendations tailored just for you!
-      </p>
+
       <div style={{ display: "flex", gap: "10px" }}>
         <button
           onClick={handleLogin}
           style={{
-            padding: "10px 20px",
+            padding: "20px 30px",
             backgroundColor: "#007BFF",
             color: "white",
             border: "none",
@@ -311,7 +295,7 @@ const HomePage = () => {
         <button
           onClick={handleRegister}
           style={{
-            padding: "10px 20px",
+            padding: "20px 30px",
             backgroundColor: "#007BFF",
             color: "white",
             border: "none",
@@ -327,7 +311,7 @@ const HomePage = () => {
     </div>
   )}
 </div>
- 
+
                   </div>
               </div>
         </div>
