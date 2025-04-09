@@ -1636,30 +1636,13 @@ const AdminMoviesPage: React.FC = () => {
             {/* Generate page numbers dynamically */}
             {(() => {
               const pageNumbersToShow = [];
-              const range = 1; // Number of pages to show before and after the current page
 
-              // Calculate start and end page numbers to show (current page in the middle)
-              let startPage = Math.max(currentPage - range, 1);
-              let endPage = Math.min(currentPage + range, totalPages);
+              const previousPage = currentPage > 1 ? currentPage - 1 : null;
+              const nextPage = currentPage < totalPages ? currentPage + 1 : null;
 
-              // Adjust if near the beginning or end of the pagination
-              if (currentPage - startPage < range) {
-                endPage = Math.min(
-                  endPage + (range - (currentPage - startPage)),
-                  totalPages
-                );
-              }
-              if (endPage - currentPage < range) {
-                startPage = Math.max(
-                  startPage - (range - (endPage - currentPage)),
-                  1
-                );
-              }
-
-              // Add the pages: two before, current, and two after the current page
-              for (let i = startPage; i <= endPage; i++) {
-                pageNumbersToShow.push(i);
-              }
+              if (previousPage) pageNumbersToShow.push(previousPage);
+              pageNumbersToShow.push(currentPage);
+              if (nextPage) pageNumbersToShow.push(nextPage);
 
               return pageNumbersToShow.map((number) => (
                 <button
