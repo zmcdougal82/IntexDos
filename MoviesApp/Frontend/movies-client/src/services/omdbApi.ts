@@ -1,10 +1,20 @@
 // OMDB API service for fetching movie and TV show data, including IMDB and Rotten Tomatoes ratings
 
-// OMDB API base URL
-const OMDB_API_BASE_URL = 'https://www.omdbapi.com/';
+// OMDB API via our CORS proxy
+// When in localhost, use the proxy server
+const getOmdbBaseUrl = () => {
+  if (window.location.hostname === 'localhost') {
+    return 'http://localhost:3001/omdb';
+  }
+  return 'https://www.omdbapi.com';
+};
+
+const OMDB_API_BASE_URL = getOmdbBaseUrl();
 
 // OMDB API key from environment variable
 const OMDB_API_KEY = import.meta.env.VITE_OMDB_API_KEY;
+
+console.log('Using OMDB API URL:', OMDB_API_BASE_URL);
 
 interface OMDBRatings {
   Source: string;

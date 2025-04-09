@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TMDB API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .card {
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+            background-color: #f9f9f9;
+        }
+        .movie {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 20px;
+        }
+        .movie img {
+            width: 100px;
+            margin-right: 20px;
+        }
+        .movie-details {
+            flex: 1;
+        }
+        .provider-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .provider {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 80px;
+        }
+        .provider img {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+        .provider span {
+            font-size: 12px;
+            text-align: center;
+            margin-top: 4px;
+        }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>TMDB API Test</h1>
+    
+    <div class="card">
+        <h2>API Status</h2>
+        <div id="api-status">Checking TMDB API status...</div>
+    </div>
+    
+    <div class="card">
+        <h2>Search Results</h2>
+        <div id="search-results">Searching for "Inception"...</div>
+    </div>
+    
+    <div class="card">
+        <h2>Streaming Services</h2>
+        <div id="streaming-results">Loading streaming data...</div>
+    </div>
+
+    <script type="module">
+        // Import the TMDB and Streaming APIs
+        import { tmdbApi } from '/src/services/tmdbApi.js';
+        import { streamingApi } from '/src/services/streamingApi.js';
+        
+        // Test the TMDB API
+        async function testTmdbApi() {
+            try {
+                // Test search
+                const searchResults = await tmdbApi.searchByTitle('Inception', 'movie');
+                
+                if (searchResults.results && searchResults.results.length > 0) {
+                    document.getElementById('api-status').innerHTML = 
+                        '<span class="success">✓ TMDB API is working correctly!</span>';
+                    
+                    // Display search results
+                    const moviesHtml = searchResults.results.slice(0, 3).map(movie => {
+                        const posterUrl = movie.poster_path 
+                            ? `${tmdbApi.POSTER_BASE_URL}${movie.poster_path}`
+                            : 'https://via.placeholder.com/100x150?text=No+Image';
+                        
+                        return `
+                            <div class="movie">
+                                <img src="${posterUrl}" alt="${movie.title}" />
+                                <div class="movie-details">
+                                    <h3>${movie.title}</h3>
+                                    <p><strong>Release Date:</strong> ${movie.release_date}</p>
+                                    <p>${movie.overview.substring(0, 150)}...</p>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                    
+                    document.getElementById('search-results').innerHTML = moviesHtml;
+                    
+                    // Test streaming info for the first movie
+                    if (searchResults.results[0]?.id) {
+                        const movieId = searchResults.results[0].id;
+                        const streamingProviders = await streamingApi.getStreamingProviders(movieId);
+                        
+                        if (streamingProviders.length > 0) {
+                            const providersHtml = `
+                                <h3>Where to watch "${searchResults.results[0].title}"</h3>
+                                <div class="provider-list">
+                                    ${streamingProviders.slice(0, 6).map(provider => `
+                                        <div class="provider">
+                                            <img src="${provider.logoUrl}" alt="${provider.providerName}" />
+                                            <span>${provider.providerName}</span>
+                                            <span>${provider.streamingType}</span>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            `;
+                            document.getElementById('streaming-results').innerHTML = providersHtml;
+                        } else {
+                            document.getElementById('streaming-results').innerHTML = 
+                                '<p>No streaming providers found for this movie.</p>';
+                        }
+                    }
+                } else {
+                    document.getElementById('api-status').innerHTML = 
+                        '<span class="error">✗ No search results found.</span>';
+                }
+            } catch (error) {
+                console.error('Error testing TMDB API:', error);
+                document.getElementById('api-status').innerHTML = 
+                    `<span class="error">✗ Error: ${error.message}</span>`;
+            }
+        }
+        
+        // Run the test
+        testTmdbApi();
+    </script>
+</body>
+</html>
