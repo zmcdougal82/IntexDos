@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { LoginRequest, authApi } from '../services/api';
+import { hasCookieConsent } from '../components/CookieConsentBanner';
 
 const LoginPage = () => {
   const [credentials, setCredentials] = useState<LoginRequest>({
@@ -21,6 +22,13 @@ const LoginPage = () => {
     // Simple validation
     if (!credentials.email || !credentials.password) {
       setError('Please enter both email and password');
+      return;
+    }
+    
+    // Check if user has consented to cookies
+    const hasConsent = hasCookieConsent();
+    if (!hasConsent) {
+      setError('Please accept cookies in the banner at the bottom of the page to enable secure login functionality.');
       return;
     }
     
@@ -78,6 +86,11 @@ const LoginPage = () => {
               borderLeft: '4px solid var(--color-error)'
             }}>
               {error}
+              {!hasCookieConsent() && (
+                <div style={{ marginTop: 'var(--spacing-sm)' }}>
+                  Cookie consent is required for authentication and keeping you logged in securely.
+                </div>
+              )}
             </div>
           )}
           

@@ -214,8 +214,31 @@ const PrivacyPage: React.FC = () => {
             We use cookies and similar tracking technologies to track activity
             on our service and hold certain information. Cookies are files with
             a small amount of data that may include an anonymous unique
-            identifier. You can instruct your browser to refuse all cookies or
-            to indicate when a cookie is being sent.
+            identifier. The types of cookies we use include:
+          </p>
+          <ul style={{ paddingLeft: "var(--spacing-lg)" }}>
+            <li className="mb-2">
+              <strong>Authentication cookies:</strong> These are essential cookies that store your JWT (JSON Web Token) 
+              to keep you signed in securely. These cookies are marked as HttpOnly (not accessible via JavaScript) 
+              and Secure (only transmitted over HTTPS) to protect your account information.
+            </li>
+            <li className="mb-2">
+              <strong>Preference cookies:</strong> These cookies remember your settings and preferences 
+              to provide you with a more personalized experience.
+            </li>
+            <li className="mb-2">
+              <strong>Analytics cookies:</strong> These cookies help us understand how visitors interact 
+              with our website, which allows us to improve our service.
+            </li>
+          </ul>
+          <p>
+            You can instruct your browser to refuse all cookies or to indicate when a cookie is being sent.
+            However, please note that refusing authentication cookies will prevent you from logging into 
+            your account, as these cookies are essential for the secure functioning of our login system.
+          </p>
+          <p>
+            By consenting to our cookie policy through the cookie banner, you allow us to store these 
+            cookies on your device to improve your browsing experience and provide secure authentication.
           </p>
         </section>
 

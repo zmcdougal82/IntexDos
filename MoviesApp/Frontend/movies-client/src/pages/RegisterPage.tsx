@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { RegisterRequest, authApi } from '../services/api';
+import { hasCookieConsent } from '../components/CookieConsentBanner';
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState<RegisterRequest>({
@@ -83,6 +84,13 @@ const RegisterPage = () => {
     // Check for at least one special character
     if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(formData.password)) {
       setError('Password must contain at least one special character');
+      return;
+    }
+    
+    // Check if user has consented to cookies
+    const hasConsent = hasCookieConsent();
+    if (!hasConsent) {
+      setError('Please accept cookies in the banner at the bottom of the page to create an account.');
       return;
     }
     
@@ -524,6 +532,11 @@ const RegisterPage = () => {
               borderLeft: '4px solid var(--color-error)'
             }}>
               {error}
+              {!hasCookieConsent() && (
+                <div style={{ marginTop: 'var(--spacing-sm)' }}>
+                  Cookie consent is required for account creation and authentication.
+                </div>
+              )}
             </div>
           )}
           
