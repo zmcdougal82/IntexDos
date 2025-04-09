@@ -33,6 +33,7 @@ const LoginPage = () => {
       // Store the JWT token and user info
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
+      localStorage.setItem('userId', response.data.user.id);
       
       // Refresh page to ensure navbar updates with the user profile
       window.location.href = '/';
