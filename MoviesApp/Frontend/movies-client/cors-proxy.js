@@ -7,6 +7,10 @@ import { URL } from 'url';
 const app = express();
 const PORT = 3001;
 
+// Load environment variables
+import dotenv from 'dotenv';
+dotenv.config();
+
 // API endpoints map
 const API_ENDPOINTS = {
   // Main API
@@ -18,6 +22,15 @@ const API_ENDPOINTS = {
   'streaming': 'https://streaming-availability.p.rapidapi.com',
   // Add other APIs as needed
 };
+
+// API Keys from environment
+const API_KEYS = {
+  'tmdb': process.env.VITE_TMDB_API_KEY || '56cfecfb2042af273b7c51099340b62e', // Fallback to hardcoded key
+  'omdb': process.env.VITE_OMDB_API_KEY,
+  'openai': process.env.VITE_OPENAI_API_KEY
+};
+
+console.log('CORS Proxy loaded with TMDB API key:', API_KEYS.tmdb ? 'Available' : 'Missing');
 
 // Enable CORS for all requests
 app.use(cors({
@@ -119,12 +132,25 @@ Object.entries(API_ENDPOINTS).forEach(([prefix, targetUrl]) => {
 app.use('/proxy', async (req, res) => {
   try {
     // Extract the URL from the query parameter
-    const targetUrl = req.query.url;
+    let targetUrl = req.query.url;
     if (!targetUrl) {
       return res.status(400).json({ error: 'Missing url parameter' });
     }
     
-    console.log(`[Direct URL Proxy] ${req.method} -> ${targetUrl}`);
+    // Add API keys to URLs that need them
+    if (targetUrl.includes('api.themoviedb.org/3') && API_KEYS.tmdb) {
+      // Add TMDB API key
+      const tmdbApiKey = API_KEYS.tmdb;
+      targetUrl += (targetUrl.includes('?') ? '&' : '?') + `api_key=${tmdbApiKey}`;
+      console.log(`[Direct URL Proxy] Added TMDB API key to request`);
+    } else if (targetUrl.includes('omdbapi.com') && API_KEYS.omdb) {
+      // Add OMDB API key
+      const omdbApiKey = API_KEYS.omdb;
+      targetUrl += (targetUrl.includes('?') ? '&' : '?') + `apikey=${omdbApiKey}`;
+      console.log(`[Direct URL Proxy] Added OMDB API key to request`);
+    }
+    
+    console.log(`[Direct URL Proxy] ${req.method} -> ${targetUrl.replace(/(api_key|apikey)=[^&]+/, '$1=HIDDEN')}`);
     
     // Validate the URL
     try {

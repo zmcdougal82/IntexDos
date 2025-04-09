@@ -45,51 +45,77 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onClick }) => {
 
   // Handle image loading errors
   const handleImageError = useCallback(async () => {
-    console.log(`Azure poster failed to load for ${movie.title}, trying TMDB...`);
-    const tmdbSuccess = await fetchTMDBPoster();
+    console.log(`Poster failed to load for ${movie.title}, trying TMDB...`);
     
-    if (!tmdbSuccess) {
-      console.log(`No TMDB poster found for ${movie.title}, using default`);
-      setPosterUrl(defaultImage);
+    // First try TMDB API
+    try {
+      const tmdbSuccess = await fetchTMDBPoster();
+      
+      if (tmdbSuccess) {
+        console.log(`Successfully retrieved TMDB poster for ${movie.title}`);
+        return;
+      }
+    } catch (error) {
+      console.error(`Error fetching TMDB poster for ${movie.title}:`, error);
     }
-  }, [fetchTMDBPoster, movie.title]);
+    
+    // If TMDB fails, use default image
+    console.log(`No TMDB poster found for ${movie.title}, using default`);
+    setPosterUrl(defaultImage);
+  }, [fetchTMDBPoster, movie.title, defaultImage]);
 
   useEffect(() => {
-    if (movie.posterUrl) {
-      // Check if this is an Azure URL
-      if (movie.posterUrl.includes('moviesappsa79595.blob.core.windows.net')) {
-        // Use the new SAS token provided for the storage account
-        const sasToken = "sp=r&st=2025-04-08T10:57:41Z&se=2026-04-08T18:57:41Z&sv=2024-11-04&sr=c&sig=pAoCi15RVSDceDfeusN0dAmD8KqKAKC4Gkjh0qaOI5I%3D";
-        
-        // Use the movie title to create the proper filename
-        // This matches the format: "Movie Title.jpg"
-        const properFileName = movie.title + '.jpg';
-        
-        try {
+    let posterSource = "none";
+    
+    try {
+      if (movie.posterUrl) {
+        // Check if this is an Azure URL
+        if (movie.posterUrl.includes('moviesappsa79595.blob.core.windows.net')) {
+          posterSource = "azure";
+          
+          // Use the SAS token provided for the storage account
+          const sasToken = "sp=r&st=2025-04-08T10:57:41Z&se=2026-04-08T18:57:41Z&sv=2024-11-04&sr=c&sig=pAoCi15RVSDceDfeusN0dAmD8KqKAKC4Gkjh0qaOI5I%3D";
+          
+          // Clean the movie title to avoid issues with special characters
+          const cleanTitle = movie.title
+            .replace(/[\u2018\u2019]/g, "'") // Smart quotes
+            .replace(/[\u201C\u201D]/g, '"') // Smart double quotes
+            .replace(/[/\\:*?"<>|]/g, ' ') // Remove filename-invalid chars
+            .trim();
+            
+          // This matches the format: "Movie Title.jpg"
+          const properFileName = cleanTitle + '.jpg';
+          
           // Properly encode the path components for compatibility with Azure
           const encodedPosterPath = encodeURIComponent("Movie Posters");
           const encodedFileName = encodeURIComponent(properFileName);
           
-          // Format with properly encoded URL components for Azure
-          setPosterUrl(`https://moviesappsa79595.blob.core.windows.net/movie-posters/${encodedPosterPath}/${encodedFileName}?${sasToken}`);
-        } catch (error) {
-          console.error(`Error constructing Azure URL for ${movie.title}:`, error);
-          // Try TMDB immediately as a backup
-          fetchTMDBPoster().catch(() => setPosterUrl(defaultImage));
+          const azureUrl = `https://moviesappsa79595.blob.core.windows.net/movie-posters/${encodedPosterPath}/${encodedFileName}?${sasToken}`;
+          console.log(`Setting Azure poster URL for ${movie.title}`);
+          setPosterUrl(azureUrl);
+        } else {
+          // If not from expected source, use as is
+          posterSource = "direct";
+          setPosterUrl(movie.posterUrl);
         }
       } else {
-        // If not from expected source, use as is
-        setPosterUrl(movie.posterUrl);
-      }
-    } else {
-      // No poster URL provided, try TMDB
-      fetchTMDBPoster().then(success => {
-        if (!success) {
+        // No poster URL provided, try TMDB
+        posterSource = "tmdb";
+        fetchTMDBPoster().then(success => {
+          if (!success) {
+            setPosterUrl(defaultImage);
+          }
+        }).catch(error => {
+          console.error(`Error fetching TMDB poster in initial load for ${movie.title}:`, error);
           setPosterUrl(defaultImage);
-        }
-      });
+        });
+      }
+    } catch (error) {
+      console.error(`Error setting poster for ${movie.title} from ${posterSource}:`, error);
+      // Skip to the default image
+      setPosterUrl(defaultImage);
     }
-  }, [movie.posterUrl, fetchTMDBPoster]);
+  }, [movie.title, movie.posterUrl, fetchTMDBPoster, defaultImage]);
   
   return (
     <div 
@@ -134,8 +160,11 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onClick }) => {
             objectFit: 'cover',
             objectPosition: 'center'
           }}
-          onError={async () => {
-            await handleImageError();
+          onError={async (e) => {
+            // Prevent infinite loops if the default image also fails
+            if ((e.target as HTMLImageElement).src !== defaultImage) {
+              await handleImageError();
+            }
           }}
         />
       </div>

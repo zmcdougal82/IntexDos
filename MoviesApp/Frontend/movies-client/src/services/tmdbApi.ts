@@ -229,11 +229,31 @@ const TMDB_GENRE_MAPPING: {[key: number]: string} = {
  */
 async function searchByTitle(query: string, type: 'movie' | 'tv' | 'multi' = 'multi', page: number = 1): Promise<TMDBSearchResult> {
   try {
+    // Make sure we're using well-formed URLs
+    // Remove any problematic characters that could break the URL
+    const cleanQuery = query.replace(/[\u2018\u2019]/g, "'") // Smart quotes
+                          .replace(/[\u201C\u201D]/g, '"') // Smart double quotes
+                          .trim();
+    
     // Remove the API key from the endpoint - our backend will add it
-    const endpoint = `/search/${type}?query=${encodeURIComponent(query)}&page=${page}`;
-    const response = await fetch(getTmdbRequestUrl(endpoint));
+    const endpoint = `/search/${type}?query=${encodeURIComponent(cleanQuery)}&page=${page}`;
+    
+    console.log(`Searching TMDB for ${type}: "${cleanQuery}"`);
+    
+    const requestUrl = getTmdbRequestUrl(endpoint);
+    const response = await fetch(requestUrl);
     
     if (!response.ok) {
+      // Try to get additional error info
+      let errorDetails = '';
+      try {
+        const errorData = await response.text();
+        errorDetails = ` - ${errorData}`;
+      } catch (e) {
+        // Ignore error parsing failures
+      }
+      
+      console.error(`TMDB API error: ${response.status}${errorDetails}`);
       throw new Error(`TMDB API error: ${response.status}`);
     }
     
@@ -316,12 +336,21 @@ function mapGenreIdsToGenres(genreIds: number[]): {[key: string]: number} {
  */
 async function getPosterUrl(title: string, year?: number, isTV: boolean = false): Promise<string | null> {
   try {
+    // Make sure we're using well-formed titles
+    // Remove any problematic characters that could break the URL
+    const cleanTitle = title.replace(/[\u2018\u2019]/g, "'") // Smart quotes
+                            .replace(/[\u201C\u201D]/g, '"') // Smart double quotes
+                            .trim();
+    
     // Search for the movie or TV show
     const type = isTV ? 'tv' : 'movie';
-    const searchResults = await searchByTitle(title, type);
+    console.log(`Searching TMDB for poster: ${type} "${cleanTitle}" (${year || 'any year'})`);
+    
+    const searchResults = await searchByTitle(cleanTitle, type);
     
     // If no results found, return null
     if (!searchResults.results || searchResults.results.length === 0) {
+      console.log(`No results found for ${cleanTitle}`);
       return null;
     }
     
@@ -331,11 +360,19 @@ async function getPosterUrl(title: string, year?: number, isTV: boolean = false)
     if (year && searchResults.results.length > 1) {
       // Try to find a better match using the year
       const matchByYear = searchResults.results.find((result: any) => {
-        const resultYear = isTV
-          ? new Date((result as TMDBTVShow).first_air_date).getFullYear()
-          : new Date((result as TMDBMovie).release_date).getFullYear();
+        const dateStr = isTV
+          ? (result as TMDBTVShow).first_air_date
+          : (result as TMDBMovie).release_date;
+          
+        // Handle missing date values
+        if (!dateStr) return false;
         
-        return resultYear === year;
+        try {
+          const resultYear = new Date(dateStr).getFullYear();
+          return resultYear === year;
+        } catch (e) {
+          return false;
+        }
       });
       
       if (matchByYear) {
@@ -345,11 +382,14 @@ async function getPosterUrl(title: string, year?: number, isTV: boolean = false)
     
     // If no poster found, return null
     if (!bestMatch.poster_path) {
+      console.log(`No poster path in result for ${cleanTitle}`);
       return null;
     }
     
     // Return the poster URL
-    return `${TMDB_POSTER_BASE_URL}${bestMatch.poster_path}`;
+    const posterUrl = `${TMDB_POSTER_BASE_URL}${bestMatch.poster_path}`;
+    console.log(`Found poster for ${cleanTitle}: ${posterUrl}`);
+    return posterUrl;
   } catch (error) {
     console.error('Error getting poster from TMDB:', error);
     return null;
