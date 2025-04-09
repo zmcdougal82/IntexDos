@@ -1336,16 +1336,16 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
               &larr; Previous
             </button>
 
-            {/* Generate page numbers dynamically around the current page */}
+            {/* Generate page numbers dynamically */}
             {(() => {
               const pageNumbersToShow = [];
               const range = 2; // Number of pages to show before and after the current page
 
-              // Calculate start and end page numbers to show (center current page)
+              // Calculate start and end page numbers to show (current page in the middle)
               let startPage = Math.max(currentPage - range, 1);
               let endPage = Math.min(currentPage + range, totalPages);
 
-              // Adjust to center current page if possible
+              // Adjust if near the beginning or end of the pagination
               if (currentPage - startPage < range) {
                 endPage = Math.min(endPage + (range - (currentPage - startPage)), totalPages);
               }
@@ -1353,7 +1353,7 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
                 startPage = Math.max(startPage - (range - (endPage - currentPage)), 1);
               }
 
-              // Add the current page and its surrounding pages
+              // Add the pages: two before, current, and two after the current page
               for (let i = startPage; i <= endPage; i++) {
                 pageNumbersToShow.push(i);
               }
@@ -1415,9 +1415,8 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
           <div className="text-center" style={{ color: 'var(--color-text-light)', fontSize: '0.875rem' }}>
             Showing page {currentPage} of {totalPages || 1}
           </div>
-
-
           {/*  */}
+          
         </div>
       </div>
 
