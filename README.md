@@ -6,9 +6,7 @@ A web application for browsing, rating, and reviewing movies and TV shows.
 
 ## Azure Deployment URLs
 
-- **Frontend**: https://moviesappsa79595.azureedge.net/ (CDN) or https://moviesappsa79595.z13.web.core.windows.net/ (Direct)
-- **Backend API**: https://moviesapp-api-fixed.azurewebsites.net/api
-
+- **Frontend**: https://moviesappsa79595.z22.web.core.windows.net/
 ## Project Structure
 
 - **Frontend**: React application with TypeScript and Vite
