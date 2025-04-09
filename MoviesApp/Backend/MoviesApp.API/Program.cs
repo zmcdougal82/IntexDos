@@ -63,7 +63,15 @@ builder.Services.AddCors(options =>
             )
             .AllowAnyMethod()
             .AllowAnyHeader()
+            .SetIsOriginAllowedToAllowWildcardSubdomains()
             .AllowCredentials()); // Allow credentials (important for cookies and authentication)
+            
+    // Add a second policy for non-credentials requests
+    options.AddPolicy("AllowStaticWebsite",
+        builder => builder
+            .WithOrigins("https://moviesappsa79595.z22.web.core.windows.net")
+            .AllowAnyMethod()
+            .AllowAnyHeader());
 });
 
 // Add Swagger/OpenAPI support
@@ -122,8 +130,11 @@ app.UseHttpsRedirection();
 
 app.UseRouting();
 
-// Use CORS
-app.UseCors("AllowReactApp");
+// Use CORS - apply appropriate policy based on the request origin and headers
+app.UseCors(builder => builder
+    .AllowAnyOrigin()
+    .AllowAnyMethod()
+    .AllowAnyHeader());
 
 app.UseAuthentication();
 app.UseAuthorization();

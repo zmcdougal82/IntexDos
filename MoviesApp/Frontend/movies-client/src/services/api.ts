@@ -7,24 +7,21 @@ const getApiUrl = () => {
     return import.meta.env.VITE_API_BASE_URL;
   }
   
-  // If running in production (like Azure static website)
-  if (window.location.hostname !== "localhost") {
-    // Using the current domain to determine the API URL
-    // This assumes the API is deployed on Azure with a predictable URL pattern
-    const domain = window.location.hostname;
-    if (domain.includes('azurewebsites.net')) {
-      // Extract the site name from the domain
-      const siteName = domain.split('.')[0];
-      // Use the corresponding API endpoint
-      return `https://${siteName}-api.azurewebsites.net/api`;
+  // If running for development, use our local CORS proxy
+  if (window.location.hostname === "localhost") {
+    // If using the CORS proxy server
+    if (window.location.port === "5173" || window.location.port === "5174" || window.location.port === "5177") {
+      // Use the CORS proxy running on port 3001
+      return "http://localhost:3001/api";
     }
-    
-    // Fallback to the known API endpoint
-    return "https://moviesapp-api-fixed.azurewebsites.net/api";
+    // If not on dev port, use the Vite proxy defined in vite.config.ts
+    return "/api";
   }
   
-  // If running locally - use the Vite proxy to avoid CORS issues
-  return "/api";
+  // For deployed environments, use the CORS proxy if available
+  // Note: You would need to deploy the CORS proxy separately
+  // For now, we'll use the direct API URL
+  return "https://moviesapp-api-fixed.azurewebsites.net/api";
 };
 
 const API_URL = getApiUrl();
@@ -38,7 +35,7 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: true, // Enables sending cookies with cross-origin requests
+  withCredentials: false // Explicitly disable sending credentials with cross-origin requests
 });
 
 // Add a request interceptor to include the JWT token in requests

@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "cors-proxy": "node cors-proxy.js",
     "generate-env": "node generate-env.js",
     "prebuild": "npm run generate-env",
     "build": "tsc -b && vite build",
@@ -14,6 +15,9 @@
   "dependencies": {
     "@huggingface/inference": "^3.7.0",
     "axios": "^1.8.4",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "http-proxy-middleware": "^3.0.4",
     "papaparse": "^5.5.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
