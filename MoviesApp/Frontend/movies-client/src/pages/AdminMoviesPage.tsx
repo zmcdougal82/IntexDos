@@ -915,13 +915,30 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
           <button
             onClick={() => setIsAdding(true)}
             style={{
-              backgroundColor: 'var(--color-success)',
+              backgroundColor: '#4CAF50',
               display: 'flex',
               alignItems: 'center',
-              gap: 'var(--spacing-xs)'
+              gap: '8px',
+              padding: '10px 16px',
+              borderRadius: '4px',
+              color: 'white',
+              fontWeight: '500',
+              fontSize: '0.95rem',
+              border: 'none',
+              boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
+              transition: 'all 0.2s ease',
+              cursor: 'pointer'
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.backgroundColor = '#45a049';
+              e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.backgroundColor = '#4CAF50';
+              e.currentTarget.style.boxShadow = '0 2px 5px rgba(0,0,0,0.1)';
             }}
           >
-            <span style={{ fontSize: '1.2rem' }}>+</span> Add New Film
+            <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>+</span> Add New Film
           </button>
         </div>
         
@@ -970,26 +987,100 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
           
           {/* Search Bar */}
           <div style={{ marginBottom: 'var(--spacing-md)' }}>
-            <div style={{ display: 'flex', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)' }}>
-              <input
-                type="text"
-                placeholder="Search titles, directors, or actors..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                style={{ flex: 1, padding: 'var(--spacing-sm)' }}
-              />
+            <div style={{ 
+              display: 'flex', 
+              gap: 'var(--spacing-sm)', 
+              marginBottom: 'var(--spacing-sm)',
+              position: 'relative'
+            }}>
+              <div style={{ 
+                flex: 1, 
+                position: 'relative', 
+                display: 'flex', 
+                alignItems: 'center',
+                boxShadow: '0 2px 5px rgba(0,0,0,0.12)',
+                borderRadius: '4px',
+                border: '2px solid #c0c7d0',
+                backgroundColor: 'white',
+                transition: 'all 0.2s ease'
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
+                e.currentTarget.style.borderColor = '#3498db';
+                e.currentTarget.style.borderWidth = '2px';
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.boxShadow = '0 2px 5px rgba(0,0,0,0.12)';
+                e.currentTarget.style.borderColor = '#c0c7d0';
+                e.currentTarget.style.borderWidth = '2px';
+              }}>
+                {/* Search icon */}
+                <div style={{ padding: '0 12px' }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#95a5a6" viewBox="0 0 16 16">
+                    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search titles, directors, or actors..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  style={{ 
+                    flex: 1, 
+                    padding: '12px 0', 
+                    border: 'none',
+                    outline: 'none',
+                    fontSize: '0.95rem',
+                    color: '#34495e',
+                    backgroundColor: 'transparent'
+                  }}
+                />
+                {/* Clear button (X) - only shows when there's text */}
+                {searchQuery && (
+                  <button
+                    onClick={() => {
+                      setSearchQuery('');
+                      setCurrentPage(1);
+                    }}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: '0 12px',
+                      display: 'flex',
+                      alignItems: 'center'
+                    }}
+                    aria-label="Clear search"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#95a5a6" viewBox="0 0 16 16">
+                      <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                    </svg>
+                  </button>
+                )}
+              </div>
               <button
                 onClick={() => {
                   // Reset page when searching
                   setCurrentPage(1);
                 }}
                 style={{
-                  backgroundColor: 'var(--color-primary)',
+                  backgroundColor: '#3498db',
                   color: 'white',
                   border: 'none',
-                  padding: 'var(--spacing-sm) var(--spacing-md)',
-                  borderRadius: 'var(--radius-md)',
-                  cursor: 'pointer'
+                  padding: '0 20px',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontWeight: '500',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.backgroundColor = '#2980b9';
+                  e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.backgroundColor = '#3498db';
+                  e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
                 }}
               >
                 Search
@@ -1117,7 +1208,15 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
           ) : (
             <div style={{ overflowX: 'auto' }}>
               {movies.length > 0 ? (
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <table style={{ 
+                  width: '100%', 
+                  borderCollapse: 'separate',
+                  borderSpacing: 0,
+                  boxShadow: '0 4px 8px rgba(0,0,0,0.05)',
+                  borderRadius: '8px',
+                  overflow: 'hidden',
+                  border: '1px solid #d1d8e0'
+                }}>
                   <thead>
                     <tr>
                       <th style={tableHeaderStyle}>Title</th>
@@ -1132,17 +1231,39 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
                   <tbody>
                     {movies.map(movie => (
                       <tr key={movie.showId} style={{
-                        transition: 'background-color var(--transition-normal)'
+                        transition: 'all 0.2s ease',
+                        borderLeft: '3px solid transparent',
+                        borderBottom: '1px solid #d1d8e0'
                       }}
                       onMouseOver={(e) => {
-                        e.currentTarget.style.backgroundColor = 'var(--color-background)';
+                        e.currentTarget.style.backgroundColor = '#f8f9fa';
+                        e.currentTarget.style.borderLeft = '3px solid #3498db';
+                        e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
                       }}
                       onMouseOut={(e) => {
                         e.currentTarget.style.backgroundColor = 'transparent';
+                        e.currentTarget.style.borderLeft = '3px solid transparent';
+                        e.currentTarget.style.boxShadow = 'none';
                       }}>
-                        <td style={tableCellStyle}>{movie.title} {!movie.showId && <small style={{color: 'red'}}>(Missing ID)</small>}</td>
-                        <td style={tableCellStyle}>{movie.type || 'Unknown'}</td>
-                        <td style={tableCellStyle}>{movie.releaseYear || 'Unknown'}</td>
+                      <td style={tableCellStyle}>
+                        <div style={{ fontWeight: '500' }}>
+                          {movie.title} {!movie.showId && <small style={{color: 'red'}}>(Missing ID)</small>}
+                        </div>
+                      </td>
+                      <td style={tableCellStyle}>
+                        <span style={{
+                          display: 'inline-block',
+                          padding: '3px 8px',
+                          borderRadius: '12px',
+                          backgroundColor: movie.type === 'Movie' ? '#e3f2fd' : '#f3e5f5',
+                          color: movie.type === 'Movie' ? '#1565c0' : '#7b1fa2',
+                          fontSize: '0.85rem',
+                          fontWeight: '500'
+                        }}>
+                          {movie.type || 'Unknown'}
+                        </span>
+                      </td>
+                      <td style={tableCellStyle}>{movie.releaseYear || 'Unknown'}</td>
                         {/* Genre column - displays all genres separated by commas */}
                         <td style={tableCellStyle}>
                           {(() => {
@@ -1169,13 +1290,24 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
                             <button
                               onClick={() => startEdit(movie)}
                               style={{
-                                padding: 'var(--spacing-xs) var(--spacing-sm)',
-                                backgroundColor: 'var(--color-primary-light)',
+                                padding: '6px 12px',
+                                backgroundColor: '#3498db',
                                 color: 'white',
                                 border: 'none',
-                                borderRadius: 'var(--radius-md)',
+                                borderRadius: '4px',
                                 cursor: 'pointer',
-                                fontSize: '0.875rem'
+                                fontSize: '0.875rem',
+                                fontWeight: '500',
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                transition: 'all 0.2s ease'
+                              }}
+                              onMouseOver={(e) => {
+                                e.currentTarget.style.backgroundColor = '#2980b9';
+                                e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
+                              }}
+                              onMouseOut={(e) => {
+                                e.currentTarget.style.backgroundColor = '#3498db';
+                                e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
                               }}
                             >
                               Edit
@@ -1183,13 +1315,24 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
                             <button
                               onClick={() => handleDeleteMovie(movie.showId, movie.title)}
                               style={{
-                                padding: 'var(--spacing-xs) var(--spacing-sm)',
-                                backgroundColor: 'var(--color-error)',
+                                padding: '6px 12px',
+                                backgroundColor: '#e74c3c',
                                 color: 'white',
                                 border: 'none',
-                                borderRadius: 'var(--radius-md)',
+                                borderRadius: '4px',
                                 cursor: 'pointer',
-                                fontSize: '0.875rem'
+                                fontSize: '0.875rem',
+                                fontWeight: '500',
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                transition: 'all 0.2s ease'
+                              }}
+                              onMouseOver={(e) => {
+                                e.currentTarget.style.backgroundColor = '#c0392b';
+                                e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
+                              }}
+                              onMouseOut={(e) => {
+                                e.currentTarget.style.backgroundColor = '#e74c3c';
+                                e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
                               }}
                             >
                               Delete
@@ -2397,7 +2540,7 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
         <div style={modalOverlayStyle}>
           <div style={modalContentStyle}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-              <h2 style={{ margin: 0 }}>Edit Film</h2>
+              <h2 style={{ margin: 0 }}>Film Details</h2>
               <button 
                 onClick={() => setEditingMovie(null)} 
                 style={{ 
@@ -2873,15 +3016,21 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
 
 // Styles
 const tableHeaderStyle: React.CSSProperties = {
-  backgroundColor: '#f2f2f2',
-  padding: '12px 15px',
+  backgroundColor: '#f5f7fa',
+  padding: '14px 16px',
   textAlign: 'left',
-  borderBottom: '1px solid #ddd'
+  borderBottom: '2px solid #e0e4e8',
+  color: '#2c3e50',
+  fontWeight: '600',
+  fontSize: '0.95rem',
+  whiteSpace: 'nowrap'
 };
 
 const tableCellStyle: React.CSSProperties = {
-  padding: '12px 15px',
-  borderBottom: '1px solid #ddd'
+  padding: '14px 16px',
+  borderBottom: '1px solid #d1d8e0',
+  fontSize: '0.95rem',
+  color: '#34495e'
 };
 
 const modalOverlayStyle: React.CSSProperties = {
