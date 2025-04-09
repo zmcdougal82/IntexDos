@@ -52,13 +52,18 @@ builder.Services.AddCors(options =>
         builder => builder
             .WithOrigins(
                 "https://moviesappsa79595.z22.web.core.windows.net", // Azure Storage Static Website URL
+                "https://moviesapp.azurewebsites.net", // Azure Web App URL
+                "https://*.azurewebsites.net", // Allow all Azure Web App URLs
                 "http://localhost:5174", // Local development URL
                 "http://localhost:5173", // Alternative local dev port
                 "http://localhost:5175", // Another alternative local dev port
+                "http://localhost:5176", // Another alternative local dev port
+                "http://localhost:5177", // Another alternative local dev port  
                 "http://localhost:5238" // Backend port (for debugging)
             )
             .AllowAnyMethod()
-            .AllowAnyHeader());
+            .AllowAnyHeader()
+            .AllowCredentials()); // Allow credentials (important for cookies and authentication)
 });
 
 // Add Swagger/OpenAPI support

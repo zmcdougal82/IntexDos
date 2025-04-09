@@ -2,15 +2,35 @@ import axios from "axios";
 
 // Define the base URL for our API based on environment
 const getApiUrl = () => {
+  // Check for environment variable first (if it exists)
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL;
+  }
+  
   // If running in production (like Azure static website)
   if (window.location.hostname !== "localhost") {
-    return "https://moviesapp-api-fixed.azurewebsites.net/api";
+    // Using the current domain to determine the API URL
+    // This assumes the API is deployed on Azure with a predictable URL pattern
+    const domain = window.location.hostname;
+    if (domain.includes('azurewebsites.net')) {
+      // Extract the site name from the domain
+      const siteName = domain.split('.')[0];
+      // Use the corresponding API endpoint
+      return `https://${siteName}-api.azurewebsites.net/api`;
+    }
+    
+    // Fallback to the known API endpoint
+    return "https://moviesapp-api.azurewebsites.net/api";
   }
+  
   // If running locally - use the Vite proxy to avoid CORS issues
   return "/api";
 };
 
 const API_URL = getApiUrl();
+
+// Log the API URL for debugging
+console.log('Using API URL:', API_URL);
 
 // Create and configure axios instance
 const api = axios.create({
