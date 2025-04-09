@@ -1358,6 +1358,12 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
                 pageNumbersToShow.push(i);
               }
 
+              // Ensure the total number of page buttons is 5 (if there are at least 5 pages)
+              if (totalPages >= 5 && pageNumbersToShow.length < 5) {
+                if (pageNumbersToShow[0] !== 1) pageNumbersToShow.unshift(1);
+                if (pageNumbersToShow[pageNumbersToShow.length - 1] !== totalPages) pageNumbersToShow.push(totalPages);
+              }
+
               return pageNumbersToShow.map(number => (
                 <button
                   key={number}
@@ -1415,8 +1421,9 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
           <div className="text-center" style={{ color: 'var(--color-text-light)', fontSize: '0.875rem' }}>
             Showing page {currentPage} of {totalPages || 1}
           </div>
+
           {/*  */}
-          
+
         </div>
       </div>
 
