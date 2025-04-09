@@ -75,7 +75,9 @@ const ProfilePage = () => {
       const response = await userApi.update(user.id, updatedUser);
       console.log("API response:", response);
   
-      if (response.status === 200) {
+      // If the response status is 200, update the user state
+      if (response.status === 200 || response.status === 204) {
+        console.log("Profile successfully updated");
         setUser(updatedUser); // Update the user state with the new data
         setIsEditing(false); // Close the edit form
       } else {
@@ -89,6 +91,7 @@ const ProfilePage = () => {
       }
     }
   };
+  
   
 
   if (loading) {
@@ -155,17 +158,26 @@ const ProfilePage = () => {
                   </div>
                 )}
 
-                {/* Smaller Edit button underneath profile role */}
-                <button onClick={handleEditClick} style={{
-                  marginTop: 'var(--spacing-md)',
-                  padding: 'var(--spacing-sm)',
-                  fontSize: '0.875rem', // smaller size
-                  backgroundColor: 'var(--color-primary)',
-                  color: 'white',
-                  borderRadius: 'var(--radius-sm)'
-                }}>
-                  Edit Profile
-                </button>
+                  <div style={{
+                    display: 'inline-block',
+                    padding: '3px 8px',
+                    borderRadius: 'var(--radius-sm)',
+                    fontSize: '0.75rem',
+                    fontWeight: 'bold',
+                    marginTop: 'var(--spacing-xs)'
+                  }}>
+                    {/* Smaller Edit button underneath profile role */}
+                    <button onClick={handleEditClick} style={{
+                      marginTop: 'var(--spacing-md)',
+                      padding: 'var(--spacing-sm)',
+                      fontSize: '0.875rem', // smaller size
+                      backgroundColor: 'var(--color-primary)',
+                      color: 'white',
+                      borderRadius: 'var(--radius-sm)'
+                    }}>
+                    Edit Profile
+                    </button>
+                  </div>
               </div>
             </div>
 
