@@ -93,11 +93,11 @@ const HomePage = () => {
       try {
         setLoading(true);
   
-        // ⬇️ STEP 1: Fetch user's watch history instead of hardcoding
+        // Fetch user's watch history instead of hardcoding
         const historyResponse = await userApi.getWatchHistory(user.userId.toString());
         const watchHistory = historyResponse.data; // Assuming an array of watched shows
   
-        // ⬇️ STEP 2: Extract show IDs (limit to a few if needed)
+        // Extract show IDs (limit to a few if needed)
         const showIds = watchHistory.map((item: any) => item.showId).slice(0, 3);
   
         if (showIds.length === 0) {
@@ -106,11 +106,11 @@ const HomePage = () => {
           return;
         }
   
-        // ⬇️ STEP 3: Call the recommendation API using real data
+        // Call the recommendation API using real data
         const results = await recommendationApi.getRecommendations(user.userId.toString(), showIds);
         const recommendedIds = results.map((rec: any) => rec.show_id);
   
-        // ⬇️ STEP 4: Fetch actual movie data
+        // Fetch actual movie data
         const movieResponses = await Promise.all(
           recommendedIds.map((showId: string) => movieApi.getById(showId))
         );
