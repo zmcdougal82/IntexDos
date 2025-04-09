@@ -4,26 +4,30 @@ import axios from "axios";
 const getApiUrl = () => {
   // For local development, always use the local CORS proxy
   if (window.location.hostname === "localhost") {
-    console.log('Running in development mode, using CORS proxy');
+    console.log("Running in development mode, using CORS proxy");
     return "http://localhost:3001/api";
   }
-  
+
   // For production, use the environment variable if it exists
   if (import.meta.env.VITE_API_BASE_URL) {
     return import.meta.env.VITE_API_BASE_URL;
   }
-  
+
   // Dynamically determine API URL based on deployment
   // This helps with Azure deployments where the backend and frontend
   // may be on different domains
   const currentDomain = window.location.hostname;
-  if (currentDomain.includes('azurewebsites.net')) {
+  if (currentDomain.includes("azurewebsites.net")) {
     // If we're deployed to Azure Web Apps, determine the backend URL dynamically
-    const apiDomain = currentDomain.replace('client', 'api').replace('-web', '-api');
-    console.log('Azure deployment detected, using API URL based on current domain');
+    const apiDomain = currentDomain
+      .replace("client", "api")
+      .replace("-web", "-api");
+    console.log(
+      "Azure deployment detected, using API URL based on current domain"
+    );
     return `https://${apiDomain}/api`;
   }
-  
+
   // Fallback to the known API endpoint
   return "https://moviesapp-api-fixed.azurewebsites.net/api";
 };
@@ -31,7 +35,7 @@ const getApiUrl = () => {
 const API_URL = getApiUrl();
 
 // Log the API URL for debugging
-console.log('Using API URL:', API_URL);
+console.log("Using API URL:", API_URL);
 
 // Create and configure axios instance
 const api = axios.create({
@@ -39,7 +43,7 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: false // Explicitly disable sending credentials with cross-origin requests
+  withCredentials: true, // Explicitly disable sending credentials with cross-origin requests
 });
 
 // Add a request interceptor to include the JWT token in requests
@@ -198,10 +202,8 @@ export const movieApi = {
       `/movies/genre/${genre}?page=${page}&pageSize=${pageSize}`
     ),
 
-    
   // Get total number of movies in the total db
-  getTotalMoviesCount: () =>
-    api.get<{ totalMovies: number }>('/movies/count'),
+  getTotalMoviesCount: () => api.get<{ totalMovies: number }>("/movies/count"),
 
   // Use JSON.stringify to properly format the array as JSON in the request body
   getByMultipleGenres: (genres: string[], page = 1, pageSize = 20) =>
