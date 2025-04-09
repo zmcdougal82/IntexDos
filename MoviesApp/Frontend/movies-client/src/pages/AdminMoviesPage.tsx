@@ -85,7 +85,6 @@ const AdminMoviesPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [totalMovies, setTotalMovies] = useState(0);
-  const [allContent, setAllContent] = useState(0);
   const [editingMovie, setEditingMovie] = useState<MovieFormData | null>(null);
   const [isAdding, setIsAdding] = useState(false);
 
@@ -162,27 +161,6 @@ const AdminMoviesPage: React.FC = () => {
       navigate("/login");
     }
   }, [navigate]);
-
-  // Use useEffect to fetch the total movie count when the component mounts
-  useEffect(() => {
-    const fetchTotalMovies = async () => {
-      try {
-        // Call the API to get the total movie count
-        const response = await movieApi.getTotalMoviesCount();
-        
-        // Set the total movie count in the state
-        setAllContent(response.data.totalMovies);
-        setLoading(false);
-      } catch (error) {
-        // Handle error if the request fails
-        console.error("Error fetching total movies:", error);
-        setError("Failed to fetch the total number of movies.");
-        setLoading(false);
-      }
-    };
-
-    fetchTotalMovies(); // Invoke the async function
-  }, []);
 
   // Fetch movies with search and filters
   useEffect(() => {
@@ -1006,7 +984,7 @@ const AdminMoviesPage: React.FC = () => {
   // Generate pagination controls
   const totalPages = Math.ceil(totalMovies / pageSize);
   const pageNumbers = [];
-  for (let i = 1; i <= allContent; i++) {
+  for (let i = 1; i <= totalMovies; i++) {
     pageNumbers.push(i);
   }
 
@@ -1743,27 +1721,10 @@ const AdminMoviesPage: React.FC = () => {
               Next &rarr;
             </button>
 
-            {/* Last Page Button */}
-            <button
-              onClick={() => setCurrentPage(Math.ceil(allContent / pageSize))}  // Calculate the last page dynamically based on allContent and pageSize
-              disabled={currentPage === Math.ceil(allContent / pageSize) || allContent === 0}
-              style={{
-                padding: 'var(--spacing-xs) var(--spacing-md)',
-                backgroundColor: currentPage === Math.ceil(allContent / pageSize) || allContent === 0 ? 'var(--color-background)' : 'var(--color-primary)',
-                color: currentPage === Math.ceil(allContent / pageSize) || allContent === 0 ? 'var(--color-text-light)' : 'white',
-                border: `1px solid ${currentPage === Math.ceil(allContent / pageSize) || allContent === 0 ? 'var(--color-border)' : 'var(--color-primary)'}`,
-                borderRadius: 'var(--radius-md)',
-                cursor: currentPage === Math.ceil(allContent / pageSize) || allContent === 0 ? 'not-allowed' : 'pointer',
-                opacity: currentPage === Math.ceil(allContent / pageSize) || allContent === 0 ? 0.7 : 1,
-              }}
-            >
-              Last
-            </button>
-
             </div>
 
             <div className="text-center" style={{ color: 'var(--color-text-light)', fontSize: '0.875rem' }}>
-              Showing page {currentPage} of {allContent > 0 ? Math.ceil(allContent / pageSize) : 1}  {/* Calculate total pages */}
+              Showing page {currentPage} of {totalMovies > 0 ? Math.ceil(totalMovies / pageSize) : 1}  {/* Calculate total pages */}
             </div>
 
           {/*  */}
