@@ -8,7 +8,6 @@ import ReviewSummary from "../components/ReviewSummary";
 import MovieTrailer from "../components/MovieTrailer";
 import ReviewModal from "../components/ReviewModal";
 import ExternalRatings from "../components/ExternalRatings";
-import WhereToWatch from "../components/WhereToWatch";
 
 const MovieDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -1091,138 +1090,79 @@ const MovieDetailsPage = () => {
                   <div
                     style={{
                       display: "flex",
-                      flexDirection: "column",
-                      gap: "var(--spacing-md)",
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: "var(--spacing-lg)",
+                      flexWrap: "wrap",
                     }}
                   >
-                    {/* Our site ratings with label */}
+                    {/* Our site ratings */}
                     <div
                       style={{
+                        backgroundColor: "transparent",
+                        color: "var(--color-text)",
+                        fontWeight: "bold",
+                        padding: "6px 12px",
+                        borderRadius: "var(--radius-md)",
+                        fontSize: "1.1rem",
                         display: "flex",
                         alignItems: "center",
-                        flexWrap: "wrap",
-                        gap: "var(--spacing-md)",
+                        gap: "8px",
                       }}
                     >
-                      <div
-                        style={{
-                          minWidth: "100px",
-                          fontWeight: "500",
-                          color: "var(--color-text-light)",
-                        }}
-                      >
-                        Site Rating:
-                      </div>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "var(--spacing-md)",
-                        }}
-                      >
-                        <div
+                      {/* Show average rating as stars */}
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <span
+                          key={star}
                           style={{
-                            backgroundColor: "transparent",
-                            color: "var(--color-text)",
+                            color:
+                              averageRating >= star ? "gold" : "#d1d1d1",
+                            fontSize: "1.6rem",
                             fontWeight: "bold",
-                            padding: "6px 12px",
-                            borderRadius: "var(--radius-md)",
-                            fontSize: "1.1rem",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "8px",
+                            lineHeight: 1,
                           }}
                         >
-                          {/* Show average rating as stars */}
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <span
-                              key={star}
-                              style={{
-                                color:
-                                  averageRating >= star ? "gold" : "#d1d1d1",
-                                fontSize: "1.6rem",
-                                fontWeight: "bold",
-                                lineHeight: 1,
-                              }}
-                            >
-                              ★
-                            </span>
-                          ))}
-                          <span
-                            style={{
-                              fontSize: "0.9rem",
-                              color: "var(--color-text)",
-                            }}
-                          >
-                            ({averageRating.toFixed(1)})
-                          </span>
-                        </div>
-                        <span style={{ color: "var(--color-text-light)" }}>
-                          {ratings.length}{" "}
-                          {ratings.length === 1 ? "rating" : "ratings"}
+                          ★
                         </span>
-                      </div>
-                    </div>
-
-                    {/* External ratings with label */}
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        flexWrap: "wrap",
-                        gap: "var(--spacing-md)",
-                      }}
-                    >
-                      <div
+                      ))}
+                      <span
                         style={{
-                          minWidth: "100px",
-                          fontWeight: "500",
-                          color: "var(--color-text-light)",
+                          fontSize: "0.9rem",
+                          color: "var(--color-text)",
                         }}
                       >
-                        External:
-                      </div>
-                      <ExternalRatings
-                        title={movie.title}
-                        year={movie.releaseYear}
-                        isTV={movie.type === "TV Show"}
-                        compact={true}
-                      />
+                        ({averageRating.toFixed(1)})
+                      </span>
                     </div>
+                    <span style={{ color: "var(--color-text-light)" }}>
+                      {ratings.length}{" "}
+                      {ratings.length === 1 ? "rating" : "ratings"}
+                    </span>
 
-                    {/* Where to Watch with label */}
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "flex-start",
-                        flexWrap: "wrap",
-                        gap: "var(--spacing-md)",
-                      }}
-                    >
-                      <div
-                        style={{
-                          minWidth: "100px",
-                          fontWeight: "500",
-                          color: "var(--color-text-light)",
-                        }}
-                      >
-                        Watch On:
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <WhereToWatch
-                          title={movie.title}
-                          year={movie.releaseYear}
-                          isTV={movie.type === "TV Show"}
-                          compact={true}
-                        />
-                      </div>
-                    </div>
+                    {/* External ratings */}
+                    <ExternalRatings
+                      title={movie.title}
+                      year={movie.releaseYear}
+                      isTV={movie.type === "TV Show"}
+                      compact={true}
+                    />
+
                   </div>
                 </div>
               </div>
 
-              {/* Movie Trailer */}
-              <div style={{ margin: "var(--spacing-md) 0" }}>
+              {/* Movie Trailer - positioned to align bottom with poster */}
+              <div 
+                style={{ 
+                  margin: "0",
+                  marginTop: "auto",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "flex-end",
+                  position: "relative",
+                  top: "30px" /* Adjust this value to fine-tune the alignment */
+                }}
+              >
                 <MovieTrailer
                   title={movie.title}
                   year={movie.releaseYear}
