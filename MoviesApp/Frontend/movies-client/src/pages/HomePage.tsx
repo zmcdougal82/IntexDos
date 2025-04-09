@@ -252,6 +252,7 @@ const HomePage = () => {
                 textAlign: "center",
               }}
             >
+            <br />
               <p>
                 Sign up or log in to start discovering personalized movie and TV
                 show recommendations tailored just for you!
