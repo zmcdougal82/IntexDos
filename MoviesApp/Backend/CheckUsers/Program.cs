@@ -52,7 +52,7 @@ namespace CheckUsers
                         Console.WriteLine($"User ID: {user.UserId}, Name: {user.Name}, Email: {user.Email}, Role: {user.Role}");
                     }
 
-                    // Find the user with email testie@test.com
+                    // Find the usser with email testie@test.com
                     var testUser = await context.Users.FirstOrDefaultAsync(u => u.Email == "testie@test.com");
                     if (testUser != null)
                     {
