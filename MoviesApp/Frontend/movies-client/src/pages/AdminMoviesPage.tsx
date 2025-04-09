@@ -109,55 +109,69 @@ const AdminMoviesPage: React.FC = () => {
         setLoading(true);
         
         let response;
-        let filteredMovies;
         
-        // If search query exists, use search endpoint
-        if (searchQuery) {
-          response = await movieApi.searchMovies(searchQuery);
-          filteredMovies = response.data;
-        } else {
-          // Otherwise, get all movies
+          // If search query exists, use search endpoint with pagination
+          if (searchQuery) {
+            // Pass pageSize as the limit to ensure we only get the correct number of items
+            response = await movieApi.searchMovies(searchQuery, currentPage, pageSize);
+            
+            // CRITICAL: Force limit the displayed items to pageSize regardless of API response
+            const limitedResults = response.data.slice(0, pageSize);
+            setMovies(limitedResults);
+            
+            // Store the total count from response for pagination
+            setTotalMovies(response.data.length);
+          } 
+        // Separate handling for filters without search query
+        else if (selectedType || selectedGenre || yearFrom !== undefined || yearTo !== undefined) {
+          // For filters without search, we need to get all movies first
           response = await movieApi.getAll(currentPage, pageSize);
-          filteredMovies = response.data;
+          
+          // Start with the response data
+          let filteredMovies = [...response.data];
+          
+          // Apply type filter if selected
+          if (selectedType) {
+            filteredMovies = filteredMovies.filter(movie => movie.type === selectedType);
+          }
+          
+          // Apply genre filter if selected
+          if (selectedGenre) {
+            filteredMovies = filteredMovies.filter(movie => {
+              // Need to cast to 'any' to access dynamic property
+              return (movie as any)[selectedGenre] === 1;
+            });
+          }
+          
+          // Apply year range filters if specified
+          if (yearFrom !== undefined) {
+            filteredMovies = filteredMovies.filter(movie => 
+              movie.releaseYear !== undefined && movie.releaseYear >= yearFrom
+            );
+          }
+          
+          if (yearTo !== undefined) {
+            filteredMovies = filteredMovies.filter(movie => 
+              movie.releaseYear !== undefined && movie.releaseYear <= yearTo
+            );
+          }
+          
+          // Update the movies state
+          setMovies(filteredMovies);
+          
+          // For filtered results, we estimate based on current page data
+          setTotalMovies(filteredMovies.length > 0 ? 
+            currentPage * pageSize + (filteredMovies.length === pageSize ? pageSize : 0) : 
+            filteredMovies.length);
+        } 
+        // No search or filters, just get paged data
+        else {
+          response = await movieApi.getAll(currentPage, pageSize);
+          setMovies(response.data);
+          
+          // For regular pagination (no search/filter), approximate based on current page and page size
+          setTotalMovies(currentPage * pageSize + (response.data.length === pageSize ? pageSize : 0));
         }
-        
-        // Apply type filter if selected
-        if (selectedType) {
-          filteredMovies = filteredMovies.filter(movie => movie.type === selectedType);
-        }
-        
-        // Apply genre filter if selected
-        if (selectedGenre) {
-          filteredMovies = filteredMovies.filter(movie => {
-            // Need to cast to 'any' to access dynamic property
-            return (movie as any)[selectedGenre] === 1;
-          });
-        }
-        
-        // Apply year range filters if specified
-        if (yearFrom !== undefined) {
-          filteredMovies = filteredMovies.filter(movie => 
-            movie.releaseYear !== undefined && movie.releaseYear >= yearFrom
-          );
-        }
-        
-        if (yearTo !== undefined) {
-          filteredMovies = filteredMovies.filter(movie => 
-            movie.releaseYear !== undefined && movie.releaseYear <= yearTo
-          );
-        }
-        
-        setMovies(filteredMovies);
-        
-            // When searching or filtering is active, set total count based on filtered results
-            // This ensures accurate pagination for search results
-            if (searchQuery || selectedType || selectedGenre || yearFrom || yearTo) {
-              // For search/filter results, we have all results at once, so we know the exact count
-              setTotalMovies(filteredMovies.length);
-            } else {
-              // For regular pagination (no search/filter), approximate based on current page and page size
-              setTotalMovies(currentPage * pageSize + (response.data.length === pageSize ? pageSize : 0));
-            }
         
         setError(null);
       } catch (err) {

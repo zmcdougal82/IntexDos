@@ -49,13 +49,14 @@ namespace MoviesApp.API.Controllers
 
         // GET: api/Movies/search?query=...
         [HttpGet("search")]
-        public async Task<ActionResult<IEnumerable<Movie>>> SearchMovies([FromQuery] string query)
+        public async Task<ActionResult<IEnumerable<Movie>>> SearchMovies([FromQuery] string query, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
             if (string.IsNullOrEmpty(query))
             {
                 return await _context.Movies
                     .OrderBy(m => m.ShowId) // Add ordering for consistent results
-                    .Take(20)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
                     .ToListAsync();
             }
 
@@ -63,7 +64,8 @@ namespace MoviesApp.API.Controllers
                 .Where(m => m.Title.Contains(query) || 
                        (m.Description != null && m.Description.Contains(query)))
                 .OrderBy(m => m.ShowId) // Add ordering for consistent results
-                .Take(50)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
         }
 

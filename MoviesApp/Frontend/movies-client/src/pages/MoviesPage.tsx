@@ -20,7 +20,7 @@ const MoviesPage = () => {
         let response;
         
         if (searchQuery) {
-          response = await movieApi.searchMovies(searchQuery);
+          response = await movieApi.searchMovies(searchQuery, page);
         } else if (selectedGenres.length > 0) {
           // Use the multi-genre endpoint when multiple genres are selected
           response = await movieApi.getByMultipleGenres(selectedGenres, page);
