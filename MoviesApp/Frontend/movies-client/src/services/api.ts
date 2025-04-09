@@ -18,6 +18,7 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+  withCredentials: true, // Enables sending cookies with cross-origin requests
 });
 
 // Add a request interceptor to include the JWT token in requests
