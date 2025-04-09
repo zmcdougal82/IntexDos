@@ -59,7 +59,6 @@ const HomePage = () => {
 
       let response;
       if (searchTerm) {
-        // When searching, we don't use pagination in this simple implementation
         return;
       } else if (activeGenres.length > 0) {
         response = await movieApi.getByMultipleGenres(
@@ -80,7 +79,6 @@ const HomePage = () => {
       }
     } catch (err) {
       console.error("Error loading more movies:", err);
-      // Don't show error for pagination issues
     } finally {
       setLoading(false);
     }
@@ -126,12 +124,10 @@ const HomePage = () => {
   };
 
   const handleGenreFilter = async (genre: string) => {
-    // Calculate the new genres state
     const newGenres = activeGenres.includes(genre)
       ? activeGenres.filter((g) => g !== genre)
       : [...activeGenres, genre];
 
-    // Update the state
     setActiveGenres(newGenres);
 
     try {
@@ -193,11 +189,26 @@ const HomePage = () => {
   return (
     <div className="container">
       <div className="mt-4">
-        {/* Conditionally render Register/Login CTA and Company Introduction if user is not logged in */}
         {!user && (
           <>
             {/* Register / Login CTA */}
-            <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '100vh',
+              textAlign: 'center',
+            }}>
+              {/* Replacing HomePagePromo with embedded iframe logic */}
+              <iframe
+                src="/scrolling.html" // Load the image as src instead of using srcDoc
+                width="1900"
+                height="500"
+                style={{ border: 'none', marginTop: '-115px', marginBottom: '20px' }}
+                title="Movies Scrolling Home"
+                scrolling="no" // Disable the native scrollbar
+              />
               <h1
                 style={{
                   fontSize: "2.8rem",
@@ -209,6 +220,9 @@ const HomePage = () => {
               >
                 Welcome to CineNiche!
               </h1>
+
+              
+        
               <p>
                 Sign up or log in to start discovering personalized movie and TV
                 show recommendations tailored just for you!
@@ -528,6 +542,7 @@ const HomePage = () => {
         </div>
       )}
     </div>
+    
   );
 };
 
