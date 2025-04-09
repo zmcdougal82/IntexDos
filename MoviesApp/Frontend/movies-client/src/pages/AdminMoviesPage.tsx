@@ -202,10 +202,6 @@ const AdminMoviesPage: React.FC = () => {
       // Set a default poster URL if none provided
       const defaultPosterUrl = "https://placehold.co/320x480/2c3e50/FFFFFF?text=No+Poster+Available&font=montserrat";
       
-      // Create the movie object from form data, including genre fields
-      // Explicitly create a new object WITHOUT the showId property to avoid sending empty string
-      const { showId, ...movieDataWithoutId } = formData;
-      
       // Create the movie object with required fields and default values
       const movieData = {
         title: formData.title,
