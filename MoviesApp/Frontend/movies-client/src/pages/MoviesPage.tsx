@@ -11,47 +11,81 @@ const MoviesPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const minItemsToDisplay = 12;
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchMovies = async () => {
-      try {
+  const fetchMovies = async (pageNum: number, isInitialLoad = false) => {
+    try {
+      if (isInitialLoad) {
         setLoading(true);
-        let response;
-        
-        if (searchQuery) {
-          response = await movieApi.searchMovies(searchQuery, page);
-        } else if (selectedGenres.length > 0) {
-          // Use the multi-genre endpoint when multiple genres are selected
-          response = await movieApi.getByMultipleGenres(selectedGenres, page);
-        } else {
-          response = await movieApi.getAll(page);
-        }
-        
-        // Filter to only include movies (exclude TV shows)
-        const moviesOnly = response.data.filter(item => item.type === 'Movie');
-        
-        if (page === 1) {
-          setMovies(moviesOnly);
-        } else {
-          setMovies(prev => [...prev, ...moviesOnly]);
-        }
-        
-        setHasMore(moviesOnly.length > 0);
-      } catch (err) {
-        console.error('Error fetching movies:', err);
-        setError('Failed to load movies. Please try again later.');
-      } finally {
+      } else {
+        setIsLoadingMore(true);
+      }
+      
+      let response;
+      
+      if (searchQuery) {
+        response = await movieApi.searchMovies(searchQuery, pageNum);
+      } else if (selectedGenres.length > 0) {
+        // Use the multi-genre endpoint when multiple genres are selected
+        response = await movieApi.getByMultipleGenres(selectedGenres, pageNum);
+      } else {
+        response = await movieApi.getAll(pageNum);
+      }
+      
+      // Filter to only include movies (exclude TV shows)
+      const moviesOnly = response.data.filter(item => item.type === 'Movie');
+      
+      if (pageNum === 1) {
+        setMovies(moviesOnly);
+      } else {
+        setMovies(prev => [...prev, ...moviesOnly]);
+      }
+      
+      // Determine if there are more results to load
+      setHasMore(response.data.length > 0);
+      
+      return moviesOnly;
+    } catch (err) {
+      console.error('Error fetching movies:', err);
+      setError('Failed to load movies. Please try again later.');
+      return [];
+    } finally {
+      if (isInitialLoad) {
         setLoading(false);
+      } else {
+        setIsLoadingMore(false);
+      }
+    }
+  };
+
+  // Initial load of movies
+  useEffect(() => {
+    const loadInitialMovies = async () => {
+      const initialMovies = await fetchMovies(1, true);
+      
+      // If we don't have enough movies after filtering, load more automatically
+      let currentPage = 1;
+      let currentMovies = [...initialMovies];
+      
+      while (currentMovies.length < minItemsToDisplay && hasMore) {
+        currentPage++;
+        const moreMovies = await fetchMovies(currentPage, false);
+        if (moreMovies.length === 0) break; // No more movies available
+        currentMovies = [...currentMovies, ...moreMovies];
+        setPage(currentPage);
       }
     };
 
-    fetchMovies();
-  }, [page, selectedGenres, searchQuery]);
+    loadInitialMovies();
+  }, [selectedGenres, searchQuery]);
 
-  const loadMore = () => {
-    if (!loading && hasMore) {
-      setPage(prev => prev + 1);
+  const loadMore = async () => {
+    if (!loading && !isLoadingMore && hasMore) {
+      const nextPage = page + 1;
+      setPage(nextPage);
+      await fetchMovies(nextPage, false);
     }
   };
 
@@ -62,6 +96,7 @@ const MoviesPage = () => {
         window.innerHeight + document.documentElement.scrollTop >= 
         document.documentElement.offsetHeight - 100 &&
         !loading &&
+        !isLoadingMore &&
         hasMore
       ) {
         loadMore();
@@ -70,7 +105,7 @@ const MoviesPage = () => {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [loading, hasMore]);
+  }, [loading, isLoadingMore, hasMore]);
 
   const handleGenreClick = (genre: string) => {
     setSelectedGenres(prev => {
@@ -232,7 +267,7 @@ const MoviesPage = () => {
           </div>
         )}
         
-        {loading && movies.length > 0 && (
+        {(loading || isLoadingMore) && movies.length > 0 && (
           <div style={{ 
             textAlign: 'center',
             padding: 'var(--spacing-xl)',

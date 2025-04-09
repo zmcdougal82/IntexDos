@@ -11,50 +11,83 @@ const TVShowsPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const minItemsToDisplay = 12;
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchTVShows = async () => {
-      try {
+  const fetchTVShows = async (pageNum: number, isInitialLoad = false) => {
+    try {
+      if (isInitialLoad) {
         setLoading(true);
-        let response;
-        
-        // Determine which API to call based on user's selection
-        if (searchQuery) {
-          response = await movieApi.searchMovies(searchQuery, page);
-        } else if (selectedGenres.length > 0) {
-          // Use the multi-genre endpoint when multiple genres are selected
-          response = await movieApi.getByMultipleGenres(selectedGenres, page);
-        } else {
-          response = await movieApi.getAll(page);
-        }
-        
-        // Filter results to only include TV shows
-        const tvShowsOnly = response.data.filter(item => item.type === 'TV Show');
-        
-        // Update state based on whether this is the first page or a subsequent page
-        if (page === 1) {
-          setTVShows(tvShowsOnly);
-        } else {
-          setTVShows(prev => [...prev, ...tvShowsOnly]);
-        }
-        
-        // Determine if there are more results to load
-        setHasMore(tvShowsOnly.length > 0);
-      } catch (err) {
-        console.error('Error fetching TV shows:', err);
-        setError('Failed to load TV shows. Please try again later.');
-      } finally {
+      } else {
+        setIsLoadingMore(true);
+      }
+      
+      let response;
+      
+      // Determine which API to call based on user's selection
+      if (searchQuery) {
+        response = await movieApi.searchMovies(searchQuery, pageNum);
+      } else if (selectedGenres.length > 0) {
+        // Use the multi-genre endpoint when multiple genres are selected
+        response = await movieApi.getByMultipleGenres(selectedGenres, pageNum);
+      } else {
+        response = await movieApi.getAll(pageNum);
+      }
+      
+      // Filter results to only include TV shows
+      const tvShowsOnly = response.data.filter(item => item.type === 'TV Show');
+      
+      // Update state based on whether this is the first page or a subsequent page
+      if (pageNum === 1) {
+        setTVShows(tvShowsOnly);
+      } else {
+        setTVShows(prev => [...prev, ...tvShowsOnly]);
+      }
+      
+      // Determine if there are more results to load
+      setHasMore(response.data.length > 0);
+      
+      return tvShowsOnly;
+    } catch (err) {
+      console.error('Error fetching TV shows:', err);
+      setError('Failed to load TV shows. Please try again later.');
+      return [];
+    } finally {
+      if (isInitialLoad) {
         setLoading(false);
+      } else {
+        setIsLoadingMore(false);
+      }
+    }
+  };
+
+  // Initial load of TV shows
+  useEffect(() => {
+    const loadInitialTVShows = async () => {
+      const initialShows = await fetchTVShows(1, true);
+      
+      // If we don't have enough shows after filtering, load more automatically
+      let currentPage = 1;
+      let currentShows = [...initialShows];
+      
+      while (currentShows.length < minItemsToDisplay && hasMore) {
+        currentPage++;
+        const moreShows = await fetchTVShows(currentPage, false);
+        if (moreShows.length === 0) break; // No more shows available
+        currentShows = [...currentShows, ...moreShows];
+        setPage(currentPage);
       }
     };
 
-    fetchTVShows();
-  }, [page, selectedGenres, searchQuery]);
+    loadInitialTVShows();
+  }, [selectedGenres, searchQuery]);
 
-  const loadMore = () => {
-    if (!loading && hasMore) {
-      setPage(prev => prev + 1);
+  const loadMore = async () => {
+    if (!loading && !isLoadingMore && hasMore) {
+      const nextPage = page + 1;
+      setPage(nextPage);
+      await fetchTVShows(nextPage, false);
     }
   };
 
@@ -65,6 +98,7 @@ const TVShowsPage = () => {
         window.innerHeight + document.documentElement.scrollTop >= 
         document.documentElement.offsetHeight - 100 &&
         !loading &&
+        !isLoadingMore &&
         hasMore
       ) {
         loadMore();
@@ -73,7 +107,7 @@ const TVShowsPage = () => {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [loading, hasMore]);
+  }, [loading, isLoadingMore, hasMore]);
 
   const handleGenreClick = (genre: string) => {
     setSelectedGenres(prev => {
@@ -236,7 +270,7 @@ const TVShowsPage = () => {
           </div>
         )}
         
-        {loading && tvShows.length > 0 && (
+        {(loading || isLoadingMore) && tvShows.length > 0 && (
           <div style={{ 
             textAlign: 'center',
             padding: 'var(--spacing-xl)',
