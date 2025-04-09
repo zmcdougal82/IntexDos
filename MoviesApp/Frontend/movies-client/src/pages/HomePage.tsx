@@ -188,6 +188,28 @@ const HomePage = () => {
 
   return (
     <div className="container">
+
+      <div className="container" style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
+        <iframe
+          src="/scrolling.html"
+          width="1585"
+          height="200px"
+          title="Movies Scrolling Home"
+          scrolling="no"
+          style={{
+            border: 'none',
+            marginTop: '5px',
+            marginBottom: '20px',
+            height: '55vh',
+          }}
+        />
+      </div>
+
       <div className="mt-4">
         {!user && (
           <>
@@ -197,18 +219,9 @@ const HomePage = () => {
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              height: '100vh',
+              // height: '100vh',
               textAlign: 'center',
             }}>
-              {/* Replacing HomePagePromo with embedded iframe logic */}
-              <iframe
-                src="/scrolling.html" // Load the image as src instead of using srcDoc
-                width="1900"
-                height="500"
-                style={{ border: 'none', marginTop: '-115px', marginBottom: '20px' }}
-                title="Movies Scrolling Home"
-                scrolling="no" // Disable the native scrollbar
-              />
               <h1
                 style={{
                   fontSize: "2.8rem",
@@ -277,6 +290,7 @@ const HomePage = () => {
               color: "var(--color-primary)",
               textAlign: "center",
               marginBottom: "var(--spacing-lg)",
+              marginTop: "50px",
             }}
           >
             About CineNiche
