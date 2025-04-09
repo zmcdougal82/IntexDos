@@ -1288,31 +1288,162 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
                         // If only one result, use it directly
                         const result = response.results[0];
                         
-                        // Update form data based on result type
-                        if ('name' in result) {
-                          // It's a TV show
-                          setFormData({
-                            ...formData,
-                            title: result.name,
-                            type: 'TV Show',
-                            releaseYear: result.first_air_date ? new Date(result.first_air_date).getFullYear() : undefined,
-                            description: result.overview,
-                            posterUrl: result.poster_path ? `${tmdbApi.POSTER_BASE_URL}${result.poster_path}` : undefined,
-                            // Set TV genre
-                            TVDramas: 1
-                          });
-                        } else {
-                          // It's a movie
-                          setFormData({
-                            ...formData,
-                            title: result.title,
-                            type: 'Movie',
-                            releaseYear: result.release_date ? new Date(result.release_date).getFullYear() : undefined,
-                            description: result.overview,
-                            posterUrl: result.poster_path ? `${tmdbApi.POSTER_BASE_URL}${result.poster_path}` : undefined,
-                            // Set movie genre
-                            Dramas: 1
-                          });
+                        try {
+                          // Update form data based on result type
+                          if ('name' in result) {
+                            // It's a TV show - fetch detailed information
+                            const tvDetails = await tmdbApi.getTVShowDetails(result.id);
+                            
+                            // Extract creator(s) as director(s)
+                            let directors = '';
+                            if (tvDetails.created_by && tvDetails.created_by.length > 0) {
+                              directors = tvDetails.created_by.map(creator => creator.name).join(', ');
+                            } else if (tvDetails.credits?.crew) {
+                              // Look for directors or writers in crew
+                              const directorsList = tvDetails.credits.crew
+                                .filter(person => person.job === 'Director' || person.job === 'Writer' || person.department === 'Writing')
+                                .map(person => person.name)
+                                .slice(0, 3); // Take max 3 directors/writers
+                              
+                              if (directorsList.length > 0) {
+                                directors = directorsList.join(', ');
+                              }
+                            }
+                            
+                            // Extract cast (take top 5)
+                            let cast = '';
+                            if (tvDetails.credits?.cast && tvDetails.credits.cast.length > 0) {
+                              cast = tvDetails.credits.cast
+                                .slice(0, 5)
+                                .map(actor => actor.name)
+                                .join(', ');
+                            }
+                            
+                            // Map genres to our format
+                            const genreMapping: {[key: string]: number} = {};
+                            if (tvDetails.genres && tvDetails.genres.length > 0) {
+                              tvDetails.genres.forEach(genre => {
+                                const mappedGenre = genre.name.toLowerCase();
+                                
+                                // Handle common TV genres
+                                if (mappedGenre.includes('drama')) genreMapping.TVDramas = 1;
+                                if (mappedGenre.includes('comedy')) genreMapping.TVComedies = 1;
+                                if (mappedGenre.includes('action')) genreMapping.TVAction = 1;
+                                if (mappedGenre.includes('documentary')) genreMapping.Docuseries = 1;
+                                if (mappedGenre.includes('kids')) genreMapping.KidsTV = 1;
+                                if (mappedGenre.includes('reality')) genreMapping.RealityTV = 1;
+                                if (mappedGenre.includes('talk')) genreMapping.TalkShowsTVComedies = 1;
+                                if (mappedGenre.includes('news')) genreMapping.NatureTV = 1;
+                                if (mappedGenre.includes('crime')) genreMapping.CrimeTVShowsDocuseries = 1;
+                              });
+                            }
+                            
+                            // Set TVDramas as default if no other genres were mapped
+                            if (Object.keys(genreMapping).length === 0) {
+                              genreMapping.TVDramas = 1;
+                            }
+                            
+                            setFormData({
+                              ...formData,
+                              title: tvDetails.name,
+                              type: 'TV Show',
+                              releaseYear: tvDetails.first_air_date ? new Date(tvDetails.first_air_date).getFullYear() : undefined,
+                              description: tvDetails.overview,
+                              posterUrl: tvDetails.poster_path ? `${tmdbApi.POSTER_BASE_URL}${tvDetails.poster_path}` : undefined,
+                              director: directors || '',
+                              cast: cast || '',
+                              ...genreMapping
+                            });
+                          } else {
+                            // It's a movie - fetch detailed information
+                            const movieDetails = await tmdbApi.getMovieDetails(result.id);
+                            
+                            // Extract director(s)
+                            let directors = '';
+                            if (movieDetails.credits?.crew) {
+                              const directorCrew = movieDetails.credits.crew
+                                .filter(person => person.job === 'Director')
+                                .map(person => person.name);
+                              
+                              if (directorCrew.length > 0) {
+                                directors = directorCrew.join(', ');
+                              }
+                            }
+                            
+                            // Extract cast (take top 5)
+                            let cast = '';
+                            if (movieDetails.credits?.cast && movieDetails.credits.cast.length > 0) {
+                              cast = movieDetails.credits.cast
+                                .slice(0, 5)
+                                .map(actor => actor.name)
+                                .join(', ');
+                            }
+                            
+                            // Map genres to our format
+                            const genreMapping: {[key: string]: number} = {};
+                            if (movieDetails.genres && movieDetails.genres.length > 0) {
+                              movieDetails.genres.forEach(genre => {
+                                const mappedGenre = genre.name.toLowerCase();
+                                
+                                // Handle common movie genres
+                                if (mappedGenre.includes('drama')) genreMapping.Dramas = 1;
+                                if (mappedGenre.includes('comedy')) genreMapping.Comedies = 1;
+                                if (mappedGenre.includes('action')) genreMapping.Action = 1;
+                                if (mappedGenre.includes('adventure')) genreMapping.Adventure = 1;
+                                if (mappedGenre.includes('horror')) genreMapping.HorrorMovies = 1;
+                                if (mappedGenre.includes('thriller')) genreMapping.Thrillers = 1;
+                                if (mappedGenre.includes('documentary')) genreMapping.Documentaries = 1;
+                                if (mappedGenre.includes('family')) genreMapping.FamilyMovies = 1;
+                                if (mappedGenre.includes('fantasy')) genreMapping.Fantasy = 1;
+                                if (mappedGenre.includes('musical') || mappedGenre.includes('music')) genreMapping.Musicals = 1;
+                                if (mappedGenre.includes('romance')) genreMapping.DramasRomanticMovies = 1;
+                              });
+                            }
+                            
+                            // Set Dramas as default if no other genres were mapped
+                            if (Object.keys(genreMapping).length === 0) {
+                              genreMapping.Dramas = 1;
+                            }
+                            
+                            setFormData({
+                              ...formData,
+                              title: movieDetails.title,
+                              type: 'Movie',
+                              releaseYear: movieDetails.release_date ? new Date(movieDetails.release_date).getFullYear() : undefined,
+                              description: movieDetails.overview,
+                              posterUrl: movieDetails.poster_path ? `${tmdbApi.POSTER_BASE_URL}${movieDetails.poster_path}` : undefined,
+                              director: directors || '',
+                              cast: cast || '',
+                              ...genreMapping
+                            });
+                          }
+                        } catch (detailsError) {
+                          console.error('Error fetching detailed information:', detailsError);
+                          
+                          // Fallback to basic information if detailed fetch fails
+                          if ('name' in result) {
+                            // It's a TV show - basic info
+                            setFormData({
+                              ...formData,
+                              title: result.name,
+                              type: 'TV Show',
+                              releaseYear: result.first_air_date ? new Date(result.first_air_date).getFullYear() : undefined,
+                              description: result.overview,
+                              posterUrl: result.poster_path ? `${tmdbApi.POSTER_BASE_URL}${result.poster_path}` : undefined,
+                              TVDramas: 1
+                            });
+                          } else {
+                            // It's a movie - basic info
+                            setFormData({
+                              ...formData,
+                              title: result.title,
+                              type: 'Movie',
+                              releaseYear: result.release_date ? new Date(result.release_date).getFullYear() : undefined,
+                              description: result.overview,
+                              posterUrl: result.poster_path ? `${tmdbApi.POSTER_BASE_URL}${result.poster_path}` : undefined,
+                              Dramas: 1
+                            });
+                          }
                         }
                         
                         alert('Movie information auto-populated from TMDB!');
@@ -1516,37 +1647,176 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
                     e.currentTarget.style.transform = 'scale(1)';
                     e.currentTarget.style.boxShadow = '0 2px 5px rgba(0,0,0,0.1)';
                   }}
-                  onClick={() => {
-                    // Populate the form with the selected result data
-                    if ('title' in result) {
-                      // It's a movie
-                      setFormData({
-                        ...formData,
-                        title: result.title,
-                        type: 'Movie',
-                        releaseYear: result.release_date ? new Date(result.release_date).getFullYear() : undefined,
-                        description: result.overview,
-                        posterUrl: result.poster_path ? `${tmdbApi.POSTER_BASE_URL}${result.poster_path}` : undefined,
-                        // Set movie genre (default to Drama if none specified)
-                        Dramas: 1
-                      });
-                    } else {
-                      // It's a TV show
-                      setFormData({
-                        ...formData,
-                        title: result.name,
-                        type: 'TV Show',
-                        releaseYear: result.first_air_date ? new Date(result.first_air_date).getFullYear() : undefined,
-                        description: result.overview,
-                        posterUrl: result.poster_path ? `${tmdbApi.POSTER_BASE_URL}${result.poster_path}` : undefined,
-                        // Set TV genre (default to TVDramas if none specified)
-                        TVDramas: 1
-                      });
-                    }
+                  onClick={async () => {
+                    setLoading(true);
                     
-                    // Close the modal
-                    setShowSearchResultsModal(false);
-                    alert('Movie information populated successfully!');
+                    try {
+                      // Populate the form with the selected result data
+                      if ('title' in result) {
+                        // It's a movie - get detailed information including cast, director, genres
+                        const movieDetails = await tmdbApi.getMovieDetails(result.id);
+                        
+                        // Extract director(s)
+                        let directors = '';
+                        if (movieDetails.credits?.crew) {
+                          const directorCrew = movieDetails.credits.crew
+                            .filter(person => person.job === 'Director')
+                            .map(person => person.name);
+                          
+                          if (directorCrew.length > 0) {
+                            directors = directorCrew.join(', ');
+                          }
+                        }
+                        
+                        // Extract cast (take top 5)
+                        let cast = '';
+                        if (movieDetails.credits?.cast && movieDetails.credits.cast.length > 0) {
+                          cast = movieDetails.credits.cast
+                            .slice(0, 5)
+                            .map(actor => actor.name)
+                            .join(', ');
+                        }
+                        
+                        // Map genres to our format
+                        const genreMapping: {[key: string]: number} = {};
+                        if (movieDetails.genres && movieDetails.genres.length > 0) {
+                          movieDetails.genres.forEach(genre => {
+                            const mappedGenre = genre.name.toLowerCase();
+                            
+                            // Handle common movie genres
+                            if (mappedGenre.includes('drama')) genreMapping.Dramas = 1;
+                            if (mappedGenre.includes('comedy')) genreMapping.Comedies = 1;
+                            if (mappedGenre.includes('action')) genreMapping.Action = 1;
+                            if (mappedGenre.includes('adventure')) genreMapping.Adventure = 1;
+                            if (mappedGenre.includes('horror')) genreMapping.HorrorMovies = 1;
+                            if (mappedGenre.includes('thriller')) genreMapping.Thrillers = 1;
+                            if (mappedGenre.includes('documentary')) genreMapping.Documentaries = 1;
+                            if (mappedGenre.includes('family')) genreMapping.FamilyMovies = 1;
+                            if (mappedGenre.includes('fantasy')) genreMapping.Fantasy = 1;
+                            if (mappedGenre.includes('musical') || mappedGenre.includes('music')) genreMapping.Musicals = 1;
+                            if (mappedGenre.includes('romance')) genreMapping.DramasRomanticMovies = 1;
+                          });
+                        }
+                        
+                        // Set Dramas as default if no other genres were mapped
+                        if (Object.keys(genreMapping).length === 0) {
+                          genreMapping.Dramas = 1;
+                        }
+                        
+                        setFormData({
+                          ...formData,
+                          title: movieDetails.title,
+                          type: 'Movie',
+                          releaseYear: movieDetails.release_date ? new Date(movieDetails.release_date).getFullYear() : undefined,
+                          description: movieDetails.overview,
+                          posterUrl: movieDetails.poster_path ? `${tmdbApi.POSTER_BASE_URL}${movieDetails.poster_path}` : undefined,
+                          director: directors || '',
+                          cast: cast || '',
+                          ...genreMapping
+                        });
+                      } else {
+                        // It's a TV show - get detailed information
+                        const tvDetails = await tmdbApi.getTVShowDetails(result.id);
+                        
+                        // Extract creator(s) as director(s)
+                        let directors = '';
+                        if (tvDetails.created_by && tvDetails.created_by.length > 0) {
+                          directors = tvDetails.created_by.map(creator => creator.name).join(', ');
+                        } else if (tvDetails.credits?.crew) {
+                          // Look for directors or writers in crew
+                          const directorsList = tvDetails.credits.crew
+                            .filter(person => person.job === 'Director' || person.job === 'Writer' || person.department === 'Writing')
+                            .map(person => person.name)
+                            .slice(0, 3); // Take max 3 directors/writers
+                          
+                          if (directorsList.length > 0) {
+                            directors = directorsList.join(', ');
+                          }
+                        }
+                        
+                        // Extract cast (take top 5)
+                        let cast = '';
+                        if (tvDetails.credits?.cast && tvDetails.credits.cast.length > 0) {
+                          cast = tvDetails.credits.cast
+                            .slice(0, 5)
+                            .map(actor => actor.name)
+                            .join(', ');
+                        }
+                        
+                        // Map genres to our format
+                        const genreMapping: {[key: string]: number} = {};
+                        if (tvDetails.genres && tvDetails.genres.length > 0) {
+                          tvDetails.genres.forEach(genre => {
+                            const mappedGenre = genre.name.toLowerCase();
+                            
+                            // Handle common TV genres
+                            if (mappedGenre.includes('drama')) genreMapping.TVDramas = 1;
+                            if (mappedGenre.includes('comedy')) genreMapping.TVComedies = 1;
+                            if (mappedGenre.includes('action')) genreMapping.TVAction = 1;
+                            if (mappedGenre.includes('documentary')) genreMapping.Docuseries = 1;
+                            if (mappedGenre.includes('kids')) genreMapping.KidsTV = 1;
+                            if (mappedGenre.includes('reality')) genreMapping.RealityTV = 1;
+                            if (mappedGenre.includes('talk')) genreMapping.TalkShowsTVComedies = 1;
+                            if (mappedGenre.includes('news')) genreMapping.NatureTV = 1;
+                            if (mappedGenre.includes('crime')) genreMapping.CrimeTVShowsDocuseries = 1;
+                          });
+                        }
+                        
+                        // Set TVDramas as default if no other genres were mapped
+                        if (Object.keys(genreMapping).length === 0) {
+                          genreMapping.TVDramas = 1;
+                        }
+                        
+                        setFormData({
+                          ...formData,
+                          title: tvDetails.name,
+                          type: 'TV Show',
+                          releaseYear: tvDetails.first_air_date ? new Date(tvDetails.first_air_date).getFullYear() : undefined,
+                          description: tvDetails.overview,
+                          posterUrl: tvDetails.poster_path ? `${tmdbApi.POSTER_BASE_URL}${tvDetails.poster_path}` : undefined,
+                          director: directors || '',
+                          cast: cast || '',
+                          ...genreMapping
+                        });
+                      }
+                      
+                      // Close the modal
+                      setShowSearchResultsModal(false);
+                      alert('Movie information populated successfully!');
+                    } catch (error) {
+                      console.error('Error fetching details:', error);
+                      alert('Could not fetch complete details. Basic information has been populated.');
+                      
+                      // Fallback to basic information
+                      if ('title' in result) {
+                        setFormData({
+                          ...formData,
+                          title: result.title,
+                          type: 'Movie',
+                          releaseYear: result.release_date ? new Date(result.release_date).getFullYear() : undefined,
+                          description: result.overview,
+                          posterUrl: result.poster_path ? `${tmdbApi.POSTER_BASE_URL}${result.poster_path}` : undefined,
+                          // Set movie genre (default to Drama if none specified)
+                          Dramas: 1
+                        });
+                      } else {
+                        setFormData({
+                          ...formData,
+                          title: result.name,
+                          type: 'TV Show',
+                          releaseYear: result.first_air_date ? new Date(result.first_air_date).getFullYear() : undefined,
+                          description: result.overview,
+                          posterUrl: result.poster_path ? `${tmdbApi.POSTER_BASE_URL}${result.poster_path}` : undefined,
+                          // Set TV genre (default to TVDramas if none specified)
+                          TVDramas: 1
+                        });
+                      }
+                      
+                      // Close the modal
+                      setShowSearchResultsModal(false);
+                    } finally {
+                      setLoading(false);
+                    }
                   }}>
                     <div style={{position: 'relative', paddingTop: '150%'}}>
                       <img 
