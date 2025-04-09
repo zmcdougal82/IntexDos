@@ -1,0 +1,683 @@
+Movie Record Update Log - 2025-04-09T07:30:27.107Z
+
+[2025-04-09T07:30:27.107Z] Starting movie record update process...
+[2025-04-09T07:30:27.107Z] Creating database backup before making any updates...
+[2025-04-09T07:30:35.366Z] ✓ Backup created successfully at: /Users/zackmcdougal/IntexDos/MoviesApp/Frontend/movies-client/backups/movies-backup-2025-04-09T07-30-27.105Z.json
+[2025-04-09T07:30:35.366Z] If anything goes wrong, you can restore from this backup using:
+[2025-04-09T07:30:35.367Z] node backup-and-restore.js restore movies-backup-2025-04-09T07-30-27.105Z.json
+[2025-04-09T07:30:35.367Z] 
+[2025-04-09T07:30:35.367Z] Fetching movies page 1...
+[2025-04-09T07:30:35.443Z] Fetching movies page 2...
+[2025-04-09T07:30:35.525Z] Fetching movies page 3...
+[2025-04-09T07:30:35.601Z] Fetching movies page 4...
+[2025-04-09T07:30:35.674Z] Fetching movies page 5...
+[2025-04-09T07:30:35.757Z] Fetching movies page 6...
+[2025-04-09T07:30:35.835Z] Fetching movies page 7...
+[2025-04-09T07:30:35.911Z] Fetching movies page 8...
+[2025-04-09T07:30:35.978Z] Fetching movies page 9...
+[2025-04-09T07:30:36.078Z] Fetching movies page 10...
+[2025-04-09T07:30:36.146Z] Fetching movies page 11...
+[2025-04-09T07:30:36.217Z] Fetching movies page 12...
+[2025-04-09T07:30:36.301Z] Fetching movies page 13...
+[2025-04-09T07:30:36.379Z] Fetching movies page 14...
+[2025-04-09T07:30:36.466Z] Fetching movies page 15...
+[2025-04-09T07:30:36.537Z] Fetching movies page 16...
+[2025-04-09T07:30:36.621Z] Fetching movies page 17...
+[2025-04-09T07:30:36.701Z] Fetching movies page 18...
+[2025-04-09T07:30:36.786Z] Fetching movies page 19...
+[2025-04-09T07:30:36.858Z] Fetching movies page 20...
+[2025-04-09T07:30:36.946Z] Fetching movies page 21...
+[2025-04-09T07:30:37.027Z] Fetching movies page 22...
+[2025-04-09T07:30:37.113Z] Fetching movies page 23...
+[2025-04-09T07:30:37.210Z] Fetching movies page 24...
+[2025-04-09T07:30:37.280Z] Fetching movies page 25...
+[2025-04-09T07:30:37.359Z] Fetching movies page 26...
+[2025-04-09T07:30:37.454Z] Fetching movies page 27...
+[2025-04-09T07:30:37.535Z] Fetching movies page 28...
+[2025-04-09T07:30:37.628Z] Fetching movies page 29...
+[2025-04-09T07:30:37.697Z] Fetching movies page 30...
+[2025-04-09T07:30:37.780Z] Fetching movies page 31...
+[2025-04-09T07:30:37.872Z] Fetching movies page 32...
+[2025-04-09T07:30:37.949Z] Fetching movies page 33...
+[2025-04-09T07:30:38.024Z] Fetching movies page 34...
+[2025-04-09T07:30:38.099Z] Fetching movies page 35...
+[2025-04-09T07:30:38.189Z] Fetching movies page 36...
+[2025-04-09T07:30:38.266Z] Fetching movies page 37...
+[2025-04-09T07:30:38.339Z] Fetching movies page 38...
+[2025-04-09T07:30:38.422Z] Fetching movies page 39...
+[2025-04-09T07:30:38.504Z] Fetching movies page 40...
+[2025-04-09T07:30:38.580Z] Fetching movies page 41...
+[2025-04-09T07:30:38.671Z] Fetching movies page 42...
+[2025-04-09T07:30:38.751Z] Fetching movies page 43...
+[2025-04-09T07:30:38.823Z] Fetching movies page 44...
+[2025-04-09T07:30:38.894Z] Fetching movies page 45...
+[2025-04-09T07:30:38.979Z] Fetching movies page 46...
+[2025-04-09T07:30:39.065Z] Fetching movies page 47...
+[2025-04-09T07:30:39.161Z] Fetching movies page 48...
+[2025-04-09T07:30:39.225Z] Fetching movies page 49...
+[2025-04-09T07:30:39.299Z] Fetching movies page 50...
+[2025-04-09T07:30:39.378Z] Fetching movies page 51...
+[2025-04-09T07:30:39.458Z] Fetching movies page 52...
+[2025-04-09T07:30:39.587Z] Fetching movies page 53...
+[2025-04-09T07:30:39.658Z] Fetching movies page 54...
+[2025-04-09T07:30:39.753Z] Fetching movies page 55...
+[2025-04-09T07:30:39.836Z] Fetching movies page 56...
+[2025-04-09T07:30:39.931Z] Fetching movies page 57...
+[2025-04-09T07:30:40.020Z] Fetching movies page 58...
+[2025-04-09T07:30:40.124Z] Fetching movies page 59...
+[2025-04-09T07:30:40.198Z] Fetching movies page 60...
+[2025-04-09T07:30:40.299Z] Fetching movies page 61...
+[2025-04-09T07:30:40.384Z] Fetching movies page 62...
+[2025-04-09T07:30:40.467Z] Fetching movies page 63...
+[2025-04-09T07:30:40.595Z] Fetching movies page 64...
+[2025-04-09T07:30:40.685Z] Fetching movies page 65...
+[2025-04-09T07:30:40.832Z] Fetching movies page 66...
+[2025-04-09T07:30:40.923Z] Fetching movies page 67...
+[2025-04-09T07:30:41.008Z] Fetching movies page 68...
+[2025-04-09T07:30:41.136Z] Fetching movies page 69...
+[2025-04-09T07:30:41.244Z] Fetching movies page 70...
+[2025-04-09T07:30:41.345Z] Fetching movies page 71...
+[2025-04-09T07:30:41.464Z] Fetching movies page 72...
+[2025-04-09T07:30:41.617Z] Fetching movies page 73...
+[2025-04-09T07:30:41.717Z] Fetching movies page 74...
+[2025-04-09T07:30:41.818Z] Fetching movies page 75...
+[2025-04-09T07:30:41.926Z] Fetching movies page 76...
+[2025-04-09T07:30:42.041Z] Fetching movies page 77...
+[2025-04-09T07:30:42.151Z] Fetching movies page 78...
+[2025-04-09T07:30:42.262Z] Fetching movies page 79...
+[2025-04-09T07:30:42.380Z] Fetching movies page 80...
+[2025-04-09T07:30:42.503Z] Fetching movies page 81...
+[2025-04-09T07:30:42.645Z] Fetching movies page 82...
+[2025-04-09T07:30:42.770Z] Fetching movies page 83...
+[2025-04-09T07:30:42.893Z] Fetching movies page 84...
+[2025-04-09T07:30:43.025Z] Fetching movies page 85...
+[2025-04-09T07:30:43.137Z] Fetching movies page 86...
+[2025-04-09T07:30:43.256Z] Successfully fetched 8514 movies in total.
+[2025-04-09T07:30:43.256Z] Found 8514 total movies to check.
+[2025-04-09T07:30:43.257Z] [1/8514] Processing: Dick Johnson Is Dead (ID: s1)
+[2025-04-09T07:30:43.257Z] Skipping Dick Johnson Is Dead - all fields are already populated.
+[2025-04-09T07:30:43.257Z] [2/8514] Processing: The Starling (ID: s10)
+[2025-04-09T07:30:43.257Z] Skipping The Starling - all fields are already populated.
+[2025-04-09T07:30:43.257Z] [3/8514] Processing: On the Verge (ID: s100)
+[2025-04-09T07:30:45.800Z] Updating On the Verge with fields: director
+[2025-04-09T07:30:45.987Z] Successfully updated movie: On the Verge (ID: s100)
+[2025-04-09T07:30:45.988Z] [4/8514] Processing: Stowaway (ID: s1000)
+[2025-04-09T07:30:45.988Z] Skipping Stowaway - all fields are already populated.
+[2025-04-09T07:30:45.989Z] [5/8514] Processing: Wild Dog (ID: s1001)
+[2025-04-09T07:30:48.290Z] Updating Wild Dog with fields: country
+[2025-04-09T07:30:48.375Z] Successfully updated movie: Wild Dog (ID: s1001)
+[2025-04-09T07:30:48.375Z] [6/8514] Processing: Oloibiri (ID: s1002)
+[2025-04-09T07:30:48.375Z] Skipping Oloibiri - all fields are already populated.
+[2025-04-09T07:30:48.375Z] [7/8514] Processing: Tell Me When (ID: s1003)
+[2025-04-09T07:30:48.376Z] Skipping Tell Me When - all fields are already populated.
+[2025-04-09T07:30:48.376Z] [8/8514] Processing: Zero (ID: s1004)
+[2025-04-09T07:30:50.590Z] No fields were updated for Zero
+[2025-04-09T07:30:50.591Z] [9/8514] Processing: Izzy's Koala World (ID: s1005)
+[2025-04-09T07:30:52.872Z] Updating Izzy's Koala World with fields: director
+[2025-04-09T07:30:52.981Z] Successfully updated movie: Izzy's Koala World (ID: s1005)
+[2025-04-09T07:30:52.981Z] [10/8514] Processing: Keymon and Nani in Space Adventure (ID: s1006)
+[2025-04-09T07:30:55.243Z] Updating Keymon and Nani in Space Adventure with fields: director, cast, country
+[2025-04-09T07:30:55.331Z] Successfully updated movie: Keymon and Nani in Space Adventure (ID: s1006)
+[2025-04-09T07:30:55.332Z] [11/8514] Processing: Motu Patlu Dino Invasion (ID: s1007)
+[2025-04-09T07:30:57.704Z] Updating Motu Patlu Dino Invasion with fields: country
+[2025-04-09T07:30:57.775Z] Successfully updated movie: Motu Patlu Dino Invasion (ID: s1007)
+[2025-04-09T07:30:57.776Z] [12/8514] Processing: Motu Patlu in Octupus World (ID: s1008)
+[2025-04-09T07:30:58.925Z] No TMDB results found for "Motu Patlu in Octupus World". Skipping.
+[2025-04-09T07:30:58.926Z] [13/8514] Processing: Motu Patlu VS Robo Kids (ID: s1009)
+[2025-04-09T07:31:00.084Z] No TMDB results found for "Motu Patlu VS Robo Kids". Skipping.
+[2025-04-09T07:31:00.085Z] [14/8514] Processing: Tobot Galaxy Detectives (ID: s101)
+[2025-04-09T07:31:02.376Z] Updating Tobot Galaxy Detectives with fields: country
+[2025-04-09T07:31:02.658Z] Successfully updated movie: Tobot Galaxy Detectives (ID: s101)
+[2025-04-09T07:31:02.659Z] [15/8514] Processing: Rudra: Secret of the Black Moon (ID: s1010)
+[2025-04-09T07:31:04.856Z] No fields were updated for Rudra: Secret of the Black Moon
+[2025-04-09T07:31:04.856Z] [16/8514] Processing: Rudra: The Rise of King Pharaoh (ID: s1011)
+[2025-04-09T07:31:07.067Z] No fields were updated for Rudra: The Rise of King Pharaoh
+[2025-04-09T07:31:07.067Z] [17/8514] Processing: Free to Play (ID: s1012)
+[2025-04-09T07:31:07.067Z] Skipping Free to Play - all fields are already populated.
+[2025-04-09T07:31:07.068Z] [18/8514] Processing: Luis Miguel - The Series (ID: s1013)
+[2025-04-09T07:31:09.338Z] Updating Luis Miguel - The Series with fields: director
+[2025-04-09T07:31:09.641Z] Successfully updated movie: Luis Miguel - The Series (ID: s1013)
+[2025-04-09T07:31:09.641Z] [19/8514] Processing: Miss Sloane (ID: s1014)
+[2025-04-09T07:31:09.642Z] Skipping Miss Sloane - all fields are already populated.
+[2025-04-09T07:31:09.642Z] [20/8514] Processing: PJ Masks (ID: s1015)
+[2025-04-09T07:31:12.141Z] Updating PJ Masks with fields: director
+[2025-04-09T07:31:12.228Z] Successfully updated movie: PJ Masks (ID: s1015)
+[2025-04-09T07:31:12.229Z] [21/8514] Processing: American Me (ID: s1016)
+[2025-04-09T07:31:12.229Z] Skipping American Me - all fields are already populated.
+[2025-04-09T07:31:12.229Z] [22/8514] Processing: Delhi Belly (ID: s1017)
+[2025-04-09T07:31:12.229Z] Skipping Delhi Belly - all fields are already populated.
+[2025-04-09T07:31:12.229Z] [23/8514] Processing: Dhobi Ghat (Mumbai Diaries) (ID: s1018)
+[2025-04-09T07:31:12.229Z] Skipping Dhobi Ghat (Mumbai Diaries) - all fields are already populated.
+[2025-04-09T07:31:12.229Z] [24/8514] Processing: Jaane Tu... Ya Jaane Na (ID: s1019)
+[2025-04-09T07:31:12.229Z] Skipping Jaane Tu... Ya Jaane Na - all fields are already populated.
+[2025-04-09T07:31:12.229Z] [25/8514] Processing: Untold: Breaking Point (ID: s102)
+[2025-04-09T07:31:12.230Z] Skipping Untold: Breaking Point - all fields are already populated.
+[2025-04-09T07:31:12.230Z] [26/8514] Processing: Lagaan (ID: s1020)
+[2025-04-09T07:31:12.230Z] Skipping Lagaan - all fields are already populated.
+[2025-04-09T07:31:12.230Z] [27/8514] Processing: Madness in the Desert (ID: s1021)
+[2025-04-09T07:31:12.230Z] Skipping Madness in the Desert - all fields are already populated.
+[2025-04-09T07:31:12.230Z] [28/8514] Processing: Peepli Live (ID: s1022)
+[2025-04-09T07:31:12.230Z] Skipping Peepli Live - all fields are already populated.
+[2025-04-09T07:31:12.230Z] [29/8514] Processing: Taare Zameen Par (ID: s1023)
+[2025-04-09T07:31:12.230Z] Skipping Taare Zameen Par - all fields are already populated.
+[2025-04-09T07:31:12.230Z] [30/8514] Processing: Ajeeb Daastaans (ID: s1024)
+[2025-04-09T07:31:12.230Z] Skipping Ajeeb Daastaans - all fields are already populated.
+[2025-04-09T07:31:12.231Z] [31/8514] Processing: Arlo the Alligator Boy (ID: s1025)
+[2025-04-09T07:31:12.231Z] Skipping Arlo the Alligator Boy - all fields are already populated.
+[2025-04-09T07:31:12.231Z] [32/8514] Processing: Bakugan: Geogan Rising (ID: s1026)
+[2025-04-09T07:31:14.414Z] Updating Bakugan: Geogan Rising with fields: director, country
+[2025-04-09T07:31:14.510Z] Successfully updated movie: Bakugan: Geogan Rising (ID: s1026)
+[2025-04-09T07:31:14.510Z] [33/8514] Processing: Barbie & Chelsea: The Lost Birthday (ID: s1027)
+[2025-04-09T07:31:14.511Z] Skipping Barbie & Chelsea: The Lost Birthday - all fields are already populated.
+[2025-04-09T07:31:14.511Z] [34/8514] Processing: Crimson Peak (ID: s1028)
+[2025-04-09T07:31:14.511Z] Skipping Crimson Peak - all fields are already populated.
+[2025-04-09T07:31:14.511Z] [35/8514] Processing: Dad Stop Embarrassing Me - The Afterparty (ID: s1029)
+[2025-04-09T07:31:16.788Z] No fields were updated for Dad Stop Embarrassing Me - The Afterparty
+[2025-04-09T07:31:16.788Z] [36/8514] Processing: Countdown: Inspiration4 Mission to Space (ID: s103)
+[2025-04-09T07:31:19.073Z] Updating Countdown: Inspiration4 Mission to Space with fields: country
+[2025-04-09T07:31:19.143Z] Successfully updated movie: Countdown: Inspiration4 Mission to Space (ID: s103)
+[2025-04-09T07:31:19.143Z] [37/8514] Processing: Doctor Bello (ID: s1030)
+[2025-04-09T07:31:19.144Z] Skipping Doctor Bello - all fields are already populated.
+[2025-04-09T07:31:19.144Z] [38/8514] Processing: Four Sisters Before the Wedding (ID: s1031)
+[2025-04-09T07:31:19.144Z] Skipping Four Sisters Before the Wedding - all fields are already populated.
+[2025-04-09T07:31:19.144Z] [39/8514] Processing: Into the Beat (ID: s1032)
+[2025-04-09T07:31:19.144Z] Skipping Into the Beat - all fields are already populated.
+[2025-04-09T07:31:19.144Z] [40/8514] Processing: Love Naggers (ID: s1033)
+[2025-04-09T07:31:21.469Z] Updating Love Naggers with fields: director
+[2025-04-09T07:31:21.562Z] Successfully updated movie: Love Naggers (ID: s1033)
+[2025-04-09T07:31:21.562Z] [41/8514] Processing: Rush (ID: s1034)
+[2025-04-09T07:31:21.562Z] Skipping Rush - all fields are already populated.
+[2025-04-09T07:31:21.562Z] [42/8514] Processing: Synchronic (ID: s1035)
+[2025-04-09T07:31:21.562Z] Skipping Synchronic - all fields are already populated.
+[2025-04-09T07:31:21.562Z] [43/8514] Processing: The Zookeeper's Wife (ID: s1036)
+[2025-04-09T07:31:21.562Z] Skipping The Zookeeper's Wife - all fields are already populated.
+[2025-04-09T07:31:21.563Z] [44/8514] Processing: Time Trap (ID: s1037)
+[2025-04-09T07:31:21.563Z] Skipping Time Trap - all fields are already populated.
+[2025-04-09T07:31:21.563Z] [45/8514] Processing: Tuesdays & Fridays (ID: s1038)
+[2025-04-09T07:31:21.563Z] Skipping Tuesdays & Fridays - all fields are already populated.
+[2025-04-09T07:31:21.563Z] [46/8514] Processing: Dancing Angels (ID: s1039)
+[2025-04-09T07:31:23.758Z] Updating Dancing Angels with fields: cast, country
+[2025-04-09T07:31:23.850Z] Successfully updated movie: Dancing Angels (ID: s1039)
+[2025-04-09T07:31:23.851Z] [47/8514] Processing: Shadow Parties (ID: s104)
+[2025-04-09T07:31:26.137Z] No fields were updated for Shadow Parties
+[2025-04-09T07:31:26.138Z] [48/8514] Processing: Dark City Beneath the Beat (ID: s1040)
+[2025-04-09T07:31:26.139Z] Skipping Dark City Beneath the Beat - all fields are already populated.
+[2025-04-09T07:31:26.139Z] [49/8514] Processing: Durarara!! (ID: s1041)
+[2025-04-09T07:31:28.394Z] Updating Durarara!! with fields: director
+[2025-04-09T07:31:28.466Z] Successfully updated movie: Durarara!! (ID: s1041)
+[2025-04-09T07:31:28.466Z] [50/8514] Processing: GANTZ:O (ID: s1042)
+[2025-04-09T07:31:28.467Z] Skipping GANTZ:O - all fields are already populated.
+[2025-04-09T07:31:28.467Z] [51/8514] Processing: Garth Brooks: The Road I’m On (ID: s1043)
+[2025-04-09T07:31:28.467Z] Skipping Garth Brooks: The Road I’m On - all fields are already populated.
+[2025-04-09T07:31:28.467Z] [52/8514] Processing: Gilmore Girls (ID: s1044)
+[2025-04-09T07:31:30.720Z] Updating Gilmore Girls with fields: director
+[2025-04-09T07:31:30.816Z] Successfully updated movie: Gilmore Girls (ID: s1044)
+[2025-04-09T07:31:30.816Z] [53/8514] Processing: High-Rise Invasion (ID: s1045)
+[2025-04-09T07:31:33.016Z] Updating High-Rise Invasion with fields: director
+[2025-04-09T07:31:33.094Z] Successfully updated movie: High-Rise Invasion (ID: s1045)
+[2025-04-09T07:31:33.094Z] [54/8514] Processing: Next in Fashion (ID: s1046)
+[2025-04-09T07:31:35.357Z] No fields were updated for Next in Fashion
+[2025-04-09T07:31:35.357Z] [55/8514] Processing: Only Mine (ID: s1047)
+[2025-04-09T07:31:35.357Z] Skipping Only Mine - all fields are already populated.
+[2025-04-09T07:31:35.357Z] [56/8514] Processing: Peasants Rebellion (ID: s1048)
+[2025-04-09T07:31:36.517Z] No TMDB results found for "Peasants Rebellion". Skipping.
+[2025-04-09T07:31:36.518Z] [57/8514] Processing: Power Players (ID: s1049)
+[2025-04-09T07:31:38.780Z] Updating Power Players with fields: director
+[2025-04-09T07:31:39.172Z] Successfully updated movie: Power Players (ID: s1049)
+[2025-04-09T07:31:39.173Z] [58/8514] Processing: Tayo the Little Bus (ID: s105)
+[2025-04-09T07:31:41.473Z] No fields were updated for Tayo the Little Bus
+[2025-04-09T07:31:41.474Z] [59/8514] Processing: Ricky Zoom (ID: s1050)
+[2025-04-09T07:31:43.768Z] No fields were updated for Ricky Zoom
+[2025-04-09T07:31:43.769Z] [60/8514] Processing: Ride or Die (ID: s1051)
+[2025-04-09T07:31:43.770Z] Skipping Ride or Die - all fields are already populated.
+[2025-04-09T07:31:43.771Z] [61/8514] Processing: Sonic X (ID: s1052)
+[2025-04-09T07:31:46.038Z] No fields were updated for Sonic X
+[2025-04-09T07:31:46.039Z] [62/8514] Processing: The Master (ID: s1053)
+[2025-04-09T07:31:46.040Z] Skipping The Master - all fields are already populated.
+[2025-04-09T07:31:46.041Z] [63/8514] Processing: Time Is Illmatic (ID: s1054)
+[2025-04-09T07:31:46.041Z] Skipping Time Is Illmatic - all fields are already populated.
+[2025-04-09T07:31:46.042Z] [64/8514] Processing: Wave of Cinema: One Day We'll Talk About Today (ID: s1055)
+[2025-04-09T07:31:47.101Z] No TMDB results found for "Wave of Cinema: One Day We'll Talk About Today". Skipping.
+[2025-04-09T07:31:47.102Z] [65/8514] Processing: Zoot Suit (ID: s1056)
+[2025-04-09T07:31:47.103Z] Skipping Zoot Suit - all fields are already populated.
+[2025-04-09T07:31:47.103Z] [66/8514] Processing: Ajaibnya Cinta (ID: s1057)
+[2025-04-09T07:31:48.234Z] No TMDB results found for "Ajaibnya Cinta". Skipping.
+[2025-04-09T07:31:48.234Z] [67/8514] Processing: Dad Stop Embarrassing Me! (ID: s1058)
+[2025-04-09T07:31:50.511Z] Updating Dad Stop Embarrassing Me! with fields: director
+[2025-04-09T07:31:50.781Z] Successfully updated movie: Dad Stop Embarrassing Me! (ID: s1058)
+[2025-04-09T07:31:50.781Z] [68/8514] Processing: Fate: The Winx Saga (ID: s1059)
+[2025-04-09T07:31:53.040Z] Updating Fate: The Winx Saga with fields: director
+[2025-04-09T07:31:53.120Z] Successfully updated movie: Fate: The Winx Saga (ID: s1059)
+[2025-04-09T07:31:53.121Z] [69/8514] Processing: Angamaly Diaries (ID: s106)
+[2025-04-09T07:31:53.121Z] Skipping Angamaly Diaries - all fields are already populated.
+[2025-04-09T07:31:53.121Z] [70/8514] Processing: House of Cards (ID: s1060)
+[2025-04-09T07:31:55.392Z] Updating House of Cards with fields: director
+[2025-04-09T07:31:55.465Z] Successfully updated movie: House of Cards (ID: s1060)
+[2025-04-09T07:31:55.465Z] [71/8514] Processing: Indian Matchmaking (ID: s1061)
+[2025-04-09T07:31:57.729Z] Updating Indian Matchmaking with fields: director
+[2025-04-09T07:31:57.795Z] Successfully updated movie: Indian Matchmaking (ID: s1061)
+[2025-04-09T07:31:57.795Z] [72/8514] Processing: Law School (ID: s1063)
+[2025-04-09T07:32:00.075Z] No fields were updated for Law School
+[2025-04-09T07:32:00.076Z] [73/8514] Processing: Signal (ID: s1065)
+[2025-04-09T07:32:00.077Z] Skipping Signal - all fields are already populated.
+[2025-04-09T07:32:00.077Z] [74/8514] Processing: Slasher (ID: s1066)
+[2025-04-09T07:32:02.377Z] Updating Slasher with fields: director
+[2025-04-09T07:32:02.468Z] Successfully updated movie: Slasher (ID: s1066)
+[2025-04-09T07:32:02.468Z] [75/8514] Processing: The Soul (ID: s1067)
+[2025-04-09T07:32:02.469Z] Skipping The Soul - all fields are already populated.
+[2025-04-09T07:32:02.469Z] [76/8514] Processing: The Underclass (ID: s1068)
+[2025-04-09T07:32:02.469Z] Skipping The Underclass - all fields are already populated.
+[2025-04-09T07:32:02.469Z] [77/8514] Processing: Unnatural Selection (ID: s1069)
+[2025-04-09T07:32:04.757Z] Updating Unnatural Selection with fields: director
+[2025-04-09T07:32:04.866Z] Successfully updated movie: Unnatural Selection (ID: s1069)
+[2025-04-09T07:32:04.867Z] [78/8514] Processing: Bunk'd (ID: s107)
+[2025-04-09T07:32:07.052Z] Updating Bunk'd with fields: director
+[2025-04-09T07:32:07.135Z] Successfully updated movie: Bunk'd (ID: s107)
+[2025-04-09T07:32:07.136Z] [79/8514] Processing: Uppena (ID: s1070)
+[2025-04-09T07:32:07.137Z] Skipping Uppena - all fields are already populated.
+[2025-04-09T07:32:07.137Z] [80/8514] Processing: Why Did You Kill Me? (ID: s1071)
+[2025-04-09T07:32:07.137Z] Skipping Why Did You Kill Me? - all fields are already populated.
+[2025-04-09T07:32:07.137Z] [81/8514] Processing: Motu Patlu in Hong Kong: Kung Fu Kings 3 (ID: s1072)
+[2025-04-09T07:32:09.372Z] No fields were updated for Motu Patlu in Hong Kong: Kung Fu Kings 3
+[2025-04-09T07:32:09.372Z] [82/8514] Processing: Motu Patlu in the City of Gold (ID: s1073)
+[2025-04-09T07:32:11.703Z] No fields were updated for Motu Patlu in the City of Gold
+[2025-04-09T07:32:11.703Z] [83/8514] Processing: Motu Patlu Kung Fu Kings 4 The Challenge of Kung Fu Brothers (ID: s1074)
+[2025-04-09T07:32:13.973Z] No fields were updated for Motu Patlu Kung Fu Kings 4 The Challenge of Kung Fu Brothers
+[2025-04-09T07:32:13.974Z] [84/8514] Processing: Motu Patlu the Superheroes – Super Villains from Mars (ID: s1075)
+[2025-04-09T07:32:16.271Z] No fields were updated for Motu Patlu the Superheroes – Super Villains from Mars
+[2025-04-09T07:32:16.271Z] [85/8514] Processing: My Love: Six Stories of True Love (ID: s1076)
+[2025-04-09T07:32:16.271Z] Skipping My Love: Six Stories of True Love - all fields are already populated.
+[2025-04-09T07:32:16.271Z] [86/8514] Processing: Shiva VS Autobots (ID: s1077)
+[2025-04-09T07:32:18.566Z] No fields were updated for Shiva VS Autobots
+[2025-04-09T07:32:18.567Z] [87/8514] Processing: Shiva: Journey to Plunotaria (ID: s1078)
+[2025-04-09T07:32:20.754Z] Updating Shiva: Journey to Plunotaria with fields: country
+[2025-04-09T07:32:21.349Z] Successfully updated movie: Shiva: Journey to Plunotaria (ID: s1078)
+[2025-04-09T07:32:21.350Z] [88/8514] Processing: Shiva: The Secret World Of Vedas City (ID: s1079)
+[2025-04-09T07:32:23.611Z] No fields were updated for Shiva: The Secret World Of Vedas City
+[2025-04-09T07:32:23.613Z] [89/8514] Processing: A Champion Heart (ID: s108)
+[2025-04-09T07:32:23.613Z] Skipping A Champion Heart - all fields are already populated.
+[2025-04-09T07:32:23.614Z] [90/8514] Processing: The Baker and the Beauty (ID: s1080)
+[2025-04-09T07:32:25.914Z] Updating The Baker and the Beauty with fields: director
+[2025-04-09T07:32:26.018Z] Successfully updated movie: The Baker and the Beauty (ID: s1080)
+[2025-04-09T07:32:26.018Z] [91/8514] Processing: New Gods: Nezha Reborn (ID: s1081)
+[2025-04-09T07:32:26.018Z] Skipping New Gods: Nezha Reborn - all fields are already populated.
+[2025-04-09T07:32:26.018Z] [92/8514] Processing: Nicky Ricky Dicky & Dawn (ID: s1082)
+[2025-04-09T07:32:28.277Z] Updating Nicky Ricky Dicky & Dawn with fields: director
+[2025-04-09T07:32:28.351Z] Successfully updated movie: Nicky Ricky Dicky & Dawn (ID: s1082)
+[2025-04-09T07:32:28.352Z] [93/8514] Processing: Don't be the First one (ID: s1083)
+[2025-04-09T07:32:30.654Z] Updating Don't be the First one with fields: director, country
+[2025-04-09T07:32:30.733Z] Successfully updated movie: Don't be the First one (ID: s1083)
+[2025-04-09T07:32:30.733Z] [94/8514] Processing: The Stand-In (ID: s1084)
+[2025-04-09T07:32:30.733Z] Skipping The Stand-In - all fields are already populated.
+[2025-04-09T07:32:30.734Z] [95/8514] Processing: Heaven Official's Blessing (ID: s1085)
+[2025-04-09T07:32:32.944Z] Updating Heaven Official's Blessing with fields: director
+[2025-04-09T07:32:33.012Z] Successfully updated movie: Heaven Official's Blessing (ID: s1085)
+[2025-04-09T07:32:33.013Z] [96/8514] Processing: Night in Paradise (ID: s1086)
+[2025-04-09T07:32:33.013Z] Skipping Night in Paradise - all fields are already populated.
+[2025-04-09T07:32:33.013Z] [97/8514] Processing: Ojukokoro: Greed (ID: s1087)
+[2025-04-09T07:32:33.013Z] Skipping Ojukokoro: Greed - all fields are already populated.
+[2025-04-09T07:32:33.013Z] [98/8514] Processing: Roohi (ID: s1088)
+[2025-04-09T07:32:33.014Z] Skipping Roohi - all fields are already populated.
+[2025-04-09T07:32:33.014Z] [99/8514] Processing: Thunder Force (ID: s1089)
+[2025-04-09T07:32:33.014Z] Skipping Thunder Force - all fields are already populated.
+[2025-04-09T07:32:33.014Z] [100/8514] Processing: Dive Club (ID: s109)
+[2025-04-09T07:32:35.327Z] Updating Dive Club with fields: director
+[2025-04-09T07:32:35.420Z] Successfully updated movie: Dive Club (ID: s109)
+[2025-04-09T07:32:35.421Z] [101/8514] Processing: Two Distant Strangers (ID: s1090)
+[2025-04-09T07:32:35.421Z] Skipping Two Distant Strangers - all fields are already populated.
+[2025-04-09T07:32:35.421Z] [102/8514] Processing: Story of Kale: When Someone's in Love (ID: s1091)
+[2025-04-09T07:32:35.421Z] Skipping Story of Kale: When Someone's in Love - all fields are already populated.
+[2025-04-09T07:32:35.421Z] [103/8514] Processing: The Way of the Househusband (ID: s1092)
+[2025-04-09T07:32:35.421Z] Skipping The Way of the Househusband - all fields are already populated.
+[2025-04-09T07:32:35.422Z] [104/8514] Processing: Dolly Parton: A MusiCares Tribute (ID: s1093)
+[2025-04-09T07:32:37.629Z] Updating Dolly Parton: A MusiCares Tribute with fields: country
+[2025-04-09T07:32:37.702Z] Successfully updated movie: Dolly Parton: A MusiCares Tribute (ID: s1093)
+[2025-04-09T07:32:37.702Z] [105/8514] Processing: The Big Day (ID: s1094)
+[2025-04-09T07:32:37.703Z] Skipping The Big Day - all fields are already populated.
+[2025-04-09T07:32:37.703Z] [106/8514] Processing: The Wedding Coach (ID: s1095)
+[2025-04-09T07:32:39.953Z] Updating The Wedding Coach with fields: country
+[2025-04-09T07:32:40.036Z] Successfully updated movie: The Wedding Coach (ID: s1095)
+[2025-04-09T07:32:40.036Z] [107/8514] Processing: This Is a Robbery: The World's Biggest Art Heist (ID: s1096)
+[2025-04-09T07:32:42.248Z] Updating This Is a Robbery: The World's Biggest Art Heist with fields: director, country
+[2025-04-09T07:32:42.484Z] Successfully updated movie: This Is a Robbery: The World's Biggest Art Heist (ID: s1096)
+[2025-04-09T07:32:42.485Z] [108/8514] Processing: The Last Kids on Earth: Happy Apocalypse to You (ID: s1097)
+[2025-04-09T07:32:44.801Z] Updating The Last Kids on Earth: Happy Apocalypse to You with fields: country
+[2025-04-09T07:32:44.900Z] Successfully updated movie: The Last Kids on Earth: Happy Apocalypse to You (ID: s1097)
+[2025-04-09T07:32:44.900Z] [109/8514] Processing: Coded Bias (ID: s1098)
+[2025-04-09T07:32:44.901Z] Skipping Coded Bias - all fields are already populated.
+[2025-04-09T07:32:44.901Z] [110/8514] Processing: Mandela (ID: s1099)
+[2025-04-09T07:32:44.901Z] Skipping Mandela - all fields are already populated.
+[2025-04-09T07:32:44.901Z] [111/8514] Processing: Vendetta: Truth Lies and The Mafia (ID: s11)
+[2025-04-09T07:32:47.178Z] Updating Vendetta: Truth Lies and The Mafia with fields: director
+[2025-04-09T07:32:47.272Z] Successfully updated movie: Vendetta: Truth Lies and The Mafia (ID: s11)
+[2025-04-09T07:32:47.272Z] [112/8514] Processing: La casa de papel (ID: s110)
+[2025-04-09T07:32:49.554Z] Updating La casa de papel with fields: director
+[2025-04-09T07:32:49.651Z] Successfully updated movie: La casa de papel (ID: s110)
+[2025-04-09T07:32:49.651Z] [113/8514] Processing: The Fisherman's Diary (ID: s1100)
+[2025-04-09T07:32:49.651Z] Skipping The Fisherman's Diary - all fields are already populated.
+[2025-04-09T07:32:49.652Z] [114/8514] Processing: What Lies Below (ID: s1101)
+[2025-04-09T07:32:49.652Z] Skipping What Lies Below - all fields are already populated.
+[2025-04-09T07:32:49.652Z] [115/8514] Processing: Escape from Planet Earth (ID: s1102)
+[2025-04-09T07:32:49.652Z] Skipping Escape from Planet Earth - all fields are already populated.
+[2025-04-09T07:32:49.652Z] [116/8514] Processing: Accepted (ID: s1103)
+[2025-04-09T07:32:49.652Z] Skipping Accepted - all fields are already populated.
+[2025-04-09T07:32:49.652Z] [117/8514] Processing: Air Strike (ID: s1104)
+[2025-04-09T07:32:49.652Z] Skipping Air Strike - all fields are already populated.
+[2025-04-09T07:32:49.652Z] [118/8514] Processing: An American Girl: McKenna Shoots for the Stars (ID: s1105)
+[2025-04-09T07:32:49.652Z] Skipping An American Girl: McKenna Shoots for the Stars - all fields are already populated.
+[2025-04-09T07:32:49.652Z] [119/8514] Processing: Concrete Cowboy (ID: s1106)
+[2025-04-09T07:32:49.652Z] Skipping Concrete Cowboy - all fields are already populated.
+[2025-04-09T07:32:49.652Z] [120/8514] Processing: Cross: Rise of the Villains (ID: s1107)
+[2025-04-09T07:32:49.652Z] Skipping Cross: Rise of the Villains - all fields are already populated.
+[2025-04-09T07:32:49.652Z] [121/8514] Processing: God Calling (ID: s1108)
+[2025-04-09T07:32:49.652Z] Skipping God Calling - all fields are already populated.
+[2025-04-09T07:32:49.652Z] [122/8514] Processing: Irul (ID: s1109)
+[2025-04-09T07:32:49.652Z] Skipping Irul - all fields are already populated.
+[2025-04-09T07:32:49.652Z] [123/8514] Processing: Money Heist: From Tokyo to Berlin (ID: s111)
+[2025-04-09T07:32:52.193Z] Updating Money Heist: From Tokyo to Berlin with fields: country
+[2025-04-09T07:32:52.278Z] Successfully updated movie: Money Heist: From Tokyo to Berlin (ID: s111)
+[2025-04-09T07:32:52.278Z] [124/8514] Processing: Just Say Yes (ID: s1110)
+[2025-04-09T07:32:52.279Z] Skipping Just Say Yes - all fields are already populated.
+[2025-04-09T07:32:52.279Z] [125/8514] Processing: Wild Child (ID: s1112)
+[2025-04-09T07:32:52.279Z] Skipping Wild Child - all fields are already populated.
+[2025-04-09T07:32:52.279Z] [126/8514] Processing: Woody Woodpecker (ID: s1113)
+[2025-04-09T07:32:52.280Z] Skipping Woody Woodpecker - all fields are already populated.
+[2025-04-09T07:32:52.280Z] [127/8514] Processing: 2012 (ID: s1114)
+[2025-04-09T07:32:52.280Z] Skipping 2012 - all fields are already populated.
+[2025-04-09T07:32:52.280Z] [128/8514] Processing: 3 Idiots (ID: s1115)
+[2025-04-09T07:32:52.280Z] Skipping 3 Idiots - all fields are already populated.
+[2025-04-09T07:32:52.280Z] [129/8514] Processing: Ferrari Ki Sawaari (ID: s1116)
+[2025-04-09T07:32:52.280Z] Skipping Ferrari Ki Sawaari - all fields are already populated.
+[2025-04-09T07:32:52.280Z] [130/8514] Processing: Glimpses of a Future (ID: s1117)
+[2025-04-09T07:32:54.677Z] Updating Glimpses of a Future with fields: director, country
+[2025-04-09T07:32:54.746Z] Successfully updated movie: Glimpses of a Future (ID: s1117)
+[2025-04-09T07:32:54.747Z] [131/8514] Processing: Ibrahim a Fate to Define (ID: s1118)
+[2025-04-09T07:32:57.019Z] No fields were updated for Ibrahim a Fate to Define
+[2025-04-09T07:32:57.019Z] [132/8514] Processing: Insidious (ID: s1119)
+[2025-04-09T07:32:57.020Z] Skipping Insidious - all fields are already populated.
+[2025-04-09T07:32:57.021Z] [133/8514] Processing: Sharkdog (ID: s112)
+[2025-04-09T07:32:59.275Z] Updating Sharkdog with fields: director
+[2025-04-09T07:32:59.365Z] Successfully updated movie: Sharkdog (ID: s112)
+[2025-04-09T07:32:59.366Z] [134/8514] Processing: Into the Grizzly Maze (ID: s1120)
+[2025-04-09T07:32:59.366Z] Skipping Into the Grizzly Maze - all fields are already populated.
+[2025-04-09T07:32:59.366Z] [135/8514] Processing: Kingsglaive: Final Fantasy XV (ID: s1121)
+[2025-04-09T07:32:59.366Z] Skipping Kingsglaive: Final Fantasy XV - all fields are already populated.
+[2025-04-09T07:32:59.366Z] [136/8514] Processing: Legally Blonde (ID: s1122)
+[2025-04-09T07:32:59.367Z] Skipping Legally Blonde - all fields are already populated.
+[2025-04-09T07:32:59.367Z] [137/8514] Processing: Madam Chief Minister (ID: s1123)
+[2025-04-09T07:32:59.367Z] Skipping Madam Chief Minister - all fields are already populated.
+[2025-04-09T07:32:59.367Z] [138/8514] Processing: Magical Andes (ID: s1124)
+[2025-04-09T07:33:01.631Z] Updating Magical Andes with fields: director
+[2025-04-09T07:33:01.698Z] Successfully updated movie: Magical Andes (ID: s1124)
+[2025-04-09T07:33:01.698Z] [139/8514] Processing: Maximum Risk (ID: s1125)
+[2025-04-09T07:33:01.699Z] Skipping Maximum Risk - all fields are already populated.
+[2025-04-09T07:33:01.699Z] [140/8514] Processing: Murder Maps (ID: s1126)
+[2025-04-09T07:33:03.973Z] No fields were updated for Murder Maps
+[2025-04-09T07:33:03.974Z] [141/8514] Processing: My Fair Lady (ID: s1127)
+[2025-04-09T07:33:03.975Z] Skipping My Fair Lady - all fields are already populated.
+[2025-04-09T07:33:03.975Z] [142/8514] Processing: Prank Encounters (ID: s1128)
+[2025-04-09T07:33:06.259Z] No fields were updated for Prank Encounters
+[2025-04-09T07:33:06.260Z] [143/8514] Processing: S.W.A.T.: Under Siege (ID: s1129)
+[2025-04-09T07:33:06.260Z] Skipping S.W.A.T.: Under Siege - all fields are already populated.
+[2025-04-09T07:33:06.261Z] [144/8514] Processing: Worth (ID: s113)
+[2025-04-09T07:33:08.539Z] Updating Worth with fields: country
+[2025-04-09T07:33:08.902Z] Successfully updated movie: Worth (ID: s113)
+[2025-04-09T07:33:08.903Z] [145/8514] Processing: Secrets of Great British Castles (ID: s1130)
+[2025-04-09T07:33:11.218Z] No fields were updated for Secrets of Great British Castles
+[2025-04-09T07:33:11.219Z] [146/8514] Processing: Seven Souls in the Skull Castle: Season Bird (ID: s1131)
+[2025-04-09T07:33:13.691Z] No fields were updated for Seven Souls in the Skull Castle: Season Bird
+[2025-04-09T07:33:13.692Z] [147/8514] Processing: Seven Souls in the Skull Castle: Season Flower (ID: s1132)
+[2025-04-09T07:33:13.692Z] Skipping Seven Souls in the Skull Castle: Season Flower - all fields are already populated.
+[2025-04-09T07:33:13.692Z] [148/8514] Processing: Seven Souls in the Skull Castle: Season Wind (ID: s1133)
+[2025-04-09T07:33:16.007Z] Updating Seven Souls in the Skull Castle: Season Wind with fields: country
+[2025-04-09T07:33:16.311Z] Successfully updated movie: Seven Souls in the Skull Castle: Season Wind (ID: s1133)
+[2025-04-09T07:33:16.312Z] [149/8514] Processing: Sniper: Ghost Shooter (ID: s1134)
+[2025-04-09T07:33:16.312Z] Skipping Sniper: Ghost Shooter - all fields are already populated.
+[2025-04-09T07:33:16.312Z] [150/8514] Processing: Starship Troopers: Traitor of Mars (ID: s1135)
+[2025-04-09T07:33:16.312Z] Skipping Starship Troopers: Traitor of Mars - all fields are already populated.
+[2025-04-09T07:33:16.312Z] [151/8514] Processing: Takers (ID: s1136)
+[2025-04-09T07:33:16.312Z] Skipping Takers - all fields are already populated.
+[2025-04-09T07:33:16.312Z] [152/8514] Processing: Tersanjung the Movie (ID: s1137)
+[2025-04-09T07:33:16.312Z] Skipping Tersanjung the Movie - all fields are already populated.
+[2025-04-09T07:33:16.313Z] [153/8514] Processing: The Knight and the Princess (ID: s1138)
+[2025-04-09T07:33:16.313Z] Skipping The Knight and the Princess - all fields are already populated.
+[2025-04-09T07:33:16.313Z] [154/8514] Processing: The Pianist (ID: s1139)
+[2025-04-09T07:33:16.313Z] Skipping The Pianist - all fields are already populated.
+[2025-04-09T07:33:16.313Z] [155/8514] Processing: Afterlife of the Party (ID: s114)
+[2025-04-09T07:33:18.602Z] Updating Afterlife of the Party with fields: country
+[2025-04-09T07:33:18.675Z] Successfully updated movie: Afterlife of the Party (ID: s114)
+[2025-04-09T07:33:18.676Z] [156/8514] Processing: The Stepfather (ID: s1140)
+[2025-04-09T07:33:18.676Z] Skipping The Stepfather - all fields are already populated.
+[2025-04-09T07:33:18.676Z] [157/8514] Processing: Universal Soldier: The Return (ID: s1141)
+[2025-04-09T07:33:18.676Z] Skipping Universal Soldier: The Return - all fields are already populated.
+[2025-04-09T07:33:18.676Z] [158/8514] Processing: Wazir (ID: s1142)
+[2025-04-09T07:33:18.676Z] Skipping Wazir - all fields are already populated.
+[2025-04-09T07:33:18.676Z] [159/8514] Processing: White Boy (ID: s1143)
+[2025-04-09T07:33:18.676Z] Skipping White Boy - all fields are already populated.
+[2025-04-09T07:33:18.676Z] [160/8514] Processing: Worn Stories (ID: s1144)
+[2025-04-09T07:33:20.963Z] No fields were updated for Worn Stories
+[2025-04-09T07:33:20.963Z] [161/8514] Processing: Yes Man (ID: s1145)
+[2025-04-09T07:33:20.964Z] Skipping Yes Man - all fields are already populated.
+[2025-04-09T07:33:20.964Z] [162/8514] Processing: At Eternity's Gate (ID: s1146)
+[2025-04-09T07:33:20.964Z] Skipping At Eternity's Gate - all fields are already populated.
+[2025-04-09T07:33:20.964Z] [163/8514] Processing: Haunted: Latin America (ID: s1147)
+[2025-04-09T07:33:20.964Z] Skipping Haunted: Latin America - all fields are already populated.
+[2025-04-09T07:33:20.964Z] [164/8514] Processing: Not a Game (ID: s1148)
+[2025-04-09T07:33:20.964Z] Skipping Not a Game - all fields are already populated.
+[2025-04-09T07:33:20.964Z] [165/8514] Processing: Robocar Poli (ID: s1149)
+[2025-04-09T07:33:23.291Z] No fields were updated for Robocar Poli
+[2025-04-09T07:33:23.292Z] [166/8514] Processing: Anjaam (ID: s115)
+[2025-04-09T07:33:23.293Z] Skipping Anjaam - all fields are already populated.
+[2025-04-09T07:33:23.293Z] [167/8514] Processing: Yu-Gi-Oh! (ID: s1150)
+[2025-04-09T07:33:25.577Z] Updating Yu-Gi-Oh! with fields: director
+[2025-04-09T07:33:25.907Z] Successfully updated movie: Yu-Gi-Oh! (ID: s1150)
+[2025-04-09T07:33:25.908Z] [168/8514] Processing: 7 Yards: The Chris Norton Story (ID: s1151)
+[2025-04-09T07:33:25.908Z] Skipping 7 Yards: The Chris Norton Story - all fields are already populated.
+[2025-04-09T07:33:25.909Z] [169/8514] Processing: Octonauts & the Ring of Fire (ID: s1152)
+[2025-04-09T07:33:25.909Z] Skipping Octonauts & the Ring of Fire - all fields are already populated.
+[2025-04-09T07:33:25.909Z] [170/8514] Processing: Rainbow High (ID: s1153)
+[2025-04-09T07:33:28.177Z] Updating Rainbow High with fields: director
+[2025-04-09T07:33:28.251Z] Successfully updated movie: Rainbow High (ID: s1153)
+[2025-04-09T07:33:28.252Z] [171/8514] Processing: Mandela: Long Walk to Freedom (ID: s1154)
+[2025-04-09T07:33:28.253Z] Skipping Mandela: Long Walk to Freedom - all fields are already populated.
+[2025-04-09T07:33:28.253Z] [172/8514] Processing: Lawless (ID: s1155)
+[2025-04-09T07:33:28.254Z] Skipping Lawless - all fields are already populated.
+[2025-04-09T07:33:28.254Z] [173/8514] Processing: Marked (ID: s1156)
+[2025-04-09T07:33:28.254Z] Skipping Marked - all fields are already populated.
+[2025-04-09T07:33:28.254Z] [174/8514] Processing: A Week Away (ID: s1157)
+[2025-04-09T07:33:28.255Z] Skipping A Week Away - all fields are already populated.
+[2025-04-09T07:33:28.255Z] [175/8514] Processing: Bad Trip (ID: s1158)
+[2025-04-09T07:33:28.255Z] Skipping Bad Trip - all fields are already populated.
+[2025-04-09T07:33:28.255Z] [176/8514] Processing: Big Time Rush (ID: s1159)
+[2025-04-09T07:33:30.531Z] Updating Big Time Rush with fields: director
+[2025-04-09T07:33:30.634Z] Successfully updated movie: Big Time Rush (ID: s1159)
+[2025-04-09T07:33:30.634Z] [177/8514] Processing: Bright Star (ID: s116)
+[2025-04-09T07:33:30.635Z] Skipping Bright Star - all fields are already populated.
+[2025-04-09T07:33:30.635Z] [178/8514] Processing: Black Is Beltza (ID: s1160)
+[2025-04-09T07:33:32.938Z] Updating Black Is Beltza with fields: country
+[2025-04-09T07:33:33.041Z] Successfully updated movie: Black Is Beltza (ID: s1160)
+[2025-04-09T07:33:33.041Z] [179/8514] Processing: Croupier (ID: s1161)
+[2025-04-09T07:33:33.042Z] Skipping Croupier - all fields are already populated.
+[2025-04-09T07:33:33.042Z] [180/8514] Processing: Elizabeth and Margaret: Love and Loyalty (ID: s1162)
+[2025-04-09T07:33:33.042Z] Skipping Elizabeth and Margaret: Love and Loyalty - all fields are already populated.
+[2025-04-09T07:33:33.042Z] [181/8514] Processing: Keeping the Bees (ID: s1163)
+[2025-04-09T07:33:33.042Z] Skipping Keeping the Bees - all fields are already populated.
+[2025-04-09T07:33:33.042Z] [182/8514] Processing: Magic for Humans Spain (ID: s1164)
+[2025-04-09T07:33:35.323Z] No fields were updated for Magic for Humans Spain
+[2025-04-09T07:33:35.324Z] [183/8514] Processing: Ni de coña (ID: s1165)
+[2025-04-09T07:33:35.325Z] Skipping Ni de coña - all fields are already populated.
+[2025-04-09T07:33:35.325Z] [184/8514] Processing: Pagglait (ID: s1166)
+[2025-04-09T07:33:35.326Z] Skipping Pagglait - all fields are already populated.
+[2025-04-09T07:33:35.326Z] [185/8514] Processing: The Irregulars (ID: s1167)
+[2025-04-09T07:33:37.694Z] Updating The Irregulars with fields: director
+[2025-04-09T07:33:37.772Z] Successfully updated movie: The Irregulars (ID: s1167)
+[2025-04-09T07:33:37.773Z] [186/8514] Processing: Caught by a Wave (ID: s1168)
+[2025-04-09T07:33:37.774Z] Skipping Caught by a Wave - all fields are already populated.
+[2025-04-09T07:33:37.774Z] [187/8514] Processing: DOTA: Dragon's Blood (ID: s1169)
+[2025-04-09T07:33:40.052Z] Updating DOTA: Dragon's Blood with fields: director
+[2025-04-09T07:33:40.136Z] Successfully updated movie: DOTA: Dragon's Blood (ID: s1169)
+[2025-04-09T07:33:40.136Z] [188/8514] Processing: Dhanak (ID: s117)
+[2025-04-09T07:33:40.137Z] Skipping Dhanak - all fields are already populated.
+[2025-04-09T07:33:40.137Z] [189/8514] Processing: Pui Pui Molcar (ID: s1170)
+[2025-04-09T07:33:42.430Z] No fields were updated for Pui Pui Molcar
+[2025-04-09T07:33:42.431Z] [190/8514] Processing: Secret Magic Control Agency (ID: s1171)
+[2025-04-09T07:33:42.431Z] Skipping Secret Magic Control Agency - all fields are already populated.
+[2025-04-09T07:33:42.431Z] [191/8514] Processing: Seaspiracy (ID: s1172)
+[2025-04-09T07:33:42.431Z] Skipping Seaspiracy - all fields are already populated.
+[2025-04-09T07:33:42.431Z] [192/8514] Processing: Loyiso Gola: Unlearning (ID: s1173)
+[2025-04-09T07:33:42.432Z] Skipping Loyiso Gola: Unlearning - all fields are already populated.
+[2025-04-09T07:33:42.432Z] [193/8514] Processing: Men on a Mission (ID: s1174)
+[2025-04-09T07:33:42.432Z] Skipping Men on a Mission - all fields are already populated.
+[2025-04-09T07:33:42.432Z] [194/8514] Processing: Navillera (ID: s1175)
+[2025-04-09T07:33:44.817Z] Updating Navillera with fields: director
+[2025-04-09T07:33:44.890Z] Successfully updated movie: Navillera (ID: s1175)
+[2025-04-09T07:33:44.890Z] [195/8514] Processing: Philomena (ID: s1176)
+[2025-04-09T07:33:44.890Z] Skipping Philomena - all fields are already populated.
+[2025-04-09T07:33:44.891Z] [196/8514] Processing: Any Crybabies Around? (ID: s1177)
+[2025-04-09T07:33:44.891Z] Skipping Any Crybabies Around? - all fields are already populated.
+[2025-04-09T07:33:44.891Z] [197/8514] Processing: Hospital (ID: s1178)
+[2025-04-09T07:33:44.891Z] Skipping Hospital - all fields are already populated.
+[2025-04-09T07:33:44.891Z] [198/8514] Processing: Jiu Jitsu (ID: s1179)
+[2025-04-09T07:33:44.891Z] Skipping Jiu Jitsu - all fields are already populated.
+[2025-04-09T07:33:44.891Z] [199/8514] Processing: Final Account (ID: s118)
+[2025-04-09T07:33:47.178Z] No fields were updated for Final Account
+[2025-04-09T07:33:47.178Z] [200/8514] Processing: Mighty Morphin Power Rangers (ID: s1180)
+[2025-04-09T07:33:49.464Z] Updating Mighty Morphin Power Rangers with fields: director
+[2025-04-09T07:33:49.546Z] Successfully updated movie: Mighty Morphin Power Rangers (ID: s1180)
+[2025-04-09T07:33:49.546Z] [201/8514] Processing: Alien TV (ID: s1181)
+[2025-04-09T07:33:51.989Z] Updating Alien TV with fields: director, country
+[2025-04-09T07:33:52.074Z] Successfully updated movie: Alien TV (ID: s1181)
+[2025-04-09T07:33:52.075Z] [202/8514] Processing: Country Comfort (ID: s1182)
+[2025-04-09T07:33:54.355Z] Updating Country Comfort with fields: director
+[2025-04-09T07:33:54.431Z] Successfully updated movie: Country Comfort (ID: s1182)
+[2025-04-09T07:33:54.431Z] [203/8514] Processing: Formula 1: Drive to Survive (ID: s1183)
+[2025-04-09T07:33:56.691Z] Updating Formula 1: Drive to Survive with fields: director
+[2025-04-09T07:33:56.774Z] Successfully updated movie: Formula 1: Drive to Survive (ID: s1183)
+[2025-04-09T07:33:56.774Z] [204/8514] Processing: Reframe THEATER EXPERIENCE with you (ID: s1184)
+[2025-04-09T07:33:59.135Z] Updating Reframe THEATER EXPERIENCE with you with fields: country
+[2025-04-09T07:33:59.219Z] Successfully updated movie: Reframe THEATER EXPERIENCE with you (ID: s1184)
+[2025-04-09T07:33:59.220Z] [205/8514] Processing: The Yin Yang Master (ID: s1185)
+[2025-04-09T07:33:59.220Z] Skipping The Yin Yang Master - all fields are already populated.
+[2025-04-09T07:33:59.220Z] [206/8514] Processing: Who's the Boss (ID: s1186)
+[2025-04-09T07:33:59.220Z] Skipping Who's the Boss - all fields are already populated.
+[2025-04-09T07:33:59.220Z] [207/8514] Processing: B: The Beginning (ID: s1187)
+[2025-04-09T07:34:01.521Z] No fields were updated for B: The Beginning
+[2025-04-09T07:34:01.522Z] [208/8514] Processing: Deadly Illusions (ID: s1188)
+[2025-04-09T07:34:01.523Z] Skipping Deadly Illusions - all fields are already populated.
+[2025-04-09T07:34:01.523Z] [209/8514] Processing: Get the Goat (ID: s1189)
+[2025-04-09T07:34:01.523Z] Skipping Get the Goat - all fields are already populated.
+[2025-04-09T07:34:01.523Z] [210/8514] Processing: Gurgaon (ID: s119)
+[2025-04-09T07:34:01.523Z] Skipping Gurgaon - all fields are already populated.
+[2025-04-09T07:34:01.523Z] [211/8514] Processing: Nate Bargatze: The Greatest Average American (ID: s1190)
+[2025-04-09T07:34:01.523Z] Skipping Nate Bargatze: The Greatest Average American - all fields are already populated.
+[2025-04-09T07:34:01.524Z] [212/8514] Processing: Skylines (ID: s1191)
+[2025-04-09T07:34:01.524Z] Skipping Skylines - all fields are already populated.
+[2025-04-09T07:34:01.524Z] [213/8514] Processing: The Fluffy Movie (ID: s1192)
+[2025-04-09T07:34:01.524Z] Skipping The Fluffy Movie - all fields are already populated.
+[2025-04-09T07:34:01.524Z] [214/8514] Processing: The Present (ID: s1193)
+[2025-04-09T07:34:01.524Z] Skipping The Present - all fields are already populated.
+[2025-04-09T07:34:01.524Z] [215/8514] Processing: Wave of Cinema: 90's Generation (ID: s1194)
+[2025-04-09T07:34:03.836Z] Updating Wave of Cinema: 90's Generation with fields: country
+[2025-04-09T07:34:03.936Z] Successfully updated movie: Wave of Cinema: 90's Generation (ID: s1194)
+[2025-04-09T07:34:03.936Z] [216/8514] Processing: Catch.er (ID: s1195)
+[2025-04-09T07:34:03.937Z] Skipping Catch.er - all fields are already populated.
+[2025-04-09T07:34:03.937Z] [217/8514] Processing: Operation Varsity Blues: The College Admissions Scandal (ID: s1196)
+[2025-04-09T07:34:03.937Z] Skipping Operation Varsity Blues: The College Admissions Scandal - all fields are already populated.
+[2025-04-09T07:34:03.937Z] [218/8514] Processing: Under Suspicion: Uncovering the Wesphael Case (ID: s1197)
+[2025-04-09T07:34:03.937Z] Skipping Under Suspicion: Uncovering the Wesphael Case - all fields are already populated.
+[2025-04-09T07:34:03.937Z] [219/8514] Processing: Get on Up (ID: s1198)
+[2025-04-09T07:34:03.937Z] Skipping Get on Up - all fields are already populated.
+[2025-04-09T07:34:03.937Z] [220/8514] Processing: RebellComedy: Straight Outta the Zoo (ID: s1199)
+[2025-04-09T07:34:03.938Z] Skipping RebellComedy: Straight Outta the Zoo - all fields are already populated.
+[2025-04-09T07:34:03.938Z] [221/8514] Processing: Bangkok Breaking (ID: s12)
+[2025-04-09T07:34:06.215Z] Updating Bangkok Breaking with fields: country
+[2025-04-09T07:34:06.276Z] Successfully updated movie: Bangkok Breaking (ID: s12)
+[2025-04-09T07:34:06.276Z] [222/8514] Processing: Here and There (ID: s120)
+[2025-04-09T07:34:08.551Z] Updating Here and There with fields: country
+[2025-04-09T07:34:08.629Z] Successfully updated movie: Here and There (ID: s120)
+[2025-04-09T07:34:08.629Z] [223/8514] Processing: Savages (ID: s1200)
+[2025-04-09T07:34:08.629Z] Skipping Savages - all fields are already populated.
+[2025-04-09T07:34:08.629Z] [224/8514] Processing: Waffles  Mochi (ID: s1201)
+[2025-04-09T07:34:10.896Z] No fields were updated for Waffles  Mochi
+[2025-04-09T07:34:10.896Z] [225/8514] Processing: Abla Fahita: Drama Queen (ID: s1202)
+[2025-04-09T07:34:13.115Z] Updating Abla Fahita: Drama Queen with fields: director
+[2025-04-09T07:34:13.181Z] Successfully updated movie: Abla Fahita: Drama Queen (ID: s1202)
+[2025-04-09T07:34:13.181Z] [226/8514] Processing: C/O Kaadhal (ID: s1203)
+[2025-04-09T07:34:13.182Z] Skipping C/O Kaadhal - all fields are already populated.
+[2025-04-09T07:34:13.182Z] [227/8514] Processing: The BFG (ID: s1204)
+[2025-04-09T07:34:13.182Z] Skipping The BFG - all fields are already populated.
+[2025-04-09T07:34:13.182Z] [228/8514] Processing: The Last Blockbuster (ID: s1205)
+[2025-04-09T07:34:13.182Z] Skipping The Last Blockbuster - all fields are already populated.
+[2025-04-09T07:34:13.182Z] [229/8514] Processing: The Lost Pirate Kingdom (ID: s1206)
+[2025-04-09T07:34:15.454Z] No fields were updated for The Lost Pirate Kingdom
+[2025-04-09T07:34:15.455Z] [230/8514] Processing: Zero Chill (ID: s1207)
+[2025-04-09T07:34:17.737Z] No fields were updated for Zero Chill
+[2025-04-09T07:34:17.737Z] [231/8514] Processing: Audrey (ID: s1208)
+[2025-04-09T07:34:20.016Z] Updating Audrey with fields: country
+[2025-04-09T07:34:20.426Z] Successfully updated movie: Audrey (ID: s1208)
+[2025-04-09T07:34:20.426Z] [232/8514] Processing: Çarsi Pazar (ID: s1209)
+[2025-04-09T07:34:20.427Z] Skipping Çarsi Pazar - all fields are already populated.
+[2025-04-09T07:34:20.427Z] [233/8514] Processing: Heroes of Goo Jit Zu (ID: s121)
+[2025-04-09T07:34:22.696Z] No fields were updated for Heroes of Goo Jit Zu
+[2025-04-09T07:34:22.696Z] [234/8514] Processing: Just In Time (ID: s1210)
+[2025-04-09T07:34:22.697Z] Skipping Just In Time - all fields are already populated.
+[2025-04-09T07:34:22.697Z] [235/8514] Processing: Love Alarm (ID: s1211)
+[2025-04-09T07:34:25.036Z] Updating Love Alarm with fields: director
+[2025-04-09T07:34:25.158Z] Successfully updated movie: Love Alarm (ID: s1211)
+[2025-04-09T07:34:25.158Z] [236/8514] Processing: Mucize (ID: s1212)
+[2025-04-09T07:34:25.158Z] Skipping Mucize - all fields are already populated.
+[2025-04-09T07:34:25.158Z] [237/8514] Processing: Paper Lives (ID: s1213)
+[2025-04-09T07:34:25.158Z] Skipping Paper Lives - all fields are already populated.
+[2025-04-09T07:34:25.158Z] [238/8514] Processing: Paradise PD (ID: s1214)
+[2025-04-09T07:34:27.469Z] Updating Paradise PD with fields: director
+[2025-04-09T07:34:27.564Z] Successfully updated movie: Paradise PD (ID: s1214)
+[2025-04-09T07:34:27.564Z] [239/8514] Processing: Quiet (ID: s1215)
+[2025-04-09T07:34:29.820Z] Updating Quiet with fields: country
+[2025-04-09T07:34:29.887Z] Successfully updated movie: Quiet (ID: s1215)
+[2025-04-09T07:34:29.887Z] [240/8514] Processing: Romantik Komedi (ID: s1216)
+[2025-04-09T07:34:29.887Z] Skipping Romantik Komedi - all fields are already populated.
+[2025-04-09T07:34:29.887Z] [241/8514] Processing: Romantik Komedi 2: Bekarlığa Veda (ID: s1217)
+[2025-04-09T07:34:29.887Z] Skipping Romantik Komedi 2: Bekarlığa Veda - all fields are already populated.
+[2025-04-09T07:34:29.887Z] [242/8514] Processing: The One (ID: s1218)
+[2025-04-09T07:34:32.157Z] Updating The One with fields: director
+[2025-04-09T07:34:32.244Z] Successfully updated movie: The One (ID: s1218)
+[2025-04-09T07:34:32.244Z] [243/8514] Processing: YES DAY (ID: s1219)
+[2025-04-09T07:34:32.244Z] Skipping YES DAY - all fields are already populated.
+[2025-04-09T07:34:32.244Z] [244/8514] Processing: Hotel Del Luna (ID: s122)
+[2025-04-09T07:34:34.498Z] Updating Hotel Del Luna with fields: director, country
+[2025-04-09T07:34:34.579Z] Successfully updated movie: Hotel Del Luna (ID: s122)
+[2025-04-09T07:34:34.579Z] [245/8514] Processing: You're Everything To Me (ID: s1220)
+[2025-04-09T07:34:34.580Z] Skipping You're Everything To Me - all fields are already populated.
+[2025-04-09T07:34:34.580Z] [246/8514] Processing: Coven of Sisters (ID: s1221)
+[2025-04-09T07:34:34.580Z] Skipping Coven of Sisters - all fields are already populated.
+[2025-04-09T07:34:34.580Z] [247/8514] Processing: Generasi 90an: Melankolia (ID: s1222)
+[2025-04-09T07:34:34.580Z] Skipping Generasi 90an: Melankolia - all fields are already populated.
+[2025-04-09T07:34:34.580Z] [248/8514] Processing: The Block Island Sound (ID: s1223)
+[2025-04-09T07:34:34.580Z] Skipping The Block Island Sound - all fields are already populated.
+[2025-04-09T07:34:34.580Z] [249/8514] Processing: Dealer (ID: s1224)
+[2025-04-09T07:34:34.580Z] Skipping Dealer - all fields are already populated.
+[2025-04-09T07:34:34.580Z] [250/8514] Processing: Last Chance U: Basketball (ID: s1225)
+[2025-04-09T07:34:36.854Z] Updating Last Chance U: Basketball with fields: country
+[2025-04-09T07:34:36.939Z] Successfully updated movie: Last Chance U: Basketball (ID: s1225)
+[2025-04-09T07:34:36.939Z] [251/8514] Processing: Marriage or Mortgage (ID: s1226)
+[2025-04-09T07:34:39.195Z] Updating Marriage or Mortgage with fields: country
+[2025-04-09T07:34:39.268Z] Successfully updated movie: Marriage or Mortgage (ID: s1226)
+[2025-04-09T07:34:39.269Z] [252/8514] Processing: The Houseboat (ID: s1227)
+[2025-04-09T07:34:39.269Z] Skipping The Houseboat - all fields are already populated.
+[2025-04-09T07:34:39.269Z] [253/8514] Processing: Bombay Begums (ID: s1228)
+[2025-04-09T07:34:41.533Z] No fields were updated for Bombay Begums
+[2025-04-09T07:34:41.533Z] [254/8514] Processing: Bombay Rose (ID: s1229)
+[2025-04-09T07:34:41.534Z] Skipping Bombay Rose - all fields are already populated.
+[2025-04-09T07:34:41.534Z] [255/8514] Processing: In the Cut (ID: s123)
+[2025-04-09T07:34:41.534Z] Skipping In the Cut - all fields are already populated.
+[2025-04-09T07:34:41.534Z] [256/8514] Processing: My Way (ID: s1230)
+[2025-04-09T07:34:41.534Z] Skipping My Way - all fields are already populated.
+[2025-04-09T07:34:41.534Z] [257/8514] Processing: Aelay (ID: s1231)
+[2025-04-09T07:34:41.534Z] Skipping Aelay - all fields are already populated.
+[2025-04-09T07:34:41.535Z] [258/8514] Processing: City of Ghosts (ID: s1232)
+[2025-04-09T07:34:41.535Z] Skipping City of Ghosts - all fields are already populated.
+[2025-04-09T07:34:41.535Z] [259/8514] Processing: Dogwashers (ID: s1233)
+[2025-04-09T07:34:41.535Z] Skipping Dogwashers - all fields are already populated.
+[2025-04-09T07:34:41.535Z] [260/8514] Processing: Fate of Alakada (ID: s1234)
+[2025-04-09T07:34:41.535Z] Skipping Fate of Alakada - all fields are already populated.
+[2025-04-09T07:34:41.535Z] [261/8514] Processing: Pokémon Journeys: The Series (ID: s1236)
