@@ -1,11 +1,10 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { User, isAdmin } from '../services/api';
 import UserProfileMenu from './UserProfileMenu';
 
 const Navbar = () => {
   const [user, setUser] = useState<User | null>(null);
-  const navigate = useNavigate();
   
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -132,20 +131,12 @@ const Navbar = () => {
           {user ? (
             <UserProfileMenu user={user} onLogout={handleLogout} />
           ) : (
-            <>
-              <Link 
-                to="/login" 
-                style={{ color: 'white', textDecoration: 'none' }}
-              >
-                Login
-              </Link>
-              <Link 
-                to="/register" 
-                style={{ color: 'white', textDecoration: 'none' }}
-              >
-                Register
-              </Link>
-            </>
+            <Link 
+              to="/login" 
+              style={{ color: 'white', textDecoration: 'none' }}
+            >
+              Login
+            </Link>
           )}
         </div>
       </div>
