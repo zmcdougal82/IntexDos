@@ -214,88 +214,97 @@ const HomePage = () => {
 
       <div className="mt-4">
         {!user && (
-          <>
-            {/* Register / Login CTA + Company Introduction */}
+          <div
+            style={{
+              maxWidth: "600px",
+              margin: "3rem auto",
+              padding: "2rem",
+              backgroundColor: "white",
+              borderRadius: "12px",
+              boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)",
+              textAlign: "center",
+            }}
+          >
+            {/* Call to Action */}
+            <p
+              style={{
+                fontSize: "1.125rem",
+                fontWeight: "500",
+                marginBottom: "1.5rem",
+              }}
+            >
+              Sign up or log in to start discovering personalized movie and TV
+              show recommendations tailored just for you!
+            </p>
+
             <div
               style={{
                 display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
                 justifyContent: "center",
-                textAlign: "center",
+                gap: "1rem",
               }}
             >
-              <p>
-                Sign up or log in to start discovering personalized movie and TV
-                show recommendations tailored just for you!
-              </p>
-              <div
+              <button
+                onClick={handleLogin}
                 style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  gap: "10px",
+                  padding: "0.75rem 1.5rem",
+                  backgroundColor: "#007BFF",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontSize: "1rem",
+                  fontWeight: "600",
+                  cursor: "pointer",
                 }}
               >
-                <button
-                  onClick={handleLogin}
-                  style={{
-                    padding: "10px 20px",
-                    backgroundColor: "#007BFF",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "5px",
-                    cursor: "pointer",
-                    fontSize: "1rem",
-                    marginTop: "1rem",
-                  }}
-                >
-                  Log In
-                </button>
-                <button
-                  onClick={handleRegister}
-                  style={{
-                    padding: "10px 20px",
-                    backgroundColor: "#007BFF",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "5px",
-                    cursor: "pointer",
-                    fontSize: "1rem",
-                    marginTop: "1rem",
-                  }}
-                >
-                  Register
-                </button>
-              </div>
-
-              {/* Company Introduction */}
-              <div
+                Log In
+              </button>
+              <button
+                onClick={handleRegister}
                 style={{
-                  textAlign: "center",
-                  marginBottom: "2rem",
-                  marginTop: "3rem",
+                  padding: "0.75rem 1.5rem",
+                  backgroundColor: "#007BFF",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontSize: "1rem",
+                  fontWeight: "600",
+                  cursor: "pointer",
                 }}
               >
-                <h3
-                  style={{
-                    fontSize: "2rem",
-                    fontWeight: 700,
-                    color: "var(--color-primary)",
-                    textAlign: "center",
-                    marginBottom: "var(--spacing-lg)",
-                  }}
-                >
-                  About CineNiche
-                </h3>
-                <p>
-                  At CineNiche, we believe in bringing you the best movie and TV
-                  show experiences. Explore thousands of options, discover
-                  hidden gems, and enjoy recommendations based on your
-                  preferences. Let us help you find your next favorite!
-                </p>
-              </div>
+                Register
+              </button>
             </div>
-          </>
+
+            {/* Company Introduction */}
+            <div
+              style={{
+                marginTop: "2rem",
+              }}
+            >
+              <h3
+                style={{
+                  fontSize: "1.5rem",
+                  fontWeight: "700",
+                  color: "#007BFF",
+                  marginBottom: "1rem",
+                }}
+              >
+                About CineNiche
+              </h3>
+              <p
+                style={{
+                  fontSize: "1rem",
+                  color: "#333",
+                }}
+              >
+                At CineNiche, we believe in bringing you the best movie and TV
+                show experiences. Explore thousands of options, discover hidden
+                gems, and enjoy recommendations based on your preferences. Let
+                us help you find your next favorite!
+              </p>
+            </div>
+          </div>
         )}
         <div
           className="card"
