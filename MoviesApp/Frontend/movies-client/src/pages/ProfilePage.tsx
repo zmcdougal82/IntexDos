@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { userApi } from '../services/api';
 import { User, isAdmin } from '../services/api'; // make sure interfaces are imported correctly
 import axios from 'axios';
+import ConfirmationModal from '../components/ConfirmationModal';
 
 const ProfilePage = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -10,6 +11,7 @@ const ProfilePage = () => {
   const [isEditing, setIsEditing] = useState(false);
   type EditableUser = Omit<User, 'id' | 'userId'>;
   const [editData, setEditData] = useState<EditableUser | null>(null);
+  const [isModalOpen, setModalOpen] = useState(false); // modal visibility state
 
   const navigate = useNavigate();
   
@@ -102,17 +104,18 @@ const ProfilePage = () => {
   };
   
   const handleDelete = async () => {
-    const confirmDelete = window.confirm('Are you sure you want to delete your profile? This action cannot be undone.');
-    if (!confirmDelete) return; // If the user cancels, stop the delete process
-  
+    setModalOpen(true); // open the modal when delete is clicked
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!user || !user.userId) {
+      console.error("User data is missing required fields.");
+      return;
+    }
+
+    const currentUserId = String(user.userId);
+
     try {
-      if (!user || !user.userId) {
-        console.error("User data is missing required fields.");
-        return;
-      }
-  
-      const currentUserId = String(user.userId);
-  
       const response = await userApi.delete(currentUserId);
       if (response.status === 200 || response.status === 204) {
         console.log("Profile successfully deleted");
@@ -127,10 +130,10 @@ const ProfilePage = () => {
         console.error("Axios error details:", error.response);
       }
     }
+
+    setModalOpen(false); // close the modal after confirming
   };
   
-  
-
   if (loading) {
     return <div className="container mt-4">Loading profile...</div>;
   }
@@ -219,23 +222,27 @@ const ProfilePage = () => {
 
               <div style={{
                     display: 'inline-block',
-                    padding: '3px 8px',
                     borderRadius: 'var(--radius-sm)',
                     fontSize: '0.75rem',
-                    fontWeight: 'bold',
-                    marginTop: 'var(--spacing-xs)'
+                    fontWeight: 'bold'
                   }}>
                     {/* Smaller Delete button underneath Edit button */}
                     <button onClick={handleDelete} style={{
-                      marginTop: 'var(--spacing-md)',
                       padding: 'var(--spacing-sm)',
                       fontSize: '0.875rem', // smaller size
-                      backgroundColor: 'var(--color-danger)',
-                      color: 'white',
-                      borderRadius: 'var(--radius-sm)'
+                      borderRadius: 'var(--radius-sm)', 
+                      backgroundColor: '#8B0000'
                     }}>
                     Delete Profile
                     </button>
+
+                    {/* Confirmation Modal */}
+                    <ConfirmationModal 
+                      isOpen={isModalOpen}
+                      onConfirm={handleConfirmDelete}
+                      onCancel={handleDelete}
+                    />
+
               </div>
 
             </div>
@@ -493,5 +500,6 @@ const ProfilePage = () => {
     </div>
   );
 };
+
 
 export default ProfilePage;
