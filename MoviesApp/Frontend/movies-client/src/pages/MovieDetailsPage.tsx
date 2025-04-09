@@ -313,7 +313,7 @@ const MovieDetailsPage = () => {
   // Helper function to extract and display genres from movie object
   const renderGenres = (movie: Movie) => {
     // Genre mapping - property names to display names
-    const genreMapping: {[key: string]: string} = {
+    const genreMapping: { [key: string]: string } = {
       Action: "Action",
       Adventure: "Adventure",
       Comedies: "Comedy",
@@ -345,39 +345,45 @@ const MovieDetailsPage = () => {
       Spirituality: "Spirituality",
       ComediesDramasInternationalMovies: "Comedy Drama International",
       ComediesInternationalMovies: "Comedy International",
-      InternationalMoviesThrillers: "International Thriller"
+      InternationalMoviesThrillers: "International Thriller",
     };
-    
+
     // Get active genres
     const activeGenres: React.ReactNode[] = [];
-    
+
     // Debug logging for genres
     console.log("Checking genres for movie:", movie.title);
-    
+
     // Check all possible genre fields with more robust value checking
-    Object.keys(genreMapping).forEach(key => {
+    Object.keys(genreMapping).forEach((key) => {
       // Try different ways of accessing the property (handle case differences)
-      const value = movie[key as keyof Movie] || 
-                   movie[key.toLowerCase() as keyof Movie] || 
-                   movie[key.toUpperCase() as keyof Movie];
-                   
+      const value =
+        movie[key as keyof Movie] ||
+        movie[key.toLowerCase() as keyof Movie] ||
+        movie[key.toUpperCase() as keyof Movie];
+
       // Check for values that indicate genre is active:
       // - number 1
       // - string "1"
       // - boolean true
       // - any truthy value that's not undefined or null
-      if (value === 1 || value === "1" || (typeof value === 'boolean' && value === true) || (value && typeof value !== 'undefined')) {
+      if (
+        value === 1 ||
+        value === "1" ||
+        (typeof value === "boolean" && value === true) ||
+        (value && typeof value !== "undefined")
+      ) {
         console.log(`Found active genre: ${key} = ${value}`);
         activeGenres.push(
-          <div 
-            key={key} 
+          <div
+            key={key}
             style={{
               padding: "4px 12px",
               backgroundColor: "var(--color-secondary-dark, #e65100)",
               color: "white",
               borderRadius: "16px",
               fontSize: "0.85rem",
-              fontWeight: 500
+              fontWeight: 500,
             }}
           >
             {genreMapping[key]}
@@ -385,30 +391,34 @@ const MovieDetailsPage = () => {
         );
       }
     });
-    
+
     // Not adding movie type as a genre as requested
-    
+
     // If no genres found, show placeholder
     if (activeGenres.length === 0) {
       // Debug log what's available on the movie object
       console.log("No genres found. Movie object keys:", Object.keys(movie));
-      
-      return <div style={{ color: "var(--color-text-light)" }}>No genres available</div>;
+
+      return (
+        <div style={{ color: "var(--color-text-light)" }}>
+          No genres available
+        </div>
+      );
     }
-    
+
     return activeGenres;
   };
 
   // Utility function to format minutes to readable format (e.g., 155 → "2h 35m")
   const formatDuration = (minutes: string | number | undefined): string => {
-    if (!minutes) return 'Unknown';
-    
-    const mins = typeof minutes === 'string' ? parseInt(minutes) : minutes;
-    if (isNaN(mins)) return 'Unknown';
-    
+    if (!minutes) return "Unknown";
+
+    const mins = typeof minutes === "string" ? parseInt(minutes) : minutes;
+    if (isNaN(mins)) return "Unknown";
+
     const hours = Math.floor(mins / 60);
     const remainingMins = mins % 60;
-    
+
     if (hours > 0) {
       return `${hours}h ${remainingMins}m`;
     } else {
@@ -425,69 +435,93 @@ const MovieDetailsPage = () => {
     <div className="container">
       {/* Reviews Modal */}
       {showReviewsModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{
-            backgroundColor: 'white',
-            borderRadius: 'var(--radius-lg)',
-            padding: 'var(--spacing-xl)',
-            width: '90%',
-            maxWidth: '800px',
-            maxHeight: '90vh',
-            overflowY: 'auto',
-            boxShadow: 'var(--shadow-lg)'
-          }}>
-            <div style={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              alignItems: 'center',
-              marginBottom: 'var(--spacing-lg)'
-            }}>
-              <h2 style={{ 
-                color: 'var(--color-primary)',
-                margin: 0
-              }}>User Reviews</h2>
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: "white",
+              borderRadius: "var(--radius-lg)",
+              padding: "var(--spacing-xl)",
+              width: "90%",
+              maxWidth: "800px",
+              maxHeight: "90vh",
+              overflowY: "auto",
+              boxShadow: "var(--shadow-lg)",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "var(--spacing-lg)",
+              }}
+            >
+              <h2
+                style={{
+                  color: "var(--color-primary)",
+                  margin: 0,
+                }}
+              >
+                User Reviews
+              </h2>
               <button
                 onClick={() => setShowReviewsModal(false)}
                 style={{
-                  background: 'transparent',
-                  border: 'none',
-                  fontSize: '1.5rem',
-                  cursor: 'pointer',
-                  padding: '4px',
-                  lineHeight: 1
+                  background: "transparent",
+                  border: "none",
+                  fontSize: "1.5rem",
+                  cursor: "pointer",
+                  padding: "4px",
+                  lineHeight: 1,
+                  color: "black",
                 }}
                 aria-label="Close reviews modal"
               >
                 ×
               </button>
             </div>
-            
-            {ratings.filter(r => r.reviewText && r.reviewText.trim() !== "").length === 0 ? (
+
+            {ratings.filter((r) => r.reviewText && r.reviewText.trim() !== "")
+              .length === 0 ? (
               <p style={{ color: "var(--color-text-light)" }}>
-                No reviews yet. Be the first to review this {movie.type || "title"}!
+                No reviews yet. Be the first to review this{" "}
+                {movie.type || "title"}!
               </p>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-lg)' }}>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "var(--spacing-lg)",
+                }}
+              >
                 {ratings
-                  .filter(r => r.reviewText && r.reviewText.trim() !== "")
-                  .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+                  .filter((r) => r.reviewText && r.reviewText.trim() !== "")
+                  .sort(
+                    (a, b) =>
+                      new Date(b.timestamp).getTime() -
+                      new Date(a.timestamp).getTime()
+                  )
                   .map((rating, index) => (
                     <div
                       key={`${rating.userId}-${index}`}
                       style={{
                         padding: "var(--spacing-lg)",
-                        backgroundColor: "var(--color-background-light, #f8f8f8)",
+                        backgroundColor:
+                          "var(--color-background-light, #f8f8f8)",
                         borderRadius: "var(--radius-md)",
                         border: "1px solid var(--color-border)",
                       }}
@@ -510,13 +544,16 @@ const MovieDetailsPage = () => {
                           }}
                         >
                           {[1, 2, 3, 4, 5].map((star) => (
-                            <span 
-                              key={star} 
-                              style={{ 
-                                color: rating.ratingValue >= star ? "gold" : "#d1d1d1",
+                            <span
+                              key={star}
+                              style={{
+                                color:
+                                  rating.ratingValue >= star
+                                    ? "gold"
+                                    : "#d1d1d1",
                                 fontSize: "1.4rem",
                                 fontWeight: "bold",
-                                lineHeight: 1
+                                lineHeight: 1,
                               }}
                             >
                               ★
@@ -524,11 +561,16 @@ const MovieDetailsPage = () => {
                           ))}
                         </div>
                         <div style={{ flex: 1 }}></div>
-                        <div style={{ color: "var(--color-text-light)", fontSize: "0.9rem" }}>
+                        <div
+                          style={{
+                            color: "var(--color-text-light)",
+                            fontSize: "0.9rem",
+                          }}
+                        >
                           {new Date(rating.timestamp).toLocaleDateString()}
                         </div>
                       </div>
-                      
+
                       <div
                         style={{
                           display: "flex",
@@ -583,71 +625,83 @@ const MovieDetailsPage = () => {
           </div>
         </div>
       )}
-      
+
       {/* Thank You Modal */}
       {showThankYouModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{
-            backgroundColor: 'white',
-            borderRadius: 'var(--radius-lg)',
-            padding: 'var(--spacing-xl)',
-            width: '90%',
-            maxWidth: '500px',
-            boxShadow: 'var(--shadow-lg)',
-            textAlign: 'center'
-          }}>
-            <h2 style={{ 
-              color: 'var(--color-primary)',
-              marginTop: 0
-            }}>Thanks for your review!</h2>
-            <p style={{ 
-              fontSize: '1.1rem', 
-              margin: 'var(--spacing-lg) 0' 
-            }}>
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: "white",
+              borderRadius: "var(--radius-lg)",
+              padding: "var(--spacing-xl)",
+              width: "90%",
+              maxWidth: "500px",
+              boxShadow: "var(--shadow-lg)",
+              textAlign: "center",
+            }}
+          >
+            <h2
+              style={{
+                color: "var(--color-primary)",
+                marginTop: 0,
+              }}
+            >
+              Thanks for your review!
+            </h2>
+            <p
+              style={{
+                fontSize: "1.1rem",
+                margin: "var(--spacing-lg) 0",
+              }}
+            >
               Your feedback helps our community discover great content.
             </p>
-            <div style={{ 
-              display: 'flex', 
-              justifyContent: 'center',
-              gap: 'var(--spacing-md)',
-              marginTop: 'var(--spacing-xl)',
-              flexWrap: 'wrap'
-            }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                gap: "var(--spacing-md)",
+                marginTop: "var(--spacing-xl)",
+                flexWrap: "wrap",
+              }}
+            >
               <button
                 onClick={() => setShowThankYouModal(false)}
                 style={{
-                  padding: 'var(--spacing-sm) var(--spacing-lg)',
-                  backgroundColor: 'var(--color-secondary)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: 'var(--radius-md)',
+                  padding: "var(--spacing-sm) var(--spacing-lg)",
+                  backgroundColor: "var(--color-secondary)",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "var(--radius-md)",
                   fontWeight: 500,
-                  cursor: 'pointer'
+                  cursor: "pointer",
                 }}
               >
                 Back to Movie
               </button>
               <button
-                onClick={() => navigate('/')}
+                onClick={() => navigate("/")}
                 style={{
-                  padding: 'var(--spacing-sm) var(--spacing-lg)',
-                  backgroundColor: 'var(--color-primary)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: 'var(--radius-md)',
+                  padding: "var(--spacing-sm) var(--spacing-lg)",
+                  backgroundColor: "var(--color-primary)",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "var(--radius-md)",
                   fontWeight: 500,
-                  cursor: 'pointer'
+                  cursor: "pointer",
                 }}
               >
                 Go to Home Page
@@ -794,13 +848,17 @@ const MovieDetailsPage = () => {
                         borderRadius: "50%",
                         background: "transparent",
                         color: userRating >= rating ? "gold" : "#d1d1d1",
-                        cursor: (!user || (ratingSubmitted && !isEditing)) ? "not-allowed" : "pointer",
+                        cursor:
+                          !user || (ratingSubmitted && !isEditing)
+                            ? "not-allowed"
+                            : "pointer",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
                         fontSize: "36px",
                         fontWeight: "bold",
-                        opacity: (!user || (ratingSubmitted && !isEditing)) ? 0.6 : 1,
+                        opacity:
+                          !user || (ratingSubmitted && !isEditing) ? 0.6 : 1,
                         transition: "all var(--transition-normal)",
                       }}
                       disabled={!user || (ratingSubmitted && !isEditing)}
@@ -817,7 +875,7 @@ const MovieDetailsPage = () => {
                   </p>
                 )}
               </div>
-              
+
               {/* Write a review button */}
               <div style={{ margin: "var(--spacing-lg) 0" }}>
                 <button
@@ -841,43 +899,62 @@ const MovieDetailsPage = () => {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    gap: "var(--spacing-sm)"
+                    gap: "var(--spacing-sm)",
                   }}
                 >
                   <span style={{ fontSize: "1.2rem" }}>✏️</span>
                   {ratingSubmitted ? "Edit your review" : "Write a review"}
                 </button>
-                
+
                 {ratingSubmitted && (
-                  <div style={{
-                    marginTop: "var(--spacing-sm)",
-                    textAlign: "center",
-                    color: "var(--color-success, green)",
-                    fontSize: "0.9rem",
-                    fontWeight: 500
-                  }}>
+                  <div
+                    style={{
+                      marginTop: "var(--spacing-sm)",
+                      textAlign: "center",
+                      color: "var(--color-success, green)",
+                      fontSize: "0.9rem",
+                      fontWeight: 500,
+                    }}
+                  >
                     <span>✓</span> You've reviewed this {movie.type || "title"}
                   </div>
                 )}
               </div>
-              
+
               {/* User Reviews section with header and compact layout */}
               <div style={{ margin: "var(--spacing-md) 0" }}>
-                <div style={{ 
-                  display: "flex", 
-                  flexDirection: "column",
-                  gap: "var(--spacing-sm)",
-                  backgroundColor: "var(--color-background)",
-                  borderRadius: "var(--radius-md)",
-                  border: "1px solid var(--color-border)",
-                  padding: "var(--spacing-md)",
-                  marginBottom: "var(--spacing-sm)"
-                }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <h3 style={{ color: "var(--color-text)", fontWeight: 600, margin: 0, fontSize: "1.1rem" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "var(--spacing-sm)",
+                    backgroundColor: "var(--color-background)",
+                    borderRadius: "var(--radius-md)",
+                    border: "1px solid var(--color-border)",
+                    padding: "var(--spacing-md)",
+                    marginBottom: "var(--spacing-sm)",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
+                    <h3
+                      style={{
+                        color: "var(--color-text)",
+                        fontWeight: 600,
+                        margin: 0,
+                        fontSize: "1.1rem",
+                      }}
+                    >
                       User Reviews
                     </h3>
-                    {ratings.filter(r => r.reviewText && r.reviewText.trim() !== "").length > 0 && (
+                    {ratings.filter(
+                      (r) => r.reviewText && r.reviewText.trim() !== ""
+                    ).length > 0 && (
                       <button
                         onClick={() => setShowReviewsModal(true)}
                         style={{
@@ -888,7 +965,7 @@ const MovieDetailsPage = () => {
                           padding: "4px 10px",
                           cursor: "pointer",
                           fontWeight: 500,
-                          fontSize: "0.9rem"
+                          fontSize: "0.9rem",
                         }}
                       >
                         View All
@@ -896,44 +973,77 @@ const MovieDetailsPage = () => {
                     )}
                   </div>
 
-                  {ratings.filter(r => r.reviewText && r.reviewText.trim() !== "").length === 0 ? (
+                  {ratings.filter(
+                    (r) => r.reviewText && r.reviewText.trim() !== ""
+                  ).length === 0 ? (
                     <div style={{ color: "var(--color-text-light)" }}>
                       No reviews yet. Be the first to review!
                     </div>
                   ) : (
-                    <div style={{ display: "flex", alignItems: "center", gap: "var(--spacing-md)" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "var(--spacing-md)",
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "4px",
+                        }}
+                      >
                         {[1, 2, 3, 4, 5].map((star) => (
-                          <span 
-                            key={star} 
-                            style={{ 
+                          <span
+                            key={star}
+                            style={{
                               color: averageRating >= star ? "gold" : "#d1d1d1",
                               fontSize: "1.1rem",
-                              lineHeight: 1
+                              lineHeight: 1,
                             }}
                           >
                             ★
                           </span>
                         ))}
-                        <span style={{ fontSize: "0.9rem", color: "var(--color-text)", marginLeft: "2px" }}>
+                        <span
+                          style={{
+                            fontSize: "0.9rem",
+                            color: "var(--color-text)",
+                            marginLeft: "2px",
+                          }}
+                        >
                           ({averageRating.toFixed(1)})
                         </span>
                       </div>
                       <span style={{ fontSize: "0.9rem" }}>
                         <span style={{ fontWeight: 600 }}>
-                          {ratings.filter(r => r.reviewText && r.reviewText.trim() !== "").length}
-                        </span> {ratings.filter(r => r.reviewText && r.reviewText.trim() !== "").length === 1 ? "review" : "reviews"}
+                          {
+                            ratings.filter(
+                              (r) => r.reviewText && r.reviewText.trim() !== ""
+                            ).length
+                          }
+                        </span>{" "}
+                        {ratings.filter(
+                          (r) => r.reviewText && r.reviewText.trim() !== ""
+                        ).length === 1
+                          ? "review"
+                          : "reviews"}
                       </span>
                     </div>
                   )}
                 </div>
-                
-                {ratings.filter(r => r.reviewText && r.reviewText.trim() !== "").length > 0 && (
+
+                {ratings.filter(
+                  (r) => r.reviewText && r.reviewText.trim() !== ""
+                ).length > 0 && (
                   <div style={{ marginBottom: "var(--spacing-md)" }}>
-                    <ReviewSummary 
+                    <ReviewSummary
                       reviews={ratings
-                        .filter(r => r.reviewText && r.reviewText.trim() !== "")
-                        .map(r => r.reviewText || "")}
+                        .filter(
+                          (r) => r.reviewText && r.reviewText.trim() !== ""
+                        )
+                        .map((r) => r.reviewText || "")}
                       title={movie.title}
                       isLoading={loading}
                     />
@@ -957,104 +1067,149 @@ const MovieDetailsPage = () => {
 
               <div style={{ margin: "var(--spacing-md) 0" }}>
                 {/* All ratings grouped together */}
-                <div style={{ 
-                  backgroundColor: 'var(--color-background)',
-                  padding: 'var(--spacing-md)',
-                  borderRadius: 'var(--radius-md)',
-                  border: '1px solid var(--color-border)',
-                  marginBottom: 'var(--spacing-md)'
-                }}>
-                  <h3 style={{ 
-                    color: 'var(--color-text)', 
-                    fontWeight: 600, 
-                    fontSize: '1.1rem',
-                    marginTop: 0,
-                    marginBottom: 'var(--spacing-md)'
-                  }}>
+                <div
+                  style={{
+                    backgroundColor: "var(--color-background)",
+                    padding: "var(--spacing-md)",
+                    borderRadius: "var(--radius-md)",
+                    border: "1px solid var(--color-border)",
+                    marginBottom: "var(--spacing-md)",
+                  }}
+                >
+                  <h3
+                    style={{
+                      color: "var(--color-text)",
+                      fontWeight: 600,
+                      fontSize: "1.1rem",
+                      marginTop: 0,
+                      marginBottom: "var(--spacing-md)",
+                    }}
+                  >
                     Ratings
                   </h3>
-                  
-                  <div style={{ display: "flex", flexDirection: "column", gap: "var(--spacing-md)" }}>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "var(--spacing-md)",
+                    }}
+                  >
                     {/* Our site ratings with label */}
-                    <div style={{ 
-                      display: "flex", 
-                      alignItems: "center", 
-                      flexWrap: "wrap", 
-                      gap: "var(--spacing-md)"
-                    }}>
-                      <div style={{ minWidth: "100px", fontWeight: "500", color: "var(--color-text-light)" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        flexWrap: "wrap",
+                        gap: "var(--spacing-md)",
+                      }}
+                    >
+                      <div
+                        style={{
+                          minWidth: "100px",
+                          fontWeight: "500",
+                          color: "var(--color-text-light)",
+                        }}
+                      >
                         Site Rating:
                       </div>
-                      <div style={{ 
-                        display: "flex", 
-                        alignItems: "center", 
-                        gap: "var(--spacing-md)"
-                      }}>
-                        <div style={{
-                          backgroundColor: "transparent",
-                          color: "var(--color-text)",
-                          fontWeight: "bold",
-                          padding: "6px 12px",
-                          borderRadius: "var(--radius-md)",
-                          fontSize: "1.1rem",
+                      <div
+                        style={{
                           display: "flex",
                           alignItems: "center",
-                          gap: "8px",
-                        }}>
+                          gap: "var(--spacing-md)",
+                        }}
+                      >
+                        <div
+                          style={{
+                            backgroundColor: "transparent",
+                            color: "var(--color-text)",
+                            fontWeight: "bold",
+                            padding: "6px 12px",
+                            borderRadius: "var(--radius-md)",
+                            fontSize: "1.1rem",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                          }}
+                        >
                           {/* Show average rating as stars */}
                           {[1, 2, 3, 4, 5].map((star) => (
-                            <span 
-                              key={star} 
-                              style={{ 
-                                color: averageRating >= star ? "gold" : "#d1d1d1",
+                            <span
+                              key={star}
+                              style={{
+                                color:
+                                  averageRating >= star ? "gold" : "#d1d1d1",
                                 fontSize: "1.6rem",
                                 fontWeight: "bold",
-                                lineHeight: 1
+                                lineHeight: 1,
                               }}
                             >
                               ★
                             </span>
                           ))}
-                          <span style={{ fontSize: "0.9rem", color: "var(--color-text)" }}>
+                          <span
+                            style={{
+                              fontSize: "0.9rem",
+                              color: "var(--color-text)",
+                            }}
+                          >
                             ({averageRating.toFixed(1)})
                           </span>
                         </div>
                         <span style={{ color: "var(--color-text-light)" }}>
-                          {ratings.length} {ratings.length === 1 ? "rating" : "ratings"}
+                          {ratings.length}{" "}
+                          {ratings.length === 1 ? "rating" : "ratings"}
                         </span>
                       </div>
                     </div>
-                    
+
                     {/* External ratings with label */}
-                    <div style={{ 
-                      display: "flex", 
-                      alignItems: "center", 
-                      flexWrap: "wrap", 
-                      gap: "var(--spacing-md)"
-                    }}>
-                      <div style={{ minWidth: "100px", fontWeight: "500", color: "var(--color-text-light)" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        flexWrap: "wrap",
+                        gap: "var(--spacing-md)",
+                      }}
+                    >
+                      <div
+                        style={{
+                          minWidth: "100px",
+                          fontWeight: "500",
+                          color: "var(--color-text-light)",
+                        }}
+                      >
                         External:
                       </div>
-                      <ExternalRatings 
+                      <ExternalRatings
                         title={movie.title}
                         year={movie.releaseYear}
                         isTV={movie.type === "TV Show"}
                         compact={true}
                       />
                     </div>
-                    
+
                     {/* Where to Watch with label */}
-                    <div style={{ 
-                      display: "flex", 
-                      alignItems: "flex-start", 
-                      flexWrap: "wrap", 
-                      gap: "var(--spacing-md)"
-                    }}>
-                      <div style={{ minWidth: "100px", fontWeight: "500", color: "var(--color-text-light)" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "flex-start",
+                        flexWrap: "wrap",
+                        gap: "var(--spacing-md)",
+                      }}
+                    >
+                      <div
+                        style={{
+                          minWidth: "100px",
+                          fontWeight: "500",
+                          color: "var(--color-text-light)",
+                        }}
+                      >
                         Watch On:
                       </div>
                       <div style={{ flex: 1 }}>
-                        <WhereToWatch 
+                        <WhereToWatch
                           title={movie.title}
                           year={movie.releaseYear}
                           isTV={movie.type === "TV Show"}
@@ -1065,10 +1220,10 @@ const MovieDetailsPage = () => {
                   </div>
                 </div>
               </div>
-              
+
               {/* Movie Trailer */}
               <div style={{ margin: "var(--spacing-md) 0" }}>
-                <MovieTrailer 
+                <MovieTrailer
                   title={movie.title}
                   year={movie.releaseYear}
                   isTV={movie.type === "TV Show"}
@@ -1089,35 +1244,52 @@ const MovieDetailsPage = () => {
                   borderRadius: "var(--radius-md)",
                 }}
               >
-                <h3 style={{ 
-                  margin: 0, 
-                  marginBottom: "var(--spacing-sm)",
-                  color: "var(--color-primary)",
-                  fontSize: "1.2rem",
-                  fontWeight: 600,
-                  borderBottom: "1px solid var(--color-border)",
-                  paddingBottom: "var(--spacing-sm)"
-                }}>
+                <h3
+                  style={{
+                    margin: 0,
+                    marginBottom: "var(--spacing-sm)",
+                    color: "var(--color-primary)",
+                    fontSize: "1.2rem",
+                    fontWeight: 600,
+                    borderBottom: "1px solid var(--color-border)",
+                    paddingBottom: "var(--spacing-sm)",
+                  }}
+                >
                   Movie Details
                 </h3>
-                
-                <div style={{ 
-                  display: "grid", 
-                  gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", 
-                  gap: "var(--spacing-md)"
-                }}>
+
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns:
+                      "repeat(auto-fill, minmax(200px, 1fr))",
+                    gap: "var(--spacing-md)",
+                  }}
+                >
                   <div>
-                    <p style={{ margin: 0, fontWeight: 600, color: "var(--color-text-light)" }}>
+                    <p
+                      style={{
+                        margin: 0,
+                        fontWeight: 600,
+                        color: "var(--color-text-light)",
+                      }}
+                    >
                       Year
                     </p>
                     <p style={{ margin: 0, fontSize: "1.1rem" }}>
                       {movie.releaseYear || "Unknown"}
                     </p>
                   </div>
-                  
+
                   {movie.duration && (
                     <div>
-                      <p style={{ margin: 0, fontWeight: 600, color: "var(--color-text-light)" }}>
+                      <p
+                        style={{
+                          margin: 0,
+                          fontWeight: 600,
+                          color: "var(--color-text-light)",
+                        }}
+                      >
                         Duration
                       </p>
                       <p style={{ margin: 0, fontSize: "1.1rem" }}>
@@ -1125,10 +1297,16 @@ const MovieDetailsPage = () => {
                       </p>
                     </div>
                   )}
-                  
+
                   {movie.rating && (
                     <div>
-                      <p style={{ margin: 0, fontWeight: 600, color: "var(--color-text-light)" }}>
+                      <p
+                        style={{
+                          margin: 0,
+                          fontWeight: 600,
+                          color: "var(--color-text-light)",
+                        }}
+                      >
                         Content Rating
                       </p>
                       <p style={{ margin: 0, fontSize: "1.1rem" }}>
@@ -1136,10 +1314,16 @@ const MovieDetailsPage = () => {
                       </p>
                     </div>
                   )}
-                  
+
                   {movie.country && (
                     <div>
-                      <p style={{ margin: 0, fontWeight: 600, color: "var(--color-text-light)" }}>
+                      <p
+                        style={{
+                          margin: 0,
+                          fontWeight: 600,
+                          color: "var(--color-text-light)",
+                        }}
+                      >
                         Country
                       </p>
                       <p style={{ margin: 0, fontSize: "1.1rem" }}>
@@ -1147,16 +1331,29 @@ const MovieDetailsPage = () => {
                       </p>
                     </div>
                   )}
-                  
+
                   {/* Show ID removed as requested */}
                 </div>
-                
+
                 {/* Display genres as tags */}
                 <div style={{ marginTop: "var(--spacing-md)" }}>
-                  <p style={{ margin: 0, fontWeight: 600, color: "var(--color-text-light)", marginBottom: "var(--spacing-sm)" }}>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontWeight: 600,
+                      color: "var(--color-text-light)",
+                      marginBottom: "var(--spacing-sm)",
+                    }}
+                  >
                     Genres
                   </p>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--spacing-sm)" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexWrap: "wrap",
+                      gap: "var(--spacing-sm)",
+                    }}
+                  >
                     {renderGenres(movie)}
                   </div>
                 </div>
@@ -1181,20 +1378,20 @@ const MovieDetailsPage = () => {
 
               {/* Cast and Crew from TMDB with images - with reduced margin */}
               <div style={{ margin: "var(--spacing-md) 0" }}>
-                <CastCrewScroller 
+                <CastCrewScroller
                   title={movie.title}
                   year={movie.releaseYear}
                   isTV={movie.type === "TV Show"}
                   maxCastMembers={15}
                 />
               </div>
-              
+
               {/* Rating functionality removed from here (now shown in the left column) */}
             </div>
           </div>
         </div>
       </div>
-      
+
       {/* ReviewModal for adding/editing ratings */}
       <ReviewModal
         isOpen={showReviewModal}
@@ -1209,7 +1406,7 @@ const MovieDetailsPage = () => {
           if (id) {
             const ratingsResponse = await ratingApi.getByMovie(id);
             setRatings(ratingsResponse.data);
-            
+
             // Find user's updated rating
             if (user) {
               let userRatingObj = null;
@@ -1232,7 +1429,7 @@ const MovieDetailsPage = () => {
                 setRatingSubmitted(true);
               }
             }
-            
+
             // Show thank you message
             setShowThankYouModal(true);
           }
@@ -1241,17 +1438,21 @@ const MovieDetailsPage = () => {
 
       {/* Top Suggestions / Recommended Movies section with clearer title */}
       <div className="card" style={{ marginBottom: "1.0rem" }}>
-        <h3 style={{ 
-          color: "var(--color-primary)", 
-          fontWeight: 600, 
-          margin: "var(--spacing-md) 0",
-          paddingLeft: "var(--spacing-lg)",
-        }}>
+        <h3
+          style={{
+            color: "var(--color-primary)",
+            fontWeight: 600,
+            margin: "var(--spacing-md) 0",
+            paddingLeft: "var(--spacing-lg)",
+          }}
+        >
           Top Suggestions
         </h3>
-        <div style={{
-          paddingBottom: "var(--spacing-xl)",
-        }}>
+        <div
+          style={{
+            paddingBottom: "var(--spacing-xl)",
+          }}
+        >
           <RecommendedMovies showId={currentShowId} />
         </div>
       </div>
