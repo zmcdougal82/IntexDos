@@ -241,14 +241,21 @@ const PrivacyPage: React.FC = () => {
             The data controller responsible for the processing of your personal
             data under this Privacy Policy is:
           </p>
-          <p>
-            CineNiche Media Ltd. 850 Streamline St., Suite 200 Los Angeles, CA
-            90028 United States
-          </p>
+          <address
+            style={{ lineHeight: "1.6", fontStyle: "normal", margin: "1rem 0" }}
+          >
+            <strong>CineNiche Media Ltd.</strong>
+            <br />
+            850 Streamline St., Suite 200
+            <br />
+            Los Angeles, CA 90028
+            <br />
+            United States
+          </address>
           <p>
             If you have any questions about how your data is handled or would
             like to exercise your data protection rights, please contact us at:
-            privacy@cineniche.com
+            <b>privacy@cineniche.com</b>
           </p>
         </section>
       </div>
