@@ -380,16 +380,24 @@ const AdminMoviesPage: React.FC = () => {
     }
   };
 
-  const handleDeleteMovie = async (movieId: string) => {
-    if (!confirm(`Are you sure you want to delete movie ID: ${movieId}?`)) {
+  const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
+    // More descriptive confirmation message with movie title
+    if (!confirm(`Are you sure you want to delete "${movieTitle}" (ID: ${movieId})? This action cannot be undone.`)) {
       return;
     }
     
     try {
       setLoading(true);
       
+      console.log(`Deleting movie: ${movieTitle} (ID: ${movieId})`);
+      
       // Use the API to delete the movie
       await movieApi.deleteMovie(movieId);
+      
+      console.log(`Successfully deleted movie: ${movieTitle}`);
+      
+      // Show success notification
+      alert(`Movie "${movieTitle}" has been successfully deleted.`);
       
       // Refresh the movie list
       const response = await movieApi.getAll(currentPage, pageSize);
@@ -397,7 +405,10 @@ const AdminMoviesPage: React.FC = () => {
       
     } catch (err) {
       console.error('Error deleting movie:', err);
-      setError('Failed to delete movie. Please try again.');
+      // Show more specific error message
+      setError(`Failed to delete movie "${movieTitle}". Server returned an error. Please try again.`);
+      // Also show an alert for immediate feedback
+      alert(`Error: Failed to delete movie "${movieTitle}". Please try again.`);
     } finally {
       setLoading(false);
     }
@@ -439,62 +450,65 @@ const AdminMoviesPage: React.FC = () => {
     InternationalMoviesThrillers: "International Thriller"
   };
   
-  // ULTRA-SIMPLIFIED genre detection with fallbacks for TV shows
+  // Improved genre detection with deduplication to prevent duplicate genres
   const getAllGenres = (data: MovieFormData): string[] => {
-    console.log("ULTRA-SIMPLIFIED GENRE DETECTION");
+    console.log("IMPROVED GENRE DETECTION WITH DEDUPLICATION");
     console.log("Content type:", data.type);
     
-    const genres: string[] = [];
+    // Use a Set to automatically deduplicate genres
+    const genreSet = new Set<string>();
     
-    // First, attempt to find genres with value 1
+    // Track which keys we've already processed to avoid duplicates from different methods
+    const processedKeys = new Set<string>();
+    
+    // Method 1: Direct property matching
     for (const key in genreMapping) {
       if ((data as any)[key] === 1) {
         console.log(`Found active genre ${key} with value 1`);
-        genres.push(genreMapping[key]);
+        genreSet.add(genreMapping[key]);
+        processedKeys.add(key.toLowerCase());
       }
     }
     
-    // If no genres found and it's a TV Show, use special fallback logic
-    if (genres.length === 0 && data.type === 'TV Show') {
-      console.log("NO GENRES FOUND FOR TV SHOW - USING FALLBACK LOGIC");
+    // Method 2: Lowercase property matching (only for keys not already found)
+    const lowercaseKeyMap: {[key: string]: string} = {};
+    Object.keys(genreMapping).forEach(key => {
+      lowercaseKeyMap[key.toLowerCase()] = key;
+    });
+    
+    Object.keys(data).forEach(dataKey => {
+      const dataKeyLower = dataKey.toLowerCase();
       
-      // Assign a default TV genre based on the type
-      if (data.title) {
-        const title = data.title.toLowerCase();
-        if (title.includes("comedy") || title.includes("funny")) {
-          genres.push("TV Comedy");
-          console.log("Title suggests Comedy. Using TV Comedy as fallback.");
-        } else if (title.includes("drama") || title.includes("story")) {
-          genres.push("TV Drama");
-          console.log("Title suggests Drama. Using TV Drama as fallback.");
-        } else if (title.includes("documentary") || title.includes("true")) {
-          genres.push("Docuseries");
-          console.log("Title suggests Documentary. Using Docuseries as fallback.");
-        } else if (title.includes("kids") || title.includes("children")) {
-          genres.push("Kids TV");
-          console.log("Title suggests Kids content. Using Kids TV as fallback.");
-        } else {
-          // If all else fails, just set a generic TV genre
-          genres.push("TV Drama");
-          console.log("No genre hints in title. Using generic TV Drama as fallback.");
-        }
-      } else {
-        genres.push("TV Drama");
-        console.log("No title available. Using generic TV Drama as fallback.");
+      // Only process if we haven't already found this genre AND it's a valid genre with value 1
+      if (!processedKeys.has(dataKeyLower) && 
+          lowercaseKeyMap[dataKeyLower] && 
+          (data as any)[dataKey] === 1) {
+        
+        const originalKey = lowercaseKeyMap[dataKeyLower];
+        console.log(`Found unique genre via lowercase match: ${dataKey} -> ${originalKey}`);
+        genreSet.add(genreMapping[originalKey]);
+        processedKeys.add(dataKeyLower);
+      }
+    });
+    
+    // If no genres found after all detection methods, use fallbacks as last resort
+    if (genreSet.size === 0) {
+      // For TV Shows
+      if (data.type === 'TV Show') {
+        console.log("NO GENRES FOUND FOR TV SHOW - USING FALLBACK LOGIC");
+        genreSet.add("TV Drama");
+      } 
+      // For Movies
+      else if (!data.type || data.type === 'Movie') {
+        console.log("NO GENRES FOUND FOR MOVIE - USING FALLBACK LOGIC");
+        genreSet.add("Drama");
       }
     }
     
-    // Similarly, if no genres found for a Movie, use fallback logic
-    if (genres.length === 0 && (!data.type || data.type === 'Movie')) {
-      console.log("NO GENRES FOUND FOR MOVIE - USING FALLBACK LOGIC");
-      
-      // Default to Drama if we can't detect anything else
-      genres.push("Drama");
-      console.log("Using Drama as fallback for movie.");
-    }
-    
-    console.log("Final genres:", genres);
-    return genres;
+    // Convert Set back to array for return
+    const uniqueGenres = Array.from(genreSet);
+    console.log("Final unique genres:", uniqueGenres);
+    return uniqueGenres;
   };
   
   // Function to get the selected genre from form data (for backward compatibility)
@@ -987,6 +1001,9 @@ const AdminMoviesPage: React.FC = () => {
                       <th style={tableHeaderStyle}>Title</th>
                       <th style={tableHeaderStyle}>Type</th>
                       <th style={tableHeaderStyle}>Year</th>
+                      <th style={tableHeaderStyle}>Genre</th>
+                      <th style={tableHeaderStyle}>Director</th>
+                      <th style={tableHeaderStyle}>Cast</th>
                       <th style={tableHeaderStyle}>Actions</th>
                     </tr>
                   </thead>
@@ -1004,6 +1021,27 @@ const AdminMoviesPage: React.FC = () => {
                         <td style={tableCellStyle}>{movie.title}</td>
                         <td style={tableCellStyle}>{movie.type || 'Unknown'}</td>
                         <td style={tableCellStyle}>{movie.releaseYear || 'Unknown'}</td>
+                        {/* Genre column - displays all genres separated by commas */}
+                        <td style={tableCellStyle}>
+                          {(() => {
+                            // Get all genres using our detection function
+                            const genres = getAllGenres(movie);
+                            
+                            // If no genres, show "Not specified"
+                            if (genres.length === 0) return 'Not specified';
+                            
+                            // Always join all genres with commas for consistent display
+                            return genres.join(', ');
+                          })()}
+                        </td>
+                        {/* Director column with truncation for long values */}
+                        <td style={{...tableCellStyle, maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>
+                          {movie.director || 'Not specified'}
+                        </td>
+                        {/* Cast column with truncation for long values */}
+                        <td style={{...tableCellStyle, maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>
+                          {movie.cast || 'Not specified'}
+                        </td>
                         <td style={tableCellStyle}>
                           <div style={{ display: 'flex', gap: 'var(--spacing-xs)' }}>
                             <button
@@ -1021,7 +1059,7 @@ const AdminMoviesPage: React.FC = () => {
                               Edit
                             </button>
                             <button
-                              onClick={() => handleDeleteMovie(movie.showId)}
+                              onClick={() => handleDeleteMovie(movie.showId, movie.title)}
                               style={{
                                 padding: 'var(--spacing-xs) var(--spacing-sm)',
                                 backgroundColor: 'var(--color-error)',
