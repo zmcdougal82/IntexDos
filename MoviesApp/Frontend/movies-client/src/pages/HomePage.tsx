@@ -205,7 +205,7 @@ const HomePage = () => {
             border: 'none',
             marginTop: '5px',
             marginBottom: '20px',
-            height: '55vh',
+            height: '60vh',
           }}
         />
       </div>
