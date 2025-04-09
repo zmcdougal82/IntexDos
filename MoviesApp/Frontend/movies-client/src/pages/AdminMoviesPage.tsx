@@ -1292,14 +1292,14 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
               )}
             </div>
           )}
-      
+
           {/* Pagination Controls */}
           <div style={{ 
             display: 'flex', 
             justifyContent: 'center', 
             margin: 'var(--spacing-lg) 0 var(--spacing-sm) 0',
             flexWrap: 'wrap',
-            gap: 'var(--spacing-xs)'
+            gap: 'var(--spacing-xs)',
           }}>
             <button
               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
@@ -1311,30 +1311,53 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
                 border: `1px solid ${currentPage === 1 ? 'var(--color-border)' : 'var(--color-primary)'}`,
                 borderRadius: 'var(--radius-md)',
                 cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
-                opacity: currentPage === 1 ? 0.7 : 1
+                opacity: currentPage === 1 ? 0.7 : 1,
               }}
             >
               &larr; Previous
             </button>
-            
-            {pageNumbers.map(number => (
-              <button
-                key={number}
-                onClick={() => setCurrentPage(number)}
-                style={{
-                  padding: 'var(--spacing-xs) var(--spacing-md)',
-                  backgroundColor: currentPage === number ? 'var(--color-primary)' : 'var(--color-background)',
-                  color: currentPage === number ? 'white' : 'var(--color-text)',
-                  border: `1px solid ${currentPage === number ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                  borderRadius: 'var(--radius-md)',
-                  cursor: 'pointer',
-                  minWidth: '40px'
-                }}
-              >
-                {number}
-              </button>
-            ))}
-            
+
+            {/* Generate page numbers based on current page */}
+            {(() => {
+              const pageNumbersToShow = [];
+              const range = 2; // Number of pages to show before and after the current page
+
+              // Calculate start and end page numbers to show
+              let startPage = Math.max(currentPage - range, 1);
+              let endPage = Math.min(currentPage + range, totalPages);
+
+              // Adjust to make sure there's enough pages before and after
+              if (currentPage - startPage < range) {
+                endPage = Math.min(endPage + (range - (currentPage - startPage)), totalPages);
+              }
+              if (endPage - currentPage < range) {
+                startPage = Math.max(startPage - (range - (endPage - currentPage)), 1);
+              }
+
+              // Add page numbers to the list
+              for (let i = startPage; i <= endPage; i++) {
+                pageNumbersToShow.push(i);
+              }
+
+              return pageNumbersToShow.map(number => (
+                <button
+                  key={number}
+                  onClick={() => setCurrentPage(number)}
+                  style={{
+                    padding: 'var(--spacing-xs) var(--spacing-md)',
+                    backgroundColor: currentPage === number ? 'var(--color-primary)' : 'var(--color-background)',
+                    color: currentPage === number ? 'white' : 'var(--color-text)',
+                    border: `1px solid ${currentPage === number ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                    borderRadius: 'var(--radius-md)',
+                    cursor: 'pointer',
+                    minWidth: '40px',
+                  }}
+                >
+                  {number}
+                </button>
+              ));
+            })()}
+
             <button
               onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages || totalPages === 0}
@@ -1345,13 +1368,13 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
                 border: `1px solid ${currentPage === totalPages || totalPages === 0 ? 'var(--color-border)' : 'var(--color-primary)'}`,
                 borderRadius: 'var(--radius-md)',
                 cursor: currentPage === totalPages || totalPages === 0 ? 'not-allowed' : 'pointer',
-                opacity: currentPage === totalPages || totalPages === 0 ? 0.7 : 1
+                opacity: currentPage === totalPages || totalPages === 0 ? 0.7 : 1,
               }}
             >
               Next &rarr;
             </button>
           </div>
-          
+
           <div className="text-center" style={{ color: 'var(--color-text-light)', fontSize: '0.875rem' }}>
             Showing page {currentPage} of {totalPages || 1}
           </div>
