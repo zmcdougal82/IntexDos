@@ -188,13 +188,15 @@ const HomePage = () => {
 
   return (
     <div className="container">
-
-      <div className="container" style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}>
+      <div
+        className="container"
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
         <iframe
           src="/scrolling.html"
           width="1585"
@@ -202,10 +204,10 @@ const HomePage = () => {
           title="Movies Scrolling Home"
           scrolling="no"
           style={{
-            border: 'none',
-            marginTop: '5px',
-            marginBottom: '20px',
-            height: '60vh',
+            border: "none",
+            marginTop: "5px",
+            marginBottom: "20px",
+            height: "60vh",
           }}
         />
       </div>
@@ -213,29 +215,16 @@ const HomePage = () => {
       <div className="mt-4">
         {!user && (
           <>
-            {/* Register / Login CTA */}
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              // height: '100vh',
-              textAlign: 'center',
-            }}>
-              <h1
-                style={{
-                  fontSize: "2.8rem",
-                  fontWeight: 700,
-                  color: "var(--color-primary)",
-                  textAlign: "center",
-                  marginBottom: "var(--spacing-lg)",
-                }}
-              >
-                Welcome to CineNiche!
-              </h1>
-
-              
-        
+            {/* Register / Login CTA + Company Introduction */}
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                textAlign: "center",
+              }}
+            >
               <p>
                 Sign up or log in to start discovering personalized movie and TV
                 show recommendations tailored just for you!
@@ -278,30 +267,36 @@ const HomePage = () => {
                   Register
                 </button>
               </div>
+
+              {/* Company Introduction */}
+              <div
+                style={{
+                  textAlign: "center",
+                  marginBottom: "2rem",
+                  marginTop: "3rem",
+                }}
+              >
+                <h3
+                  style={{
+                    fontSize: "2rem",
+                    fontWeight: 700,
+                    color: "var(--color-primary)",
+                    textAlign: "center",
+                    marginBottom: "var(--spacing-lg)",
+                  }}
+                >
+                  About CineNiche
+                </h3>
+                <p>
+                  At CineNiche, we believe in bringing you the best movie and TV
+                  show experiences. Explore thousands of options, discover
+                  hidden gems, and enjoy recommendations based on your
+                  preferences. Let us help you find your next favorite!
+                </p>
+              </div>
             </div>
           </>
         )}
-        {/* Company Introduction */}
-        <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-          <h3
-            style={{
-              fontSize: "2rem",
-              fontWeight: 700,
-              color: "var(--color-primary)",
-              textAlign: "center",
-              marginBottom: "var(--spacing-lg)",
-              marginTop: "50px",
-            }}
-          >
-            About CineNiche
-          </h3>
-          <p>
-            At CineNiche, we believe in bringing you the best movie and TV show
-            experiences. Explore thousands of options, discover hidden gems, and
-            enjoy recommendations based on your preferences. Let us help you
-            find your next favorite!
-          </p>
-        </div>
         <div
           className="card"
           style={{
@@ -556,7 +551,6 @@ const HomePage = () => {
         </div>
       )}
     </div>
-    
   );
 };
 
