@@ -8,8 +8,11 @@ const ProfilePage = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
-  const [editData, setEditData] = useState<User | null>(null);
+  type EditableUser = Omit<User, 'id' | 'userId'>;
+  const [editData, setEditData] = useState<EditableUser | null>(null);
+
   const navigate = useNavigate();
+  
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -61,15 +64,19 @@ const ProfilePage = () => {
   const handleSubmitChanges = async () => {
     try {
       // Check if we have the edit data and user ID
-      if (!editData || !user?.id) {
-        console.error("Missing edit data or user ID");
+      if (!user || !user.id || !user.userId) {
+        console.error("User data is missing required fields.");
         return;
       }
   
       console.log("Updating user with data:", editData);
   
       // Prepare the data to be sent in the API call
-      const updatedUser = { ...editData };
+      const updatedUser: Partial<User> = {
+        ...editData,
+        id: user.id,
+        userId: user.userId
+      };
   
       // Send the update request to the API
       const response = await userApi.update(user.id, updatedUser);
@@ -78,7 +85,8 @@ const ProfilePage = () => {
       // If the response status is 200, update the user state
       if (response.status === 200 || response.status === 204) {
         console.log("Profile successfully updated");
-        setUser(updatedUser); // Update the user state with the new data
+        setUser((prev) => prev ? { ...prev, ...editData! } : null);
+        // Update the user state with the new data
         setIsEditing(false); // Close the edit form
       } else {
         console.error("Failed to update user, received response:", response);
@@ -157,8 +165,9 @@ const ProfilePage = () => {
                     {user.role}
                   </div>
                 )}
+              </div>
 
-                  <div style={{
+              <div style={{
                     display: 'inline-block',
                     padding: '3px 8px',
                     borderRadius: 'var(--radius-sm)',
@@ -178,7 +187,7 @@ const ProfilePage = () => {
                     Edit Profile
                     </button>
                   </div>
-              </div>
+
             </div>
 
             {/* Profile details */}
@@ -322,31 +331,35 @@ const ProfilePage = () => {
                     {/* Streaming services */}
                     <div style={{ marginBottom: 'var(--spacing-md)' }}>
                       <label>Streaming Services</label>
-                      {streamingServices.map(service => (
-                        <div
-                          key={service.id}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            padding: 'var(--spacing-sm)',
-                            border: '1px solid var(--color-border)',
-                            borderRadius: 'var(--radius-md)',
-                            justifyContent: 'space-between', // Distribute the checkbox and label evenly
-                          }}
-                        >
-                          <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
-                            <input
-                              type="checkbox"
-                              id={service.id}
-                              name={service.id}
-                              checked={service.value === 1}
-                              onChange={handleStreamingServiceChange}
-                              style={{ marginRight: 'var(--spacing-sm)' }}
-                            />
-                            <label htmlFor={service.id}>{service.name}</label>
-                          </div>
+                      {/* Streaming services */}
+                      <div style={{ marginBottom: 'var(--spacing-md)' }}>
+                        <label>Streaming Services</label>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 'var(--spacing-sm)' }}>
+                          {streamingServices.map(service => (
+                            <div
+                              key={service.id}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                padding: 'var(--spacing-sm)',
+                                border: '1px solid var(--color-border)',
+                                borderRadius: 'var(--radius-md)',
+                                justifyContent: 'flex-start', // Align the checkbox and label to the left
+                              }}
+                            >
+                              <input
+                                type="checkbox"
+                                id={service.id}
+                                name={service.id}
+                                checked={service.value === 1}
+                                onChange={handleStreamingServiceChange}
+                                style={{ marginRight: 'var(--spacing-sm)' }}
+                              />
+                              <label htmlFor={service.id}>{service.name}</label>
+                            </div>
+                          ))}
                         </div>
-                      ))}
+                      </div>
                     </div>
 
                     <div style={{ display: 'flex', gap: 'var(--spacing-md)', justifyContent: 'center' }}>
