@@ -102,6 +102,7 @@ const AdminMoviesPage: React.FC = () => {
   const [posterSearchPage, setPosterSearchPage] = useState(1);
   const [posterSearchTotalPages, setPosterSearchTotalPages] = useState(1);
   const [currentPosterType, setCurrentPosterType] = useState<'movie' | 'tv'>('movie');
+  const [currentPosterQuery, setCurrentPosterQuery] = useState('');
   const [showPosterModal, setShowPosterModal] = useState(false);
   const [posterForEditMode, setPosterForEditMode] = useState(false); // To track if poster search is for add or edit mode
   
@@ -2764,6 +2765,8 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
                       }
                       
                       try {
+                        if (!editingMovie) return;
+                        
                         setLoading(true);
                         
                         // Search for the movie or TV show
