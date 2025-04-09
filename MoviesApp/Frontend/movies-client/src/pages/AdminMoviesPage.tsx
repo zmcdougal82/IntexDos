@@ -439,37 +439,61 @@ const AdminMoviesPage: React.FC = () => {
     InternationalMoviesThrillers: "International Thriller"
   };
   
-  // Function to get all genres from form data
+  // ULTRA-SIMPLIFIED genre detection with fallbacks for TV shows
   const getAllGenres = (data: MovieFormData): string[] => {
-    console.log("DEBUG: Starting genre detection");
-    console.log("DEBUG: Full movie data object:", data);
-    
-    // Log all potential genre properties and their values for debugging
-    const allProperties = Object.entries(data);
-    console.log("DEBUG: All properties:", allProperties.map(([key, value]) => `${key}: ${value} (${typeof value})`));
-    
-    // Specifically look at genre-related fields
-    const genreFields = allProperties.filter(([key]) => genreMapping[key] !== undefined);
-    console.log("DEBUG: Genre fields found:", genreFields.map(([key, value]) => `${key}: ${value} (${typeof value})`));
+    console.log("ULTRA-SIMPLIFIED GENRE DETECTION");
+    console.log("Content type:", data.type);
     
     const genres: string[] = [];
     
-    // DEBUGGING: Try a very simple approach - just find any field in genreMapping with a value of 1
-    for (const [key, value] of genreFields) {
-      console.log(`DEBUG: Checking genre ${key} with value ${value}`);
-      
-      // Try to be very flexible in what we accept
-      const numericValue = Number(value);
-      if (!isNaN(numericValue) && numericValue > 0) {
-        console.log(`DEBUG: Found genre ${key} with value ${value}`);
-        genres.push(genreMapping[key]);
-      } else if (value === true || value === 'true' || value === 'True') {
-        console.log(`DEBUG: Found genre ${key} with boolean value ${value}`);
+    // First, attempt to find genres with value 1
+    for (const key in genreMapping) {
+      if ((data as any)[key] === 1) {
+        console.log(`Found active genre ${key} with value 1`);
         genres.push(genreMapping[key]);
       }
     }
     
-    console.log("DEBUG: Final genres detected:", genres);
+    // If no genres found and it's a TV Show, use special fallback logic
+    if (genres.length === 0 && data.type === 'TV Show') {
+      console.log("NO GENRES FOUND FOR TV SHOW - USING FALLBACK LOGIC");
+      
+      // Assign a default TV genre based on the type
+      if (data.title) {
+        const title = data.title.toLowerCase();
+        if (title.includes("comedy") || title.includes("funny")) {
+          genres.push("TV Comedy");
+          console.log("Title suggests Comedy. Using TV Comedy as fallback.");
+        } else if (title.includes("drama") || title.includes("story")) {
+          genres.push("TV Drama");
+          console.log("Title suggests Drama. Using TV Drama as fallback.");
+        } else if (title.includes("documentary") || title.includes("true")) {
+          genres.push("Docuseries");
+          console.log("Title suggests Documentary. Using Docuseries as fallback.");
+        } else if (title.includes("kids") || title.includes("children")) {
+          genres.push("Kids TV");
+          console.log("Title suggests Kids content. Using Kids TV as fallback.");
+        } else {
+          // If all else fails, just set a generic TV genre
+          genres.push("TV Drama");
+          console.log("No genre hints in title. Using generic TV Drama as fallback.");
+        }
+      } else {
+        genres.push("TV Drama");
+        console.log("No title available. Using generic TV Drama as fallback.");
+      }
+    }
+    
+    // Similarly, if no genres found for a Movie, use fallback logic
+    if (genres.length === 0 && (!data.type || data.type === 'Movie')) {
+      console.log("NO GENRES FOUND FOR MOVIE - USING FALLBACK LOGIC");
+      
+      // Default to Drama if we can't detect anything else
+      genres.push("Drama");
+      console.log("Using Drama as fallback for movie.");
+    }
+    
+    console.log("Final genres:", genres);
     return genres;
   };
   
@@ -479,7 +503,46 @@ const AdminMoviesPage: React.FC = () => {
     return genres.length > 0 ? genres[0] : "Not specified";
   };
   
-  // Function to handle genre dropdown change
+  // Function to get a movie genre from form data
+  const getSelectedMovieGenre = (data: MovieFormData): string => {
+    const movieGenres = [
+      'Action', 'Adventure', 'Comedies', 'Dramas', 'HorrorMovies', 'Thrillers',
+      'Documentaries', 'FamilyMovies', 'Fantasy', 'Musicals',
+      'DramasRomanticMovies', 'ComediesRomanticMovies', 'DocumentariesInternationalMovies',
+      'DramasInternationalMovies', 'ComediesInternationalMovies', 'InternationalMoviesThrillers',
+      'ComediesDramasInternationalMovies'
+    ];
+    
+    // Find the first active movie genre
+    for (const genre of movieGenres) {
+      if ((data as any)[genre] === 1) {
+        return genre;
+      }
+    }
+    
+    return "";
+  };
+  
+  // Function to get a TV genre from form data
+  const getSelectedTVGenre = (data: MovieFormData): string => {
+    const tvGenres = [
+      'TVAction', 'TVComedies', 'TVDramas', 'Docuseries', 'KidsTV', 'RealityTV',
+      'TalkShowsTVComedies', 'AnimeSeriesInternationalTVShows',
+      'BritishTVShowsDocuseriesInternationalTVShows', 'InternationalTVShowsRomanticTVShowsTVDramas',
+      'CrimeTVShowsDocuseries', 'LanguageTVShows', 'NatureTV', 'Children'
+    ];
+    
+    // Find the first active TV genre
+    for (const genre of tvGenres) {
+      if ((data as any)[genre] === 1) {
+        return genre;
+      }
+    }
+    
+    return "";
+  };
+  
+  // Function to handle genre dropdown change for adding movies
   const handleGenreChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedGenre = e.target.value;
     
@@ -512,6 +575,94 @@ const AdminMoviesPage: React.FC = () => {
     }
     
     setFormData(updatedFormData);
+  };
+  
+  // Function to handle genre change in edit mode
+  const handleEditGenreChange = (genreKey: string, contentType: 'movie' | 'tv') => {
+    if (!editingMovie) return;
+    
+    // Create a copy of the current editing movie
+    const updatedMovie = { ...editingMovie };
+    
+    // Reset all genre fields of the specified type
+    if (contentType === 'movie') {
+      // Reset movie genres
+      updatedMovie.Action = 0;
+      updatedMovie.Adventure = 0;
+      updatedMovie.Comedies = 0;
+      updatedMovie.Dramas = 0;
+      updatedMovie.HorrorMovies = 0;
+      updatedMovie.Thrillers = 0;
+      updatedMovie.Documentaries = 0;
+      updatedMovie.FamilyMovies = 0;
+      updatedMovie.Fantasy = 0;
+      updatedMovie.Musicals = 0;
+      updatedMovie.DramasRomanticMovies = 0;
+      updatedMovie.ComediesRomanticMovies = 0;
+      updatedMovie.DocumentariesInternationalMovies = 0;
+      updatedMovie.DramasInternationalMovies = 0;
+      updatedMovie.ComediesInternationalMovies = 0;
+      updatedMovie.InternationalMoviesThrillers = 0;
+      updatedMovie.ComediesDramasInternationalMovies = 0;
+    } else {
+      // Reset TV genres
+      updatedMovie.TVAction = 0;
+      updatedMovie.TVComedies = 0;
+      updatedMovie.TVDramas = 0;
+      updatedMovie.Docuseries = 0;
+      updatedMovie.KidsTV = 0;
+      updatedMovie.RealityTV = 0;
+      updatedMovie.TalkShowsTVComedies = 0;
+      updatedMovie.AnimeSeriesInternationalTVShows = 0;
+      updatedMovie.BritishTVShowsDocuseriesInternationalTVShows = 0;
+      updatedMovie.InternationalTVShowsRomanticTVShowsTVDramas = 0;
+      updatedMovie.CrimeTVShowsDocuseries = 0;
+      updatedMovie.LanguageTVShows = 0;
+      updatedMovie.NatureTV = 0;
+      updatedMovie.Children = 0;
+    }
+    
+    // Set the selected genre if one was chosen
+    if (genreKey) {
+      (updatedMovie as any)[genreKey] = 1;
+    }
+    
+    // Update the editing movie state
+    setEditingMovie(updatedMovie);
+    
+    console.log(`Updated genre to ${genreKey} for ${contentType}:`, updatedMovie);
+  };
+  
+  // Function to add a new genre
+  const handleAddGenre = (genreKey: string, contentType: 'movie' | 'tv') => {
+    if (!editingMovie || !genreKey) return;
+    
+    // Create a copy of the current editing movie
+    const updatedMovie = { ...editingMovie };
+    
+    // Set the selected genre to 1
+    (updatedMovie as any)[genreKey] = 1;
+    
+    // Update the editing movie state
+    setEditingMovie(updatedMovie);
+    
+    console.log(`Added genre ${genreKey} for ${contentType}:`, updatedMovie);
+  };
+  
+  // Function to remove a genre
+  const handleRemoveGenre = (genreKey: string) => {
+    if (!editingMovie || !genreKey) return;
+    
+    // Create a copy of the current editing movie
+    const updatedMovie = { ...editingMovie };
+    
+    // Set the specified genre to 0
+    (updatedMovie as any)[genreKey] = 0;
+    
+    // Update the editing movie state
+    setEditingMovie(updatedMovie);
+    
+    console.log(`Removed genre ${genreKey}:`, updatedMovie);
   };
 
   const startEdit = (movie: Movie) => {
@@ -1202,40 +1353,148 @@ const AdminMoviesPage: React.FC = () => {
                 />
               </div>
               
-              {/* Multiple Genre Fields */}
-              {(() => {
-                const genres = getAllGenres(editingMovie);
+              {/* Genre Selection Section */}
+              <div style={formGroupStyle}>
+                <h3 style={{marginBottom: '15px', borderBottom: '1px solid #eee', paddingBottom: '5px'}}>
+                  Genre Management
+                </h3>
                 
-                // If no genres, show a single "No genres" field
-                if (genres.length === 0) {
-                  return (
-                    <div style={formGroupStyle}>
-                      <label htmlFor="edit-genre-1">Genre</label>
-                      <input
-                        type="text"
-                        id="edit-genre-1"
-                        value="No genre data available"
-                        style={{...inputStyle, backgroundColor: '#f2f2f2'}}
-                        readOnly
-                      />
+                {/* Current genres with separate fields */}
+                <div style={{marginBottom: '20px'}}>
+                  <p style={{fontWeight: 'bold', marginBottom: '10px'}}>Current Genres:</p>
+                  
+                  {/* Show all active genres for the movie */}
+                  {getAllGenres(editingMovie).length > 0 ? (
+                    <div>
+                      {getAllGenres(editingMovie).map((genre, index) => {
+                        // Find the key in genreMapping that matches this genre
+                        const genreKey = Object.entries(genreMapping).find(([key, val]) => val === genre)?.[0] || '';
+                        
+                        return (
+                          <div key={index} style={{
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            marginBottom: '8px',
+                            backgroundColor: '#f9f9f9',
+                            padding: '8px',
+                            borderRadius: '4px'
+                          }}>
+                            <div style={{flex: 1}}>
+                              <label htmlFor={`edit-genre-${index + 1}`} style={{display: 'block', marginBottom: '3px', fontSize: '0.9rem'}}>
+                                Genre {index + 1}
+                              </label>
+                              <input
+                                type="text"
+                                id={`edit-genre-${index + 1}`}
+                                value={genre}
+                                readOnly
+                                style={{...inputStyle, backgroundColor: '#f2f2f2'}}
+                              />
+                            </div>
+                            <button 
+                              type="button"
+                              onClick={() => handleRemoveGenre(genreKey)}
+                              style={{
+                                backgroundColor: '#f44336',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '4px',
+                                padding: '8px 12px',
+                                marginLeft: '10px',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        );
+                      })}
                     </div>
-                  );
-                }
+                  ) : (
+                    <p style={{fontStyle: 'italic', color: '#888', marginBottom: '15px'}}>No genres assigned</p>
+                  )}
+                </div>
                 
-                // Otherwise, show a field for each genre
-                return genres.map((genre, index) => (
-                  <div key={`genre-${index}`} style={formGroupStyle}>
-                    <label htmlFor={`edit-genre-${index + 1}`}>Genre {index + 1}</label>
-                    <input
-                      type="text"
-                      id={`edit-genre-${index + 1}`}
-                      value={genre}
-                      style={{...inputStyle, backgroundColor: '#f2f2f2'}}
-                      readOnly
-                    />
-                  </div>
-                ));
-              })()}
+                {/* Add new genre section */}
+                <div style={{marginBottom: '10px'}}>
+                  <p style={{fontWeight: 'bold', marginBottom: '10px'}}>Add New Genre:</p>
+                  
+                  {/* Movie genres - only show if type is Movie or not specified */}
+                  {(!editingMovie.type || editingMovie.type === 'Movie') && (
+                    <div style={formGroupStyle}>
+                      <label htmlFor="edit-movie-genre">Add Movie Genre</label>
+                      <div style={{display: 'flex', gap: '10px'}}>
+                        <select
+                          id="edit-movie-genre"
+                          value=""
+                          onChange={(e) => handleAddGenre(e.target.value, 'movie')}
+                          style={{...inputStyle, flex: 1}}
+                        >
+                          <option value="">Select a genre to add</option>
+                          {/* Movie genres */}
+                          <option value="Action">Action</option>
+                          <option value="Adventure">Adventure</option>
+                          <option value="Comedies">Comedy</option>
+                          <option value="Dramas">Drama</option>
+                          <option value="HorrorMovies">Horror</option>
+                          <option value="Thrillers">Thriller</option>
+                          <option value="Documentaries">Documentary</option>
+                          <option value="FamilyMovies">Family</option>
+                          <option value="Fantasy">Fantasy</option>
+                          <option value="Musicals">Musical</option>
+                          
+                          {/* Combination genres */}
+                          <option value="DramasRomanticMovies">Romantic Drama</option>
+                          <option value="ComediesRomanticMovies">Romantic Comedy</option>
+                          <option value="DocumentariesInternationalMovies">International Documentary</option>
+                          <option value="DramasInternationalMovies">International Drama</option>
+                          <option value="ComediesInternationalMovies">International Comedy</option>
+                          <option value="InternationalMoviesThrillers">International Thriller</option>
+                          <option value="ComediesDramasInternationalMovies">International Comedy-Drama</option>
+                          
+                          {/* Add Spirituality as it can be for both movies and TV shows */}
+                          <option value="Spirituality">Spirituality</option>
+                        </select>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* TV Show genres - only show if type is TV Show */}
+                  {editingMovie.type === 'TV Show' && (
+                    <div style={formGroupStyle}>
+                      <label htmlFor="edit-tv-genre">Add TV Show Genre</label>
+                      <div style={{display: 'flex', gap: '10px'}}>
+                        <select
+                          id="edit-tv-genre"
+                          value=""
+                          onChange={(e) => handleAddGenre(e.target.value, 'tv')}
+                          style={{...inputStyle, flex: 1}}
+                        >
+                          <option value="">Select a genre to add</option>
+                          {/* TV Show genres */}
+                          <option value="TVAction">Action</option>
+                          <option value="TVComedies">Comedy</option>
+                          <option value="TVDramas">Drama</option>
+                          <option value="Docuseries">Docuseries</option>
+                          <option value="KidsTV">Kids</option>
+                          <option value="RealityTV">Reality</option>
+                          <option value="TalkShowsTVComedies">Talk Shows</option>
+                          <option value="AnimeSeriesInternationalTVShows">Anime</option>
+                          <option value="BritishTVShowsDocuseriesInternationalTVShows">British</option>
+                          <option value="InternationalTVShowsRomanticTVShowsTVDramas">International Drama</option>
+                          <option value="CrimeTVShowsDocuseries">Crime</option>
+                          <option value="LanguageTVShows">Language</option>
+                          <option value="NatureTV">Nature</option>
+                          <option value="Children">Children</option>
+                          
+                          {/* Add Spirituality as it can be for both movies and TV shows */}
+                          <option value="Spirituality">Spirituality</option>
+                        </select>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
               
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
                 <button
