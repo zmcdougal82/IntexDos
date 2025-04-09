@@ -23,14 +23,28 @@ app.use((req, res, next) => {
 const apiProxy = createProxyMiddleware({
   target: 'https://moviesapp-api-fixed.azurewebsites.net',
   changeOrigin: true,
-  pathRewrite: {
-    '^/api': '/api' // Keep the /api path
+  secure: false, // Allow invalid certificates
+  logLevel: 'debug',
+  onProxyReq: (proxyReq, req, res) => {
+    // Log the proxy request for debugging
+    console.log(`Proxying ${req.method} ${req.url} -> ${proxyReq.path}`);
   },
   onProxyRes: (proxyRes, req, res) => {
     // Add CORS headers to the response
     proxyRes.headers['Access-Control-Allow-Origin'] = '*';
     proxyRes.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS';
     proxyRes.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization';
+    console.log(`Proxy response: ${proxyRes.statusCode} for ${req.url}`);
+  },
+  onError: (err, req, res) => {
+    console.error(`Proxy error: ${err.message}`);
+    res.writeHead(500, {
+      'Content-Type': 'text/plain',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+    });
+    res.end(`Proxy Error: ${err.message}`);
   }
 });
 

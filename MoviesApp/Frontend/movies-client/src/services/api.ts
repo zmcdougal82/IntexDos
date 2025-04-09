@@ -2,25 +2,18 @@ import axios from "axios";
 
 // Define the base URL for our API based on environment
 const getApiUrl = () => {
-  // Check for environment variable first (if it exists)
+  // For local development, always use the local CORS proxy
+  if (window.location.hostname === "localhost") {
+    console.log('Running in development mode, using CORS proxy');
+    return "http://localhost:3001/api";
+  }
+  
+  // For production, use the environment variable if it exists
   if (import.meta.env.VITE_API_BASE_URL) {
     return import.meta.env.VITE_API_BASE_URL;
   }
   
-  // If running for development, use our local CORS proxy
-  if (window.location.hostname === "localhost") {
-    // If using the CORS proxy server
-    if (window.location.port === "5173" || window.location.port === "5174" || window.location.port === "5177") {
-      // Use the CORS proxy running on port 3001
-      return "http://localhost:3001/api";
-    }
-    // If not on dev port, use the Vite proxy defined in vite.config.ts
-    return "/api";
-  }
-  
-  // For deployed environments, use the CORS proxy if available
-  // Note: You would need to deploy the CORS proxy separately
-  // For now, we'll use the direct API URL
+  // Fallback to the known API endpoint
   return "https://moviesapp-api-fixed.azurewebsites.net/api";
 };
 
