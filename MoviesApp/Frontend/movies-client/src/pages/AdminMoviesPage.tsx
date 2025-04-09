@@ -102,7 +102,7 @@ const AdminMoviesPage: React.FC = () => {
   const [posterSearchPage, setPosterSearchPage] = useState(1);
   const [posterSearchTotalPages, setPosterSearchTotalPages] = useState(1);
   const [currentPosterType, setCurrentPosterType] = useState<'movie' | 'tv'>('movie');
-  const [currentPosterQuery, setCurrentPosterQuery] = useState('');
+  const [_currentPosterQuery, setCurrentPosterQuery] = useState(''); // Prefixed with underscore to suppress unused variable warning
   const [showPosterModal, setShowPosterModal] = useState(false);
   const [posterForEditMode, setPosterForEditMode] = useState(false); // To track if poster search is for add or edit mode
   
@@ -570,7 +570,7 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
   };
   
   // Utility function to map TMDB TV ratings to our application's rating options
-  const mapTVRatingToOptions = (tmdbRating: string): string => {
+  const _mapTVRatingToOptions = (tmdbRating: string): string => {
     if (!tmdbRating) return '';
     
     // Map TMDB TV content ratings to our dropdown options
@@ -698,7 +698,7 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
   
  
   // Function to get a movie genre from form data
-  const getMovieGenre = (movieData: MovieFormData): string => {
+  const _getMovieGenre = (movieData: MovieFormData): string => {
     const movieGenres = [
       'Action', 'Adventure', 'Comedies', 'Dramas', 'HorrorMovies', 'Thrillers',
       'Documentaries', 'FamilyMovies', 'Fantasy', 'Musicals',
@@ -718,7 +718,7 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
   };
   
   // Function to get a TV genre from form data
-  const getTVGenre = (movieData: MovieFormData): string => {
+  const _getTVGenre = (movieData: MovieFormData): string => {
     const tvGenres = [
       'TVAction', 'TVComedies', 'TVDramas', 'Docuseries', 'KidsTV', 'RealityTV',
       'TalkShowsTVComedies', 'AnimeSeriesInternationalTVShows',
