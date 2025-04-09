@@ -93,6 +93,23 @@ const AdminMoviesPage: React.FC = () => {
   const [showSearchResultsModal, setShowSearchResultsModal] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false); // To track whether search is for add or edit mode
   
+  // Poster selection modal state
+  const [posterSearchResults, setPosterSearchResults] = useState<TMDBResult[]>([]);
+  const [showPosterModal, setShowPosterModal] = useState(false);
+  const [posterForEditMode, setPosterForEditMode] = useState(false); // To track if poster search is for add or edit mode
+  
+  // Custom alert/confirm modal states
+  const [showAlertModal, setShowAlertModal] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+  const [alertTitle, setAlertTitle] = useState('');
+  const [alertType, setAlertType] = useState<'success' | 'error' | 'info'>('info');
+  
+  // Confirmation modal state
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmMessage, setConfirmMessage] = useState('');
+  const [confirmTitle, setConfirmTitle] = useState('');
+  const [confirmCallback, setConfirmCallback] = useState<() => void>(() => {});
+  
   // Search and filter states
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<string>('');
@@ -413,89 +430,105 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
   // Check if the movie has a valid ID
   if (!movieId) {
     setError(`Cannot delete "${movieTitle}" because it has no ID. Please edit the movie to assign an ID first.`);
-    alert(`Error: Cannot delete "${movieTitle}" because it has a missing ID. Please edit the movie to assign an ID first.`);
+    
+    // Show error modal instead of alert
+    setAlertType('error');
+    setAlertTitle('Missing Movie ID');
+    setAlertMessage(`Cannot delete "${movieTitle}" because it has a missing ID. Please edit the movie to assign an ID first.`);
+    setShowAlertModal(true);
     return;
   }
   
-  // More descriptive confirmation message with movie title
-  if (!confirm(`Are you sure you want to delete "${movieTitle}" (ID: ${movieId})? This action cannot be undone.`)) {
-    return;
-  }
+  // Use custom confirmation modal instead of built-in confirm
+  setConfirmTitle('Confirm Deletion');
+  setConfirmMessage(`Are you sure you want to delete "${movieTitle}" (ID: ${movieId})? This action cannot be undone.`);
   
-  try {
-    setLoading(true);
-    
-    console.log(`Deleting movie: ${movieTitle} (ID: ${movieId})`);
-    
-    // Use the API to delete the movie
-    await movieApi.deleteMovie(movieId);
-    
-    console.log(`Successfully deleted movie: ${movieTitle}`);
-    
-    // Show success notification
-    alert(`Movie "${movieTitle}" has been successfully deleted.`);
-    
-    // Refresh the movie list after a successful delete
+  // Set up the callback function to execute if confirmed
+  setConfirmCallback(() => async () => {
     try {
-      let response;
-      if (searchQuery) {
-        response = await movieApi.searchMovies(searchQuery, currentPage, pageSize);
-      } else if (selectedType || selectedGenre || yearFrom !== undefined || yearTo !== undefined) {
-        response = await movieApi.getAll(currentPage, pageSize);
-        let filteredMovies = [...response.data];
-        
-        if (selectedType) {
-          filteredMovies = filteredMovies.filter(movie => movie.type === selectedType);
+      setLoading(true);
+      
+      console.log(`Deleting movie: ${movieTitle} (ID: ${movieId})`);
+      
+      // Use the API to delete the movie
+      await movieApi.deleteMovie(movieId);
+      
+      console.log(`Successfully deleted movie: ${movieTitle}`);
+      
+      // Show success modal instead of alert
+      setAlertType('success');
+      setAlertTitle('Deletion Successful');
+      setAlertMessage(`Movie "${movieTitle}" has been successfully deleted.`);
+      setShowAlertModal(true);
+      
+      // Refresh the movie list after a successful delete
+      try {
+        let response;
+        if (searchQuery) {
+          response = await movieApi.searchMovies(searchQuery, currentPage, pageSize);
+        } else if (selectedType || selectedGenre || yearFrom !== undefined || yearTo !== undefined) {
+          response = await movieApi.getAll(currentPage, pageSize);
+          let filteredMovies = [...response.data];
+          
+          if (selectedType) {
+            filteredMovies = filteredMovies.filter(movie => movie.type === selectedType);
+          }
+          
+          if (selectedGenre) {
+            filteredMovies = filteredMovies.filter(movie => {
+              return (movie as any)[selectedGenre] === 1;
+            });
+          }
+          
+          if (yearFrom !== undefined) {
+            filteredMovies = filteredMovies.filter(movie => 
+              movie.releaseYear !== undefined && movie.releaseYear >= yearFrom
+            );
+          }
+          
+          if (yearTo !== undefined) {
+            filteredMovies = filteredMovies.filter(movie => 
+              movie.releaseYear !== undefined && movie.releaseYear <= yearTo
+            );
+          }
+          
+          setMovies(filteredMovies);
+          setTotalMovies(filteredMovies.length > 0 ? 
+            currentPage * pageSize + (filteredMovies.length === pageSize ? pageSize : 0) : 
+            filteredMovies.length);
+          return;
+        } else {
+          response = await movieApi.getAll(currentPage, pageSize);
         }
         
-        if (selectedGenre) {
-          filteredMovies = filteredMovies.filter(movie => {
-            return (movie as any)[selectedGenre] === 1;
-          });
-        }
+        setMovies(response.data);
         
-        if (yearFrom !== undefined) {
-          filteredMovies = filteredMovies.filter(movie => 
-            movie.releaseYear !== undefined && movie.releaseYear >= yearFrom
-          );
+        // Update total count
+        if (searchQuery) {
+          setTotalMovies(response.data.length);
+        } else {
+          setTotalMovies(currentPage * pageSize + (response.data.length === pageSize ? pageSize : 0));
         }
-        
-        if (yearTo !== undefined) {
-          filteredMovies = filteredMovies.filter(movie => 
-            movie.releaseYear !== undefined && movie.releaseYear <= yearTo
-          );
-        }
-        
-        setMovies(filteredMovies);
-        setTotalMovies(filteredMovies.length > 0 ? 
-          currentPage * pageSize + (filteredMovies.length === pageSize ? pageSize : 0) : 
-          filteredMovies.length);
-        return;
-      } else {
-        response = await movieApi.getAll(currentPage, pageSize);
+      } catch (refreshErr) {
+        console.error('Error refreshing movies after delete:', refreshErr);
       }
       
-      setMovies(response.data);
+    } catch (err) {
+      console.error('Error deleting movie:', err);
       
-      // Update total count
-      if (searchQuery) {
-        setTotalMovies(response.data.length);
-      } else {
-        setTotalMovies(currentPage * pageSize + (response.data.length === pageSize ? pageSize : 0));
-      }
-    } catch (refreshErr) {
-      console.error('Error refreshing movies after delete:', refreshErr);
+      // Show error modal instead of alert
+      setError(`Failed to delete movie "${movieTitle}". Server returned an error. Please try again.`);
+      setAlertType('error');
+      setAlertTitle('Deletion Failed');
+      setAlertMessage(`Failed to delete movie "${movieTitle}". Please try again.`);
+      setShowAlertModal(true);
+    } finally {
+      setLoading(false);
     }
-    
-  } catch (err) {
-    console.error('Error deleting movie:', err);
-    // Show more specific error message
-    setError(`Failed to delete movie "${movieTitle}". Server returned an error. Please try again.`);
-    // Also show an alert for immediate feedback
-    alert(`Error: Failed to delete movie "${movieTitle}". Please try again.`);
-  } finally {
-    setLoading(false);
-  }
+  });
+  
+  // Show the confirmation modal
+  setShowConfirmModal(true);
 };
 
   // Map of genre property names to display names
@@ -869,11 +902,9 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
           flexWrap: 'wrap',
           marginBottom: 'var(--spacing-lg)'
         }}>
-          <h1 style={{ color: 'var(--color-primary)' }}>
-            Admin Dashboard
-          </h1>
+            
           
-          {/* Add Movie Button */}
+          {/* Add Film Button */}
           <button
             onClick={() => setIsAdding(true)}
             style={{
@@ -883,7 +914,7 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
               gap: 'var(--spacing-xs)'
             }}
           >
-            <span style={{ fontSize: '1.2rem' }}>+</span> Add New Movie
+            <span style={{ fontSize: '1.2rem' }}>+</span> Add New Film
           </button>
         </div>
         
@@ -904,7 +935,7 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
             flexWrap: 'wrap',
             marginBottom: 'var(--spacing-md)'
           }}>
-            <h2 style={{ margin: 0 }}>Movie Management</h2>
+            <h2 style={{ margin: 0 }}>Film Management</h2>
             
             {/* Page Size Selector */}
             <div style={{ 
@@ -1239,9 +1270,37 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
       {isAdding && (
         <div style={modalOverlayStyle}>
           <div style={modalContentStyle}>
-            <h2>Add New Movie</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+              <h2 style={{ margin: 0 }}>Add New Film</h2>
+              <button 
+                onClick={() => setIsAdding(false)} 
+                style={{ 
+                  background: 'none', 
+                  border: 'none',
+                  fontSize: '22px',
+                  cursor: 'pointer',
+                  color: '#666'
+                }}
+              >
+                ×
+              </button>
+            </div>
             <form onSubmit={handleAddMovie}>
               {/* Movie ID is now auto-generated */}
+              
+              <div style={formGroupStyle}>
+                <label htmlFor="type">Content Type</label>
+                <select
+                  id="type"
+                  name="type"
+                  value={formData.type}
+                  onChange={handleInputChange}
+                  style={inputStyle}
+                >
+                  <option value="Movie">Movie</option>
+                  <option value="TV Show">TV Show</option>
+                </select>
+              </div>
               
               <div style={formGroupStyle}>
                 <label htmlFor="title">Title *</label>
@@ -1259,7 +1318,11 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
                     type="button"
                     onClick={async () => {
                       if (!formData.title.trim()) {
-                        alert('Please enter a title first');
+                        // Use custom alert modal
+                        setAlertType('info');
+                        setAlertTitle('Missing Title');
+                        setAlertMessage('Please enter a movie title first before using Auto-Fill.');
+                        setShowAlertModal(true);
                         return;
                       }
                       
@@ -1446,7 +1509,8 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
                           }
                         }
                         
-                        alert('Movie information auto-populated from TMDB!');
+                        // Auto-population complete, no need to show a modal
+                        console.log('Auto-fill complete');
                       } catch (error) {
                         console.error('Error fetching movie data:', error);
                         alert('Failed to fetch movie data. Please try again.');
@@ -1472,20 +1536,7 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
                 </small>
               </div>
               
-              <div style={formGroupStyle}>
-                <label htmlFor="type">Type</label>
-                <select
-                  id="type"
-                  name="type"
-                  value={formData.type}
-                  onChange={handleInputChange}
-                  style={inputStyle}
-                >
-                  <option value="Movie">Movie</option>
-                  <option value="TV Show">TV Show</option>
-                  <option value="Documentary">Documentary</option>
-                </select>
-              </div>
+              {/* Type is now at the top of the form */}
               
               <div style={formGroupStyle}>
                 <label htmlFor="releaseYear">Release Year</label>
@@ -1538,14 +1589,102 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
               </div>
               
               <div style={formGroupStyle}>
-                <label htmlFor="posterUrl">Poster URL</label>
+                <label>Movie Poster</label>
+                
+                {/* Poster Image Preview */}
+                <div style={{ 
+                  marginBottom: '10px', 
+                  border: '1px solid #ddd', 
+                  borderRadius: '4px',
+                  padding: '8px',
+                  backgroundColor: '#f9f9f9',
+                  textAlign: 'center'
+                }}>
+                  <img 
+                    src={formData.posterUrl || "https://placehold.co/320x480/2c3e50/FFFFFF?text=No+Poster&font=montserrat"} 
+                    alt="Movie Poster" 
+                    style={{
+                      maxWidth: '100%',
+                      maxHeight: '300px',
+                      objectFit: 'contain'
+                    }}
+                    onError={(e) => {
+                      e.currentTarget.src = "https://placehold.co/320x480/2c3e50/FFFFFF?text=Invalid+Image+URL&font=montserrat";
+                    }}
+                  />
+                  
+                  {/* Centered Update Poster Button */}
+                  <div style={{ textAlign: 'center', marginTop: '15px' }}>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (!formData.title.trim()) {
+                          // Use custom alert modal instead
+                          setAlertType('info');
+                          setAlertTitle('Missing Title');
+                          setAlertMessage('Please enter a movie title first before updating the poster.');
+                          setShowAlertModal(true);
+                          return;
+                        }
+                        
+                        try {
+                          setLoading(true);
+                          
+                          // Search more broadly for similar titles
+                          const type = formData.type === 'TV Show' ? 'tv' : 'movie';
+                          
+                          // Do a search for the title to get various options
+                          const response = await tmdbApi.searchByTitle(formData.title, type);
+                          
+                          if (!response.results || response.results.length === 0) {
+                            alert('No matching titles found');
+                            setLoading(false);
+                            return;
+                          }
+                          
+                          // Get all results with posters
+                          const resultsWithPosters = response.results.filter(result => result.poster_path);
+                          
+                          if (!resultsWithPosters.length) {
+                            alert('No posters found for similar titles');
+                            setLoading(false);
+                            return;
+                          }
+                          
+                          // Always show the modal with multiple options, even if there's just one result
+                          setPosterSearchResults(resultsWithPosters);
+                          setPosterForEditMode(false); // We're in Add mode
+                          setShowPosterModal(true);
+                        } catch (error) {
+                          console.error('Error fetching poster options:', error);
+                          alert('Failed to fetch poster options. Please try again.');
+                        } finally {
+                          setLoading(false);
+                        }
+                      }}
+                      style={{
+                        backgroundColor: '#4285F4',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        padding: '10px 20px',
+                        cursor: 'pointer',
+                        fontSize: '0.9rem',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      Update Poster
+                    </button>
+                  </div>
+                </div>
+                
+                {/* Hidden posterUrl field */}
                 <input
-                  type="text"
+                  type="hidden"
                   id="posterUrl"
                   name="posterUrl"
                   value={formData.posterUrl || ''}
                   onChange={handleInputChange}
-                  style={inputStyle}
                 />
               </div>
               
@@ -1612,7 +1751,21 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
       {showSearchResultsModal && searchResults.length > 0 && !isEditMode && (
         <div style={modalOverlayStyle}>
           <div style={{...modalContentStyle, maxWidth: '800px', maxHeight: '80vh', overflowY: 'auto'}}>
-            <h2>Select the Correct Movie/TV Show</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+              <h2 style={{ margin: 0 }}>Select the Correct Movie/TV Show</h2>
+              <button 
+                onClick={() => setShowSearchResultsModal(false)} 
+                style={{ 
+                  background: 'none', 
+                  border: 'none',
+                  fontSize: '22px',
+                  cursor: 'pointer',
+                  color: '#666'
+                }}
+              >
+                ×
+              </button>
+            </div>
             <p>Multiple matches found for "{formData.title}". Please select the correct one:</p>
             
             <div style={{marginTop: '20px', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '15px'}}>
@@ -1781,8 +1934,8 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
                       }
                       
                       // Close the modal
-                      setShowSearchResultsModal(false);
-                      alert('Movie information populated successfully!');
+                      // Just close the modal without showing any notification
+                    setShowSearchResultsModal(false);
                     } catch (error) {
                       console.error('Error fetching details:', error);
                       alert('Could not fetch complete details. Basic information has been populated.');
@@ -1875,11 +2028,295 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
         </div>
       )}
       
+      {/* Poster Selection Modal */}
+      {showPosterModal && posterSearchResults.length > 0 && (
+        <div style={{...modalOverlayStyle, zIndex: 1100}}>
+          <div style={{...modalContentStyle, maxWidth: '800px', maxHeight: '80vh', overflowY: 'auto'}}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+              <h2 style={{ margin: 0 }}>Select a Poster</h2>
+              <button 
+                onClick={() => setShowPosterModal(false)} 
+                style={{ 
+                  background: 'none', 
+                  border: 'none',
+                  fontSize: '22px',
+                  cursor: 'pointer',
+                  color: '#666'
+                }}
+              >
+                ×
+              </button>
+            </div>
+            <p>Multiple posters found for {posterForEditMode ? editingMovie?.title : formData.title}. Choose one:</p>
+            
+            <div style={{marginTop: '20px', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '15px'}}>
+              {posterSearchResults.map((result, index) => {
+                const title = 'title' in result ? result.title : result.name;
+                const poster = result.poster_path 
+                  ? `${tmdbApi.POSTER_BASE_URL}${result.poster_path}` 
+                  : "https://placehold.co/320x480/2c3e50/FFFFFF?text=No+Poster&font=montserrat";
+                
+                return (
+                  <div key={index} style={{
+                    border: '1px solid #ddd',
+                    borderRadius: '8px',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    backgroundColor: '#f9f9f9',
+                    cursor: 'pointer',
+                    transition: 'transform 0.2s, box-shadow 0.2s',
+                    boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.transform = 'scale(1.05)';
+                    e.currentTarget.style.boxShadow = '0 5px 15px rgba(0,0,0,0.1)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.transform = 'scale(1)';
+                    e.currentTarget.style.boxShadow = '0 2px 5px rgba(0,0,0,0.1)';
+                  }}
+                  onClick={() => {
+                    const posterUrl = `${tmdbApi.POSTER_BASE_URL}${result.poster_path}`;
+                    
+                    if (posterForEditMode && editingMovie) {
+                      // We're in Edit mode
+                      setEditingMovie({
+                        ...editingMovie,
+                        posterUrl
+                      });
+                    } else {
+                      // We're in Add mode
+                      setFormData({
+                        ...formData,
+                        posterUrl
+                      });
+                    }
+                    
+                    // Close the modal without showing an alert
+                    setShowPosterModal(false);
+                  }}>
+                    <div style={{position: 'relative', paddingTop: '150%'}}>
+                      <img 
+                        src={poster} 
+                        alt={title}
+                        style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover'
+                        }}
+                      />
+                    </div>
+                    <div style={{padding: '10px', textAlign: 'center'}}>
+                      <span style={{
+                        display: 'inline-block',
+                        backgroundColor: '#4285F4',
+                        color: 'white',
+                        padding: '5px 10px',
+                        borderRadius: '4px',
+                        fontSize: '0.85rem',
+                        cursor: 'pointer'
+                      }}>
+                        Select This Poster
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            
+            <div style={{marginTop: '20px', display: 'flex', justifyContent: 'flex-end'}}>
+              <button
+                onClick={() => setShowPosterModal(false)}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: '#f44336',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Custom Alert Modal */}
+      {showAlertModal && (
+        <div style={{...modalOverlayStyle, zIndex: 2000}}>
+          <div style={{...modalContentStyle, maxWidth: '400px'}}>
+            <div style={{
+              padding: '10px 15px', 
+              borderBottom: '1px solid #eee',
+              backgroundColor: alertType === 'success' ? '#e8f5e9' : 
+                              alertType === 'error' ? '#ffebee' : '#e3f2fd',
+              borderRadius: '8px 8px 0 0',
+              marginTop: '-20px',
+              marginLeft: '-20px',
+              marginRight: '-20px',
+              marginBottom: '20px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <h3 style={{
+                margin: 0, 
+                color: alertType === 'success' ? '#2e7d32' : 
+                      alertType === 'error' ? '#c62828' : '#1565c0'
+              }}>
+                {alertTitle || (alertType === 'success' ? 'Success' : 
+                              alertType === 'error' ? 'Error' : 'Information')}
+              </h3>
+              <button 
+                onClick={() => setShowAlertModal(false)} 
+                style={{ 
+                  background: 'none', 
+                  border: 'none',
+                  fontSize: '22px',
+                  cursor: 'pointer',
+                  color: '#666',
+                  lineHeight: '1',
+                  padding: '0',
+                  marginLeft: '10px'
+                }}
+              >
+                ×
+              </button>
+            </div>
+            
+            <p style={{margin: '15px 0', fontSize: '1rem'}}>{alertMessage}</p>
+            
+            <div style={{display: 'flex', justifyContent: 'flex-end', marginTop: '20px'}}>
+              <button
+                onClick={() => setShowAlertModal(false)}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: alertType === 'success' ? '#4caf50' : 
+                                  alertType === 'error' ? '#f44336' : '#2196f3',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Custom Confirmation Modal */}
+      {showConfirmModal && (
+        <div style={{...modalOverlayStyle, zIndex: 1200}}>
+          <div style={{...modalContentStyle, maxWidth: '400px'}}>
+            <div style={{
+              padding: '10px 15px', 
+              borderBottom: '1px solid #eee',
+              backgroundColor: '#fff3e0',
+              borderRadius: '8px 8px 0 0',
+              marginTop: '-20px',
+              marginLeft: '-20px',
+              marginRight: '-20px',
+              marginBottom: '20px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <h3 style={{margin: 0, color: '#e65100'}}>{confirmTitle || 'Confirm Action'}</h3>
+              <button 
+                onClick={() => setShowConfirmModal(false)} 
+                style={{ 
+                  background: 'none', 
+                  border: 'none',
+                  fontSize: '22px',
+                  cursor: 'pointer',
+                  color: '#666',
+                  lineHeight: '1',
+                  padding: '0',
+                  marginLeft: '10px'
+                }}
+              >
+                ×
+              </button>
+            </div>
+            
+            <p style={{margin: '15px 0', fontSize: '1rem'}}>{confirmMessage}</p>
+            
+            <div style={{display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px'}}>
+              <button
+                onClick={() => setShowConfirmModal(false)}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: '#e0e0e0',
+                  color: '#212121',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  confirmCallback();
+                  setShowConfirmModal(false);
+                }}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: '#ff9800',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {editingMovie && (
         <div style={modalOverlayStyle}>
           <div style={modalContentStyle}>
-            <h2>Edit Movie</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+              <h2 style={{ margin: 0 }}>Edit Film</h2>
+              <button 
+                onClick={() => setEditingMovie(null)} 
+                style={{ 
+                  background: 'none', 
+                  border: 'none',
+                  fontSize: '22px',
+                  cursor: 'pointer',
+                  color: '#666'
+                }}
+              >
+                ×
+              </button>
+            </div>
             <form onSubmit={handleEditMovie}>
+              <div style={formGroupStyle}>
+                <label htmlFor="edit-type">Type</label>
+                <select
+                  id="edit-type"
+                  name="type"
+                  value={editingMovie.type}
+                  onChange={(e) => setEditingMovie({...editingMovie, type: e.target.value})}
+                  style={inputStyle}
+                >
+                  <option value="Movie">Movie</option>
+                  <option value="TV Show">TV Show</option>
+                </select>
+              </div>
+              
               <div style={formGroupStyle}>
                 <label htmlFor="edit-title">Title *</label>
                 <div style={{ display: 'flex', gap: '10px' }}>
@@ -1896,7 +2333,11 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
                     type="button"
                     onClick={async () => {
                       if (!editingMovie.title.trim()) {
-                        alert('Please enter a title first');
+                        // Use custom alert modal
+                        setAlertType('info');
+                        setAlertTitle('Missing Title');
+                        setAlertMessage('Please enter a movie title first before using Auto-Fill.');
+                        setShowAlertModal(true);
                         return;
                       }
                       
@@ -1963,7 +2404,11 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
                           });
                         }
                         
-                        alert('Movie information updated from TMDB!');
+                        // Use custom success modal
+                        setAlertType('success');
+                        setAlertTitle('Auto-Fill Successful');
+                        setAlertMessage('Movie information has been updated from TMDB!');
+                        setShowAlertModal(true);
                       } catch (error) {
                         console.error('Error fetching movie data:', error);
                         alert('Failed to fetch movie data. Please try again.');
@@ -1987,21 +2432,6 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
                 <small style={{ color: '#666', fontSize: '0.8rem', marginTop: '5px', display: 'block' }}>
                   Click "Auto-Fill" to fetch updated movie information from TMDB.
                 </small>
-              </div>
-              
-              <div style={formGroupStyle}>
-                <label htmlFor="edit-type">Type</label>
-                <select
-                  id="edit-type"
-                  name="type"
-                  value={editingMovie.type}
-                  onChange={(e) => setEditingMovie({...editingMovie, type: e.target.value})}
-                  style={inputStyle}
-                >
-                  <option value="Movie">Movie</option>
-                  <option value="TV Show">TV Show</option>
-                  <option value="Documentary">Documentary</option>
-                </select>
               </div>
               
               <div style={formGroupStyle}>
@@ -2043,14 +2473,102 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
               </div>
               
               <div style={formGroupStyle}>
-                <label htmlFor="edit-posterUrl">Poster URL</label>
+                <label>Movie Poster</label>
+                
+                {/* Poster Image Preview */}
+                <div style={{ 
+                  marginBottom: '10px', 
+                  border: '1px solid #ddd', 
+                  borderRadius: '4px',
+                  padding: '8px',
+                  backgroundColor: '#f9f9f9',
+                  textAlign: 'center'
+                }}>
+                  <img 
+                    src={editingMovie.posterUrl || "https://placehold.co/320x480/2c3e50/FFFFFF?text=No+Poster&font=montserrat"} 
+                    alt="Movie Poster" 
+                    style={{
+                      maxWidth: '100%',
+                      maxHeight: '300px',
+                      objectFit: 'contain'
+                    }}
+                    onError={(e) => {
+                      e.currentTarget.src = "https://placehold.co/320x480/2c3e50/FFFFFF?text=Invalid+Image+URL&font=montserrat";
+                    }}
+                  />
+                  
+                  {/* Centered Update Poster Button */}
+                  <div style={{ textAlign: 'center', marginTop: '15px' }}>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (!editingMovie.title.trim()) {
+                          // Use custom alert modal
+                          setAlertType('info');
+                          setAlertTitle('Missing Title');
+                          setAlertMessage('Please enter a movie title first before updating the poster.');
+                          setShowAlertModal(true);
+                          return;
+                        }
+                        
+                        try {
+                          setLoading(true);
+                          
+                          // Search more broadly for similar titles
+                          const type = editingMovie.type === 'TV Show' ? 'tv' : 'movie';
+                          
+                          // Do a search for similar titles
+                          const response = await tmdbApi.searchByTitle(editingMovie.title, type);
+                          
+                          if (!response.results || response.results.length === 0) {
+                            alert('No matching titles found');
+                            setLoading(false);
+                            return;
+                          }
+                          
+                          // Get all results with posters
+                          const resultsWithPosters = response.results.filter(result => result.poster_path);
+                          
+                          if (!resultsWithPosters.length) {
+                            alert('No posters found for similar titles');
+                            setLoading(false);
+                            return;
+                          }
+                          
+                          // Always show the modal with multiple title options, even if there's just one
+                          setPosterSearchResults(resultsWithPosters);
+                          setPosterForEditMode(true); // We're in Edit mode
+                          setShowPosterModal(true);
+                        } catch (error) {
+                          console.error('Error fetching posters:', error);
+                          alert('Failed to fetch posters. Please try again.');
+                        } finally {
+                          setLoading(false);
+                        }
+                      }}
+                      style={{
+                        backgroundColor: '#4285F4',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        padding: '10px 20px',
+                        cursor: 'pointer',
+                        fontSize: '0.9rem',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      Update Poster
+                    </button>
+                  </div>
+                </div>
+                
+                {/* Hidden posterUrl field */}
                 <input
-                  type="text"
+                  type="hidden"
                   id="edit-posterUrl"
                   name="posterUrl"
                   value={editingMovie.posterUrl || ''}
                   onChange={(e) => setEditingMovie({...editingMovie, posterUrl: e.target.value})}
-                  style={inputStyle}
                 />
               </div>
               
