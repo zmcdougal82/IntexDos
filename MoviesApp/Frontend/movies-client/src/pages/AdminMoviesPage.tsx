@@ -1,6 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Movie, movieApi } from '../services/api';
+import { tmdbApi } from '../services/tmdbApi';
+
+// Interface for TMDB search results
+interface TMDBMovie {
+  id: number;
+  title: string;
+  poster_path: string | null;
+  backdrop_path: string | null;
+  release_date: string;
+  overview: string;
+}
+
+interface TMDBTVShow {
+  id: number;
+  name: string;
+  poster_path: string | null;
+  backdrop_path: string | null;
+  first_air_date: string;
+  overview: string;
+}
+
+type TMDBResult = TMDBMovie | TMDBTVShow;
 
 // Interface for form data
 interface MovieFormData {
@@ -50,6 +72,8 @@ interface MovieFormData {
   ComediesDramasInternationalMovies?: number;
   ComediesInternationalMovies?: number;
   InternationalMoviesThrillers?: number;
+  // Index signature for dynamic property access
+  [key: string]: string | number | undefined;
 }
 
 const AdminMoviesPage: React.FC = () => {
@@ -63,6 +87,11 @@ const AdminMoviesPage: React.FC = () => {
   const [totalMovies, setTotalMovies] = useState(0);
   const [editingMovie, setEditingMovie] = useState<MovieFormData | null>(null);
   const [isAdding, setIsAdding] = useState(false);
+  
+  // Search results and modal state
+  const [searchResults, setSearchResults] = useState<TMDBResult[]>([]);
+  const [showSearchResultsModal, setShowSearchResultsModal] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false); // To track whether search is for add or edit mode
   
   // Search and filter states
   const [searchQuery, setSearchQuery] = useState('');
@@ -1079,8 +1108,8 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
                         {/* Genre column - displays all genres separated by commas */}
                         <td style={tableCellStyle}>
                           {(() => {
-                            // Get all genres using our detection function
-                            const genres = getAllGenres(movie);
+                        // Get all genres using our detection function
+                        const genres = getAllGenres(movie as unknown as MovieFormData);
                             
                             // If no genres, show "Not specified"
                             if (genres.length === 0) return 'Not specified';
@@ -1216,15 +1245,100 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
               
               <div style={formGroupStyle}>
                 <label htmlFor="title">Title *</label>
-                <input
-                  type="text"
-                  id="title"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleInputChange}
-                  style={inputStyle}
-                  required
-                />
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <input
+                    type="text"
+                    id="title"
+                    name="title"
+                    value={formData.title}
+                    onChange={handleInputChange}
+                    style={{ ...inputStyle, flex: 1 }}
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!formData.title.trim()) {
+                        alert('Please enter a title first');
+                        return;
+                      }
+                      
+                      try {
+                        setLoading(true);
+                        
+                        // Search for the movie or TV show
+                        const type = formData.type === 'TV Show' ? 'tv' : 'movie';
+                        const response = await tmdbApi.searchByTitle(formData.title, type);
+                        
+                        if (!response.results || response.results.length === 0) {
+                          alert('No results found for this title');
+                          setLoading(false);
+                          return;
+                        }
+                        
+                        // If multiple results, show selection modal
+                        if (response.results.length > 1) {
+                          setSearchResults(response.results);
+                          setIsEditMode(false); // We're in Add mode
+                          setShowSearchResultsModal(true);
+                          setLoading(false);
+                          return;
+                        }
+                        
+                        // If only one result, use it directly
+                        const result = response.results[0];
+                        
+                        // Update form data based on result type
+                        if ('name' in result) {
+                          // It's a TV show
+                          setFormData({
+                            ...formData,
+                            title: result.name,
+                            type: 'TV Show',
+                            releaseYear: result.first_air_date ? new Date(result.first_air_date).getFullYear() : undefined,
+                            description: result.overview,
+                            posterUrl: result.poster_path ? `${tmdbApi.POSTER_BASE_URL}${result.poster_path}` : undefined,
+                            // Set TV genre
+                            TVDramas: 1
+                          });
+                        } else {
+                          // It's a movie
+                          setFormData({
+                            ...formData,
+                            title: result.title,
+                            type: 'Movie',
+                            releaseYear: result.release_date ? new Date(result.release_date).getFullYear() : undefined,
+                            description: result.overview,
+                            posterUrl: result.poster_path ? `${tmdbApi.POSTER_BASE_URL}${result.poster_path}` : undefined,
+                            // Set movie genre
+                            Dramas: 1
+                          });
+                        }
+                        
+                        alert('Movie information auto-populated from TMDB!');
+                      } catch (error) {
+                        console.error('Error fetching movie data:', error);
+                        alert('Failed to fetch movie data. Please try again.');
+                      } finally {
+                        setLoading(false);
+                      }
+                    }}
+                    style={{
+                      backgroundColor: '#4285F4',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      padding: '8px 15px',
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    Auto-Fill
+                  </button>
+                </div>
+                <small style={{ color: '#666', fontSize: '0.8rem', marginTop: '5px', display: 'block' }}>
+                  Enter a title and click "Auto-Fill" to fetch movie information from TMDB.
+                </small>
               </div>
               
               <div style={formGroupStyle}>
@@ -1363,6 +1477,134 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
       )}
       
       {/* Edit Movie Modal */}
+      {/* TMDB Search Results Modal for Add Movie */}
+      {showSearchResultsModal && searchResults.length > 0 && !isEditMode && (
+        <div style={modalOverlayStyle}>
+          <div style={{...modalContentStyle, maxWidth: '800px', maxHeight: '80vh', overflowY: 'auto'}}>
+            <h2>Select the Correct Movie/TV Show</h2>
+            <p>Multiple matches found for "{formData.title}". Please select the correct one:</p>
+            
+            <div style={{marginTop: '20px', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '15px'}}>
+              {searchResults.map((result, index) => {
+                const title = 'title' in result ? result.title : result.name;
+                const year = 'release_date' in result 
+                  ? result.release_date ? new Date(result.release_date).getFullYear() : 'Unknown'
+                  : result.first_air_date ? new Date(result.first_air_date).getFullYear() : 'Unknown';
+                const poster = result.poster_path 
+                  ? `${tmdbApi.POSTER_BASE_URL}${result.poster_path}` 
+                  : "https://placehold.co/320x480/2c3e50/FFFFFF?text=No+Poster&font=montserrat";
+                const type = 'title' in result ? 'Movie' : 'TV Show';
+                const overview = result.overview || 'No description available';
+                
+                return (
+                  <div key={index} style={{
+                    border: '1px solid #ddd',
+                    borderRadius: '8px',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    backgroundColor: '#f9f9f9',
+                    cursor: 'pointer',
+                    transition: 'transform 0.2s, box-shadow 0.2s',
+                    boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.transform = 'scale(1.02)';
+                    e.currentTarget.style.boxShadow = '0 5px 15px rgba(0,0,0,0.1)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.transform = 'scale(1)';
+                    e.currentTarget.style.boxShadow = '0 2px 5px rgba(0,0,0,0.1)';
+                  }}
+                  onClick={() => {
+                    // Populate the form with the selected result data
+                    if ('title' in result) {
+                      // It's a movie
+                      setFormData({
+                        ...formData,
+                        title: result.title,
+                        type: 'Movie',
+                        releaseYear: result.release_date ? new Date(result.release_date).getFullYear() : undefined,
+                        description: result.overview,
+                        posterUrl: result.poster_path ? `${tmdbApi.POSTER_BASE_URL}${result.poster_path}` : undefined,
+                        // Set movie genre (default to Drama if none specified)
+                        Dramas: 1
+                      });
+                    } else {
+                      // It's a TV show
+                      setFormData({
+                        ...formData,
+                        title: result.name,
+                        type: 'TV Show',
+                        releaseYear: result.first_air_date ? new Date(result.first_air_date).getFullYear() : undefined,
+                        description: result.overview,
+                        posterUrl: result.poster_path ? `${tmdbApi.POSTER_BASE_URL}${result.poster_path}` : undefined,
+                        // Set TV genre (default to TVDramas if none specified)
+                        TVDramas: 1
+                      });
+                    }
+                    
+                    // Close the modal
+                    setShowSearchResultsModal(false);
+                    alert('Movie information populated successfully!');
+                  }}>
+                    <div style={{position: 'relative', paddingTop: '150%'}}>
+                      <img 
+                        src={poster} 
+                        alt={title}
+                        style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover'
+                        }}
+                      />
+                    </div>
+                    <div style={{padding: '15px'}}>
+                      <h3 style={{margin: '0 0 8px 0', fontSize: '1.1rem'}}>{title}</h3>
+                      <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '8px'}}>
+                        <span style={{backgroundColor: '#e0e0e0', padding: '3px 8px', borderRadius: '4px', fontSize: '0.85rem'}}>{type}</span>
+                        <span style={{color: '#666', fontSize: '0.9rem'}}>{year}</span>
+                      </div>
+                      <p style={{
+                        margin: '0',
+                        fontSize: '0.9rem',
+                        color: '#555',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 3,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                      }}>
+                        {overview}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            
+            <div style={{marginTop: '20px', display: 'flex', justifyContent: 'flex-end'}}>
+              <button
+                onClick={() => setShowSearchResultsModal(false)}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: '#f44336',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {editingMovie && (
         <div style={modalOverlayStyle}>
           <div style={modalContentStyle}>
@@ -1370,15 +1612,111 @@ const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
             <form onSubmit={handleEditMovie}>
               <div style={formGroupStyle}>
                 <label htmlFor="edit-title">Title *</label>
-                <input
-                  type="text"
-                  id="edit-title"
-                  name="title"
-                  value={editingMovie.title}
-                  onChange={(e) => setEditingMovie({...editingMovie, title: e.target.value})}
-                  style={inputStyle}
-                  required
-                />
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <input
+                    type="text"
+                    id="edit-title"
+                    name="title"
+                    value={editingMovie.title}
+                    onChange={(e) => setEditingMovie({...editingMovie, title: e.target.value})}
+                    style={{ ...inputStyle, flex: 1 }}
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!editingMovie.title.trim()) {
+                        alert('Please enter a title first');
+                        return;
+                      }
+                      
+                      try {
+                        setLoading(true);
+                        
+                        // Search for the movie or TV show
+                        const type = editingMovie.type === 'TV Show' ? 'tv' : 'movie';
+                        const searchResults = await tmdbApi.searchByTitle(editingMovie.title, type);
+                        
+                        if (!searchResults.results || searchResults.results.length === 0) {
+                          alert('No results found for this title');
+                          setLoading(false);
+                          return;
+                        }
+                        
+                        // Get the first result
+                        const result = searchResults.results[0];
+                        
+                        // Keep the current ID and any genres that were already set
+                        const currentGenres: {[key: string]: number} = {};
+                        const genreFields = [
+                          'Action', 'Adventure', 'Comedies', 'Dramas', 'HorrorMovies', 'Thrillers',
+                          'Documentaries', 'FamilyMovies', 'Fantasy', 'Musicals', 'TVAction',
+                          'TVComedies', 'TVDramas', 'Docuseries', 'KidsTV', 'RealityTV', 'Children',
+                          'DocumentariesInternationalMovies', 'DramasInternationalMovies', 'DramasRomanticMovies',
+                          'ComediesRomanticMovies', 'AnimeSeriesInternationalTVShows',
+                          'BritishTVShowsDocuseriesInternationalTVShows', 'InternationalTVShowsRomanticTVShowsTVDramas',
+                          'TalkShowsTVComedies', 'CrimeTVShowsDocuseries', 'LanguageTVShows', 'NatureTV',
+                          'Spirituality', 'ComediesDramasInternationalMovies', 'ComediesInternationalMovies',
+                          'InternationalMoviesThrillers'
+                        ];
+                        
+                        genreFields.forEach(field => {
+                          if (editingMovie[field] === 1) {
+                            currentGenres[field] = 1;
+                          }
+                        });
+                        
+                        // Update form data based on result type
+                        if ('name' in result) {
+                          // It's a TV show
+                          setEditingMovie({
+                            ...editingMovie,
+                            title: result.name,
+                            type: 'TV Show',
+                            releaseYear: result.first_air_date ? new Date(result.first_air_date).getFullYear() : undefined,
+                            description: result.overview,
+                            posterUrl: result.poster_path ? `${tmdbApi.POSTER_BASE_URL}${result.poster_path}` : editingMovie.posterUrl,
+                            // If no genres are set, default to TVDramas
+                            ...(Object.keys(currentGenres).length === 0 ? { TVDramas: 1 } : currentGenres)
+                          });
+                        } else {
+                          // It's a movie
+                          setEditingMovie({
+                            ...editingMovie,
+                            title: result.title,
+                            type: 'Movie',
+                            releaseYear: result.release_date ? new Date(result.release_date).getFullYear() : undefined,
+                            description: result.overview,
+                            posterUrl: result.poster_path ? `${tmdbApi.POSTER_BASE_URL}${result.poster_path}` : editingMovie.posterUrl,
+                            // If no genres are set, default to Dramas
+                            ...(Object.keys(currentGenres).length === 0 ? { Dramas: 1 } : currentGenres)
+                          });
+                        }
+                        
+                        alert('Movie information updated from TMDB!');
+                      } catch (error) {
+                        console.error('Error fetching movie data:', error);
+                        alert('Failed to fetch movie data. Please try again.');
+                      } finally {
+                        setLoading(false);
+                      }
+                    }}
+                    style={{
+                      backgroundColor: '#4285F4',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      padding: '8px 15px',
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    Auto-Fill
+                  </button>
+                </div>
+                <small style={{ color: '#666', fontSize: '0.8rem', marginTop: '5px', display: 'block' }}>
+                  Click "Auto-Fill" to fetch updated movie information from TMDB.
+                </small>
               </div>
               
               <div style={formGroupStyle}>
