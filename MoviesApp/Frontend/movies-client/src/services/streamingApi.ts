@@ -1,8 +1,8 @@
 // Streaming API service for fetching streaming availability data using TMDB
 
-// Import the API URL functions from tmdbApi to ensure consistency
+// Import the base URL functions from tmdbApi to ensure consistency
 // and avoid CORS issues
-import { getTmdbBaseUrl, getTmdbImageBaseUrl, getTmdbRequestUrl } from './tmdbApi';
+import { getTmdbBaseUrl, getTmdbImageBaseUrl } from './tmdbApi';
 
 // We still need this for constructing endpoints
 const TMDB_API_BASE_URL = getTmdbBaseUrl();
