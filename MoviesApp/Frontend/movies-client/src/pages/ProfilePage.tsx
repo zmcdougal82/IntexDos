@@ -134,7 +134,8 @@ const ProfilePage = () => {
         console.error("Axios error details:", error.response);
       }
     }
-
+    
+    localStorage.removeItem('userId'); //remove the current saved userId
     setModalOpen(false); // close the modal after confirming
   };
   
