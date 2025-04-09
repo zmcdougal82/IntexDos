@@ -242,16 +242,8 @@ const HomePage = () => {
             >
               Welcome to CineNiche!
             </h1>
-          </div>
-        </div>
-      </div>
-
-
-      <div className="mt-4">
-        {!user && (
-          <>
-            {/* Register / Login CTA + Company Introduction */}
-            <div
+                        {/* Register / Login CTA + Company Introduction */}
+                        <div
               style={{
                 display: "flex",
                 flexDirection: "column",
@@ -302,7 +294,14 @@ const HomePage = () => {
                   Register
                 </button>
               </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
+      <div className="mt-4">
+        {!user && (
+          <>
               {/* Company Introduction */}
               <div
                 style={{
@@ -329,7 +328,7 @@ const HomePage = () => {
                   preferences. Let us help you find your next favorite!
                 </p>
               </div>
-            </div>
+            
           </>
         )}
 
