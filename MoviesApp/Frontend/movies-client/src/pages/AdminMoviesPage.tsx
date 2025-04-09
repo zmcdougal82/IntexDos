@@ -380,39 +380,94 @@ const AdminMoviesPage: React.FC = () => {
     }
   };
 
-  const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
-    // More descriptive confirmation message with movie title
-    if (!confirm(`Are you sure you want to delete "${movieTitle}" (ID: ${movieId})? This action cannot be undone.`)) {
-      return;
-    }
+const handleDeleteMovie = async (movieId: string, movieTitle: string) => {
+  // Check if the movie has a valid ID
+  if (!movieId) {
+    setError(`Cannot delete "${movieTitle}" because it has no ID. Please edit the movie to assign an ID first.`);
+    alert(`Error: Cannot delete "${movieTitle}" because it has a missing ID. Please edit the movie to assign an ID first.`);
+    return;
+  }
+  
+  // More descriptive confirmation message with movie title
+  if (!confirm(`Are you sure you want to delete "${movieTitle}" (ID: ${movieId})? This action cannot be undone.`)) {
+    return;
+  }
+  
+  try {
+    setLoading(true);
     
+    console.log(`Deleting movie: ${movieTitle} (ID: ${movieId})`);
+    
+    // Use the API to delete the movie
+    await movieApi.deleteMovie(movieId);
+    
+    console.log(`Successfully deleted movie: ${movieTitle}`);
+    
+    // Show success notification
+    alert(`Movie "${movieTitle}" has been successfully deleted.`);
+    
+    // Refresh the movie list after a successful delete
     try {
-      setLoading(true);
+      let response;
+      if (searchQuery) {
+        response = await movieApi.searchMovies(searchQuery, currentPage, pageSize);
+      } else if (selectedType || selectedGenre || yearFrom !== undefined || yearTo !== undefined) {
+        response = await movieApi.getAll(currentPage, pageSize);
+        let filteredMovies = [...response.data];
+        
+        if (selectedType) {
+          filteredMovies = filteredMovies.filter(movie => movie.type === selectedType);
+        }
+        
+        if (selectedGenre) {
+          filteredMovies = filteredMovies.filter(movie => {
+            return (movie as any)[selectedGenre] === 1;
+          });
+        }
+        
+        if (yearFrom !== undefined) {
+          filteredMovies = filteredMovies.filter(movie => 
+            movie.releaseYear !== undefined && movie.releaseYear >= yearFrom
+          );
+        }
+        
+        if (yearTo !== undefined) {
+          filteredMovies = filteredMovies.filter(movie => 
+            movie.releaseYear !== undefined && movie.releaseYear <= yearTo
+          );
+        }
+        
+        setMovies(filteredMovies);
+        setTotalMovies(filteredMovies.length > 0 ? 
+          currentPage * pageSize + (filteredMovies.length === pageSize ? pageSize : 0) : 
+          filteredMovies.length);
+        return;
+      } else {
+        response = await movieApi.getAll(currentPage, pageSize);
+      }
       
-      console.log(`Deleting movie: ${movieTitle} (ID: ${movieId})`);
-      
-      // Use the API to delete the movie
-      await movieApi.deleteMovie(movieId);
-      
-      console.log(`Successfully deleted movie: ${movieTitle}`);
-      
-      // Show success notification
-      alert(`Movie "${movieTitle}" has been successfully deleted.`);
-      
-      // Refresh the movie list
-      const response = await movieApi.getAll(currentPage, pageSize);
       setMovies(response.data);
       
-    } catch (err) {
-      console.error('Error deleting movie:', err);
-      // Show more specific error message
-      setError(`Failed to delete movie "${movieTitle}". Server returned an error. Please try again.`);
-      // Also show an alert for immediate feedback
-      alert(`Error: Failed to delete movie "${movieTitle}". Please try again.`);
-    } finally {
-      setLoading(false);
+      // Update total count
+      if (searchQuery) {
+        setTotalMovies(response.data.length);
+      } else {
+        setTotalMovies(currentPage * pageSize + (response.data.length === pageSize ? pageSize : 0));
+      }
+    } catch (refreshErr) {
+      console.error('Error refreshing movies after delete:', refreshErr);
     }
-  };
+    
+  } catch (err) {
+    console.error('Error deleting movie:', err);
+    // Show more specific error message
+    setError(`Failed to delete movie "${movieTitle}". Server returned an error. Please try again.`);
+    // Also show an alert for immediate feedback
+    alert(`Error: Failed to delete movie "${movieTitle}". Please try again.`);
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Map of genre property names to display names
   const genreMapping: {[key: string]: string} = {
@@ -1018,7 +1073,7 @@ const AdminMoviesPage: React.FC = () => {
                       onMouseOut={(e) => {
                         e.currentTarget.style.backgroundColor = 'transparent';
                       }}>
-                        <td style={tableCellStyle}>{movie.title}</td>
+                        <td style={tableCellStyle}>{movie.title} {!movie.showId && <small style={{color: 'red'}}>(Missing ID)</small>}</td>
                         <td style={tableCellStyle}>{movie.type || 'Unknown'}</td>
                         <td style={tableCellStyle}>{movie.releaseYear || 'Unknown'}</td>
                         {/* Genre column - displays all genres separated by commas */}

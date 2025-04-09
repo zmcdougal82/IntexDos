@@ -187,9 +187,13 @@ export const movieApi = {
   createMovie: (movie: Partial<Movie>) =>
     api.post<Movie>('/movies', movie),
     
-  // Delete movie
-  deleteMovie: (id: string) =>
-    api.delete<void>(`/movies/${id}`)
+// Delete movie
+deleteMovie: (id: string) =>
+  api.delete<void>(`/movies/${id}`, {
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('token')}`
+    }
+  })
 };
 
 // API functions for Auth
