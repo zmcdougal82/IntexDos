@@ -406,6 +406,17 @@ const ProfilePage = () => {
                       />
                     </div>
 
+                    {/* Phone Number */}
+                    <div style={{ marginBottom: 'var(--spacing-md)' }}>
+                      <label>Phone Number</label>
+                      <input
+                        type="tel"
+                        name="phone"
+                        value={editData?.phone || ''}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+
                     {/* Age */}
                     <div style={{ marginBottom: 'var(--spacing-md)' }}>
                       <label>Age</label>
@@ -462,8 +473,9 @@ const ProfilePage = () => {
                       <div
                         style={{
                           display: 'grid',
-                          gridTemplateColumns: '1fr 1fr',
-                          gap: 'var(--spacing-sm)',
+                          gridTemplateColumns: 'repeat(2, 1fr)',
+                          gap: 'var(--spacing-md)',
+                          marginBottom: 'var(--spacing-lg)',
                         }}
                       >
                         {streamingServices.map((service) => (
@@ -478,6 +490,7 @@ const ProfilePage = () => {
                               justifyContent: 'space-between',
                             }}
                           >
+                            {/* Checkbox container */}
                             <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
                               <input
                                 type="checkbox"
@@ -488,7 +501,20 @@ const ProfilePage = () => {
                                 style={{ marginRight: 'var(--spacing-sm)' }}
                               />
                             </div>
-                            <div>{service.name}</div>
+
+                            {/* Label */}
+                            <label
+                              htmlFor={service.id}
+                              style={{
+                                flexGrow: 1,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                margin: 'auto',
+                              }}
+                            >
+                              {service.name}
+                            </label>
                           </div>
                         ))}
                       </div>

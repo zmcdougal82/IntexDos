@@ -1,13 +1,41 @@
 // TMDB API service for fetching movie and TV show data
 
-// TMDB API base URL
-const TMDB_API_BASE_URL = 'https://api.themoviedb.org/3';
+// TMDB API via our CORS proxy when needed
+// When in localhost, use the proxy server with the general /proxy endpoint
+export const getTmdbBaseUrl = () => {
+  // Always return the real TMDB URL as we'll encode it for the proxy if needed
+  return 'https://api.themoviedb.org/3';
+};
+
+// Get the actual URL to use for requests, using the proxy in development
+export const getTmdbRequestUrl = (endpoint: string) => {
+  if (window.location.hostname === 'localhost') {
+    // Use the working /proxy endpoint which accepts a full URL
+    const targetUrl = encodeURIComponent(`${getTmdbBaseUrl()}${endpoint}`);
+    return `http://localhost:3001/proxy?url=${targetUrl}`;
+  }
+  return `${getTmdbBaseUrl()}${endpoint}`;
+};
+
+const TMDB_API_BASE_URL = getTmdbBaseUrl();
 
 // TMDB API key from environment variable
 const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 
-// Base URL for poster images
-const TMDB_POSTER_BASE_URL = 'https://image.tmdb.org/t/p/w500';
+// Base URL for poster images (use proxy in development)
+export const getTmdbImageBaseUrl = () => {
+  if (window.location.hostname === 'localhost') {
+    // Use the working /proxy endpoint for images too
+    return 'http://localhost:3001/proxy?url=' + encodeURIComponent('https://image.tmdb.org/t/p/w500');
+  }
+  return 'https://image.tmdb.org/t/p/w500';
+};
+
+const TMDB_POSTER_BASE_URL = getTmdbImageBaseUrl();
+
+console.log('Using TMDB Image URL:', TMDB_POSTER_BASE_URL);
+
+console.log('Using TMDB API URL:', TMDB_API_BASE_URL);
 
 // Types
 interface TMDBMovie {
@@ -162,9 +190,8 @@ const TMDB_GENRE_MAPPING: {[key: number]: string} = {
  */
 async function searchByTitle(query: string, type: 'movie' | 'tv' | 'multi' = 'multi', page: number = 1): Promise<TMDBSearchResult> {
   try {
-    const response = await fetch(
-      `${TMDB_API_BASE_URL}/search/${type}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&page=${page}`
-    );
+    const endpoint = `/search/${type}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&page=${page}`;
+    const response = await fetch(getTmdbRequestUrl(endpoint));
     
     if (!response.ok) {
       throw new Error(`TMDB API error: ${response.status}`);
@@ -183,9 +210,8 @@ async function searchByTitle(query: string, type: 'movie' | 'tv' | 'multi' = 'mu
  */
 async function getMovieDetails(movieId: number): Promise<TMDBMovieDetails> {
   try {
-    const response = await fetch(
-      `${TMDB_API_BASE_URL}/movie/${movieId}?api_key=${TMDB_API_KEY}&append_to_response=credits,videos`
-    );
+    const endpoint = `/movie/${movieId}?api_key=${TMDB_API_KEY}&append_to_response=credits,videos`;
+    const response = await fetch(getTmdbRequestUrl(endpoint));
     
     if (!response.ok) {
       throw new Error(`TMDB API error: ${response.status}`);
@@ -204,9 +230,8 @@ async function getMovieDetails(movieId: number): Promise<TMDBMovieDetails> {
  */
 async function getTVShowDetails(tvId: number): Promise<TMDBTVShowDetails> {
   try {
-    const response = await fetch(
-      `${TMDB_API_BASE_URL}/tv/${tvId}?api_key=${TMDB_API_KEY}&append_to_response=credits,videos`
-    );
+    const endpoint = `/tv/${tvId}?api_key=${TMDB_API_KEY}&append_to_response=credits,videos`;
+    const response = await fetch(getTmdbRequestUrl(endpoint));
     
     if (!response.ok) {
       throw new Error(`TMDB API error: ${response.status}`);
@@ -510,9 +535,8 @@ async function getTrailer(title: string, year?: number | string, isTV: boolean =
     }
     
     // Fetch videos directly
-    const response = await fetch(
-      `${TMDB_API_BASE_URL}/${isTV ? 'tv' : 'movie'}/${tmdbId}/videos?api_key=${TMDB_API_KEY}`
-    );
+    const endpoint = `/${isTV ? 'tv' : 'movie'}/${tmdbId}/videos?api_key=${TMDB_API_KEY}`;
+    const response = await fetch(getTmdbRequestUrl(endpoint));
     
     if (!response.ok) {
       throw new Error(`TMDB API error: ${response.status}`);

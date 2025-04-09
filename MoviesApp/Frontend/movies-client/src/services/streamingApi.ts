@@ -1,10 +1,20 @@
 // Streaming API service for fetching streaming availability data using TMDB
 
-// TMDB API base URL from existing tmdbApi service
-const TMDB_API_BASE_URL = 'https://api.themoviedb.org/3';
+// Import the base URL functions from tmdbApi to ensure consistency
+// and avoid CORS issues
+import { getTmdbBaseUrl, getTmdbImageBaseUrl } from './tmdbApi';
+
+// We still need this for constructing endpoints
+const TMDB_API_BASE_URL = getTmdbBaseUrl();
 
 // TMDB API key from environment variable
 const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY;
+
+// Get the TMDB image base URL
+const TMDB_IMAGE_BASE_URL = getTmdbImageBaseUrl().replace('/w500', '/original');
+
+console.log('Using TMDB API URL for streaming service:', TMDB_API_BASE_URL);
+console.log('Using TMDB Image URL for streaming service:', TMDB_IMAGE_BASE_URL);
 
 // Interface for Watch Provider
 interface WatchProvider {
@@ -73,11 +83,13 @@ async function getStreamingProviders(
 ): Promise<StreamingServiceInfo[]> {
   try {
     const contentType = isTV ? 'tv' : 'movie';
-    const url = `${TMDB_API_BASE_URL}/${contentType}/${tmdbId}/watch/providers?api_key=${TMDB_API_KEY}`;
+    // Make sure we're importing the updated getTmdbRequestUrl from tmdbApi.ts
+    const { getTmdbRequestUrl } = await import('./tmdbApi');
+    const endpoint = `/${contentType}/${tmdbId}/watch/providers?api_key=${TMDB_API_KEY}`;
     
     console.log(`Fetching streaming providers for ${contentType} ID: ${tmdbId}`);
     
-    const response = await fetch(url);
+    const response = await fetch(getTmdbRequestUrl(endpoint));
     
     if (!response.ok) {
       throw new Error(`TMDB API error: ${response.status}`);
@@ -127,7 +139,7 @@ async function getStreamingProviders(
         ...regionData.flatrate.map(provider => ({
           providerId: provider.provider_id,
           providerName: provider.provider_name,
-          logoUrl: `https://image.tmdb.org/t/p/original${provider.logo_path}`,
+          logoUrl: `${TMDB_IMAGE_BASE_URL}${provider.logo_path}`,
           streamingType: 'flatrate' as const,
           link: getDirectLink(provider)
         }))
@@ -140,7 +152,7 @@ async function getStreamingProviders(
         ...regionData.rent.map(provider => ({
           providerId: provider.provider_id,
           providerName: provider.provider_name,
-          logoUrl: `https://image.tmdb.org/t/p/original${provider.logo_path}`,
+          logoUrl: `${TMDB_IMAGE_BASE_URL}${provider.logo_path}`,
           streamingType: 'rent' as const,
           link: getDirectLink(provider)
         }))
@@ -153,7 +165,7 @@ async function getStreamingProviders(
         ...regionData.buy.map(provider => ({
           providerId: provider.provider_id,
           providerName: provider.provider_name,
-          logoUrl: `https://image.tmdb.org/t/p/original${provider.logo_path}`,
+          logoUrl: `${TMDB_IMAGE_BASE_URL}${provider.logo_path}`,
           streamingType: 'buy' as const,
           link: getDirectLink(provider)
         }))
