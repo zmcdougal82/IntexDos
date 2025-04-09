@@ -97,15 +97,6 @@ namespace MoviesApp.API.Controllers
             }
 
             var token = GenerateJwtToken(user);
-            
-            // Set the JWT token as a cookie
-            Response.Cookies.Append("authToken", token, new CookieOptions
-            {
-                HttpOnly = true,    // Prevent client-side access to the cookie (security)
-                Secure = true,      // Send cookie only over HTTPS
-                MaxAge = TimeSpan.FromDays(7), // Cookie expiration time (7 days in this case)
-                SameSite = SameSiteMode.Lax  // SameSite policy to control cross-site requests
-            });
 
             return Ok(new
             {
