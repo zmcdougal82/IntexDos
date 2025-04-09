@@ -1,6 +1,6 @@
 // services/openaiApi.ts
 const API_URL = 'https://api.openai.com/v1/chat/completions';
-const API_KEY = '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';
+const API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
 
 interface SummarizationOptions {
   maxLength?: number;
