@@ -205,7 +205,7 @@ export const recommendationApi = {
     const data = {
       Inputs: {
         input1: showIds.map((showId) => ({
-          user_id: userId,
+          userId: userId,
           show_id: showId,
         })),
       },
@@ -232,7 +232,10 @@ export const userApi = {
     api.get<User>(`/users/${id}`),
 
   update: (id: string, userData: Partial<User>) =>
-    api.put<void>(`/users/${id}`, userData)
+    api.put<void>(`/users/${id}`, userData),
+
+  getWatchHistory: (userId: string) => {
+    return axios.get(`/api/users/${userId}/history`)}
 };
 
 // API functions for Ratings
