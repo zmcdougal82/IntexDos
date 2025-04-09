@@ -14,7 +14,7 @@ const ExternalRatings: React.FC<ExternalRatingsProps> = ({
 }) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [imdbRating, setImdbRating] = useState<string | null>(null);
-  const [imdbId, setImdbId] = useState<string | null>(null);
+  // Removing unused imdbId state
   const [rottenTomatoesRating, setRottenTomatoesRating] = useState<string | null>(null);
   const [metacriticRating, setMetacriticRating] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -51,9 +51,7 @@ const ExternalRatings: React.FC<ExternalRatingsProps> = ({
         if (externalRatings.imdb) {
           console.log('Setting IMDB rating:', externalRatings.imdb.rating);
           setImdbRating(externalRatings.imdb.rating);
-          if (externalRatings.imdb.id) {
-            setImdbId(externalRatings.imdb.id);
-          }
+          // No longer setting imdbId since it's not used
         }
         
         // Set Rotten Tomatoes data
@@ -90,11 +88,7 @@ const ExternalRatings: React.FC<ExternalRatingsProps> = ({
     return rating.replace('%', '');
   };
 
-  // Format the Metacritic rating
-  const formatMetacriticRating = (rating: string) => {
-    // Rating format is typically "XX/100" - we just want the number
-    return rating.replace('/100', '');
-  };
+  // Removing unused formatMetacriticRating function
 
   // Return null if there are no ratings to display
   if (!isLoading && !imdbRating && !rottenTomatoesRating && !metacriticRating) {

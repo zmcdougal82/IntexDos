@@ -132,47 +132,7 @@ const CastCrewScroller: React.FC<CastCrewScrollerProps> = ({
     </div>
   );
 
-  // Render a horizontal scroll section
-  const renderScrollSection = (title: string, people: PersonCard[]) => (
-    <div style={{ marginBottom: '24px' }}>
-      <h3 
-        style={{ 
-          color: 'var(--color-text)',
-          fontWeight: 600,
-          marginBottom: '16px',
-        }}
-      >
-        {title}
-      </h3>
-      
-      {people.length === 0 ? (
-        <p style={{ color: 'var(--color-text-light)' }}>
-          No information available
-        </p>
-      ) : (
-        <div 
-          style={{
-            overflowX: 'auto',
-            overflowY: 'hidden',
-            WebkitOverflowScrolling: 'touch',
-            scrollbarWidth: 'thin',
-            scrollbarColor: 'var(--color-border) transparent',
-            padding: '8px 0',
-            margin: '0 -16px',
-          }}
-        >
-          <div 
-            style={{
-              display: 'flex',
-              padding: '0 16px',
-            }}
-          >
-            {people.map(renderPersonCard)}
-          </div>
-        </div>
-      )}
-    </div>
-  );
+  // Removed unused renderScrollSection function
 
   if (loading) {
     return (
