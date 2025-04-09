@@ -134,10 +134,7 @@ app.UseHttpsRedirection();
 app.UseRouting();
 
 // Use CORS - apply appropriate policy based on the request origin and headers
-app.UseCors(builder => builder
-    .AllowAnyOrigin()
-    .AllowAnyMethod()
-    .AllowAnyHeader());
+app.UseCors("AllowReactApp");
 
 app.UseAuthentication();
 app.UseAuthorization();
