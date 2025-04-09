@@ -188,157 +188,116 @@ const HomePage = () => {
 
   return (
     <div className="container">
-      <div className="container" style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}>
-        <div style={{ position: 'relative', width: '1585px', height: '60vh' }}>
-          <iframe
-            src="/scrolling.html"
-            width="1585"
-            height="200px"
-            title="Movies Scrolling Home"
-            scrolling="no"
-            style={{
-              border: 'none',
-              marginTop: '5px',
-              marginBottom: '20px',
-              height: '60vh',
-              width: '100%',
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              zIndex: 1,
-            }}
-          />
-          <div
-            style={{
-              position: 'absolute',
-              top: 5,
-              left: 0,
-              width: '100%',
-              height: '100%',
-              zIndex: 2,
-              backgroundColor: 'rgba(0, 0, 0, 0.3)', // translucent overlay
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white',
-              fontSize: '24px',
-            }}
-          >
-            <h1
-              style={{
-                fontSize: "5.5rem",
-                fontWeight: 700,
-                color: "var(--color-white)",
-                textAlign: "center",
-                marginBottom: "var(--spacing-lg)",
-              }}
-            >
-              Welcome to CineNiche!
-            </h1>
-          </div>
-        </div>
+      <div
+        className="container"
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <iframe
+          src="/scrolling.html"
+          width="1585"
+          height="200px"
+          title="Movies Scrolling Home"
+          scrolling="no"
+          style={{
+            border: "none",
+            marginTop: "5px",
+            marginBottom: "20px",
+            height: "60vh",
+          }}
+        />
       </div>
-
 
       <div className="mt-4">
         {!user && (
-          <div
-            style={{
-              maxWidth: "600px",
-              margin: "3rem auto",
-              padding: "2rem",
-              backgroundColor: "white",
-              borderRadius: "12px",
-              boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)",
-              textAlign: "center",
-            }}
-          >
-            {/* Call to Action */}
-            <p
-              style={{
-                fontSize: "1.125rem",
-                fontWeight: "500",
-                marginBottom: "1.5rem",
-              }}
-            >
-              Sign up or log in to start discovering personalized movie and TV
-              show recommendations tailored just for you!
-            </p>
-
+          <>
+            {/* Register / Login CTA + Company Introduction */}
             <div
               style={{
                 display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
                 justifyContent: "center",
-                gap: "1rem",
+                textAlign: "center",
               }}
             >
-              <button
-                onClick={handleLogin}
-                style={{
-                  padding: "0.75rem 1.5rem",
-                  backgroundColor: "#007BFF",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "8px",
-                  fontSize: "1rem",
-                  fontWeight: "600",
-                  cursor: "pointer",
-                }}
-              >
-                Log In
-              </button>
-              <button
-                onClick={handleRegister}
-                style={{
-                  padding: "0.75rem 1.5rem",
-                  backgroundColor: "#007BFF",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "8px",
-                  fontSize: "1rem",
-                  fontWeight: "600",
-                  cursor: "pointer",
-                }}
-              >
-                Register
-              </button>
-            </div>
-
-            {/* Company Introduction */}
-            <div
-              style={{
-                marginTop: "2rem",
-              }}
-            >
-              <h3
-                style={{
-                  fontSize: "1.5rem",
-                  fontWeight: "700",
-                  color: "#007BFF",
-                  marginBottom: "1rem",
-                }}
-              >
-                About CineNiche
-              </h3>
-              <p
-                style={{
-                  fontSize: "1rem",
-                  color: "#333",
-                }}
-              >
-                At CineNiche, we believe in bringing you the best movie and TV
-                show experiences. Explore thousands of options, discover hidden
-                gems, and enjoy recommendations based on your preferences. Let
-                us help you find your next favorite!
+              <p>
+                Sign up or log in to start discovering personalized movie and TV
+                show recommendations tailored just for you!
               </p>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  gap: "10px",
+                }}
+              >
+                <button
+                  onClick={handleLogin}
+                  style={{
+                    padding: "10px 20px",
+                    backgroundColor: "#007BFF",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "5px",
+                    cursor: "pointer",
+                    fontSize: "1rem",
+                    marginTop: "1rem",
+                  }}
+                >
+                  Log In
+                </button>
+                <button
+                  onClick={handleRegister}
+                  style={{
+                    padding: "10px 20px",
+                    backgroundColor: "#007BFF",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "5px",
+                    cursor: "pointer",
+                    fontSize: "1rem",
+                    marginTop: "1rem",
+                  }}
+                >
+                  Register
+                </button>
+              </div>
+
+              {/* Company Introduction */}
+              <div
+                style={{
+                  textAlign: "center",
+                  marginBottom: "2rem",
+                  marginTop: "3rem",
+                }}
+              >
+                <h3
+                  style={{
+                    fontSize: "2rem",
+                    fontWeight: 700,
+                    color: "var(--color-primary)",
+                    textAlign: "center",
+                    marginBottom: "var(--spacing-lg)",
+                  }}
+                >
+                  About CineNiche
+                </h3>
+                <p>
+                  At CineNiche, we believe in bringing you the best movie and TV
+                  show experiences. Explore thousands of options, discover
+                  hidden gems, and enjoy recommendations based on your
+                  preferences. Let us help you find your next favorite!
+                </p>
+              </div>
             </div>
-          </div>
+          </>
         )}
+
         <div
           className="card"
           style={{
