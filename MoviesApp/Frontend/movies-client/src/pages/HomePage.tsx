@@ -602,50 +602,11 @@ const HomePage = () => {
               </div>
             )}
 
-            {!loading && !error && movies.length === 0 && (
+            {/* {!loading && !error && movies.length === 0 && (
               <div className="card mt-4 text-center">
                 <p>No movies found. Try a different search term.</p>
               </div>
-            )}
-
-            <div
-              style={{
-                display: "flex",
-                flexWrap: "wrap",
-                justifyContent: "center",
-                gap: "var(--spacing-md)",
-                marginTop: "var(--spacing-lg)",
-              }}
-            >
-              {movies.map((movie, index) => {
-                if (movies.length === index + 1) {
-                  return (
-                    <div key={movie.showId} ref={lastMovieElementRef}>
-                      <MovieCard
-                        movie={movie}
-                        onClick={() => handleMovieClick(movie.showId)}
-                      />
-                    </div>
-                  );
-                } else {
-                  return (
-                    <MovieCard
-                      key={movie.showId}
-                      movie={movie}
-                      onClick={() => handleMovieClick(movie.showId)}
-                    />
-                  );
-                }
-              })}
-            </div>
-
-            {loading && movies.length > 0 && (
-              <div className="text-center mt-4 mb-4">
-                <p style={{ color: "var(--color-text-light)" }}>
-                  Loading more movies...
-                </p>
-              </div>
-            )}
+            )} */}
 
             {!hasMore && movies.length > 0 && !loading && (
               <div className="text-center mt-4 mb-4">
@@ -656,7 +617,7 @@ const HomePage = () => {
             )}
           </div>
         )}
-   
+
       </div>
     </div>
   );

@@ -18,7 +18,6 @@ const MovieTrailer: React.FC<MovieTrailerProps> = ({
   const [trailerName, setTrailerName] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [isVisible, setIsVisible] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchTrailer = async () => {
@@ -33,12 +32,10 @@ const MovieTrailer: React.FC<MovieTrailerProps> = ({
           setTrailerName(trailerInfo.name);
         } else {
           setError("No trailer available");
-          setIsVisible(false); // Hide component if no traile
         }
       } catch (err) {
         console.error("Error fetching trailer:", err);
         setError("Failed to load trailer");
-        setIsVisible(false); // Hide component if no traile
       } finally {
         setLoading(false);
       }
@@ -46,11 +43,6 @@ const MovieTrailer: React.FC<MovieTrailerProps> = ({
 
     fetchTrailer();
   }, [title, year, isTV]);
-
-  // Return null early if no trailer should be displayed
-  if (!isVisible) {
-    return null;
-  }
 
   if (loading) {
     return (
@@ -87,7 +79,24 @@ const MovieTrailer: React.FC<MovieTrailerProps> = ({
   }
 
   if (error || !trailerKey) {
-    return null;
+    return (
+      <div
+        style={{
+          backgroundColor: "rgba(0, 0, 0, 0.05)",
+          borderRadius: "var(--radius-md)",
+          height: "40px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "0.9rem",
+          color: "var(--color-text-light)",
+          width: "100%",
+          ...(className ? {} : {}),
+        }}
+      >
+        No trailer available
+      </div>
+    );
   }
 
   return (
