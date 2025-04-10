@@ -1,22 +1,8 @@
-"""
-Movie Recommendation Service
-
-This service generates movie recommendations based on user ratings data from Azure SQL.
-It implements multiple recommendation techniques:
-1. Collaborative Filtering - Recommends movies similar users have rated highly
-2. Content-Based Filtering - Recommends movies similar to those the user has rated highly
-3. Genre-Based Recommendations - Recommends movies by genre based on user preferences
-
-The recommendations are updated whenever:
-- A user logs in
-- A user submits a new rating
-"""
 
 import os
 import json
 import pandas as pd
 import numpy as np
-from sklearn.neighbors import NearestNeighbors
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.preprocessing import StandardScaler
 import pyodbc
@@ -30,7 +16,6 @@ logger = logging.getLogger('recommendation_service')
 
 # Load environment variables from .env file
 load_dotenv()
-
 class RecommendationService:
     def __init__(self):
         self.conn_str = self._get_connection_string()
@@ -69,7 +54,7 @@ class RecommendationService:
             raise
     
     def _load_data_from_db(self):
-        """Load ratings, movies, and users data from Azure SQL"""
+        """Load ratings, movies, and users data from database"""
         try:
             conn = pyodbc.connect(self.conn_str)
             
@@ -152,16 +137,7 @@ class RecommendationService:
         logger.info("Prepared matrices for recommendations")
     
     def get_collaborative_recommendations(self, user_id, n=10):
-        """
-        Generate recommendations using collaborative filtering
-        
-        Args:
-            user_id: The ID of the user to get recommendations for
-            n: Number of recommendations to return
-            
-        Returns:
-            List of movie IDs recommended for the user
-        """
+        """Generate recommendations using collaborative filtering"""
         try:
             logger.info(f"Generating collaborative recommendations for user {user_id}")
             # Convert string user_id to integer if needed
@@ -214,16 +190,7 @@ class RecommendationService:
             return []
     
     def get_content_based_recommendations(self, user_id, n=10):
-        """
-        Generate content-based recommendations using movie attributes
-        
-        Args:
-            user_id: The ID of the user to get recommendations for
-            n: Number of recommendations to return
-            
-        Returns:
-            List of movie IDs recommended for the user
-        """
+        """Generate content-based recommendations"""
         try:
             logger.info(f"Generating content-based recommendations for user {user_id}")
             # Convert string user_id to integer if needed
@@ -279,17 +246,7 @@ class RecommendationService:
             return []
     
     def get_genre_recommendations(self, user_id, n=5, genre=None):
-        """
-        Generate genre-specific recommendations
-        
-        Args:
-            user_id: The ID of the user to get recommendations for
-            n: Number of recommendations per genre to return
-            genre: Specific genre to get recommendations for, if None returns for top genres
-            
-        Returns:
-            Dictionary mapping genres to lists of recommended movie IDs
-        """
+        """Generate genre-specific recommendations"""
         try:
             logger.info(f"Generating genre recommendations for user {user_id}, genre={genre}")
             # Convert string user_id to integer if needed
@@ -369,15 +326,7 @@ class RecommendationService:
             return {}
     
     def get_all_recommendations(self, user_id):
-        """
-        Get all types of recommendations for a user
-        
-        Args:
-            user_id: The ID of the user to get recommendations for
-            
-        Returns:
-            Dictionary with different recommendation categories
-        """
+        """Get all types of recommendations for a user"""
         try:
             logger.info(f"Generating all recommendations for user {user_id}")
             
@@ -405,15 +354,7 @@ class RecommendationService:
             }
     
     def generate_recommendations_file(self, output_path="recommendations.json"):
-        """
-        Generate recommendations for all users and save to a JSON file
-        
-        Args:
-            output_path: Path to save the recommendations JSON
-        
-        Returns:
-            True if successful, False otherwise
-        """
+        """Generate recommendations for all users and save to a JSON file"""
         try:
             logger.info(f"Generating recommendations file for all users")
             
@@ -436,13 +377,3 @@ class RecommendationService:
         except Exception as e:
             logger.error(f"Error generating recommendations file: {str(e)}")
             return False
-
-# Main execution for testing
-if __name__ == "__main__":
-    try:
-        rec_service = RecommendationService()
-        # Generate recommendations for all users
-        rec_service.generate_recommendations_file("recommendations.json")
-        print("Recommendations generated successfully")
-    except Exception as e:
-        print(f"Error: {str(e)}")

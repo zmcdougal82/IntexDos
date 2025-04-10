@@ -1,136 +1,119 @@
-# Movie Recommendation Service
+# Movie Recommendation System
 
-This service provides personalized movie recommendations for users based on their rating history. It implements multiple recommendation strategies to provide a rich, personalized experience.
+This directory contains a multi-tiered movie recommendation system that provides personalized movie recommendations based on user ratings data stored in an Azure SQL database. The system has been refactored to run directly from a Jupyter notebook implementation.
 
 ## Features
 
-1. **Multi-Strategy Recommendations**
-   - **Collaborative Filtering**: Recommends movies that similar users have enjoyed
-   - **Content-Based Filtering**: Recommends movies similar to what the user has liked based on movie attributes
-   - **Genre-Based Recommendations**: Provides genre-specific recommendations based on user preferences
+The recommendation system offers three distinct recommendation approaches:
 
-2. **Dynamic Updates**
-   - Recommendations update when users log in
-   - Recommendations update when users submit new ratings
-   - Admin ability to regenerate all recommendations
+1. **Collaborative Filtering** - Recommends movies that similar users have rated highly. This approach finds users with similar taste profiles and recommends highly-rated movies from their collections.
 
-3. **Fallback Mechanism**
-   - Static recommendation file generation for high availability
-   - Frontend gracefully falls back to static recommendations if service is unavailable
+2. **Content-Based Filtering** - Recommends movies similar to ones the user has already rated highly, using metadata like genre, director, etc.
 
-## Technical Details
+3. **Genre-Based Recommendations** - Provides specialized recommendations by genre, focusing on the user's most preferred genres based on their rating history.
 
-### Components
+## Dynamic Recommendation Updates
 
-- **Python Backend**
-  - `recommendation_service.py`: Core recommendation algorithms and data processing
-  - `api.py`: FastAPI service exposing recommendation endpoints
-  - `generate_default_recommendations.py`: Script to generate fallback recommendation file
+The system updates recommendations under two conditions:
+- When a user logs in
+- When a user leaves a new rating for a movie
 
-- **.NET Integration**
-  - `RecommendationsController.cs`: Controller in the main API for proxying recommendation requests
-  - `RatingsController.cs`: Sends update events to recommendation service when ratings change
+## Components
 
-### Prerequisites
+- **recommendation_system_final.ipynb** - Jupyter notebook that contains the complete implementation
+- **run_notebook_implementation.py** - Script to extract and run code from the notebook
+- **start.py** - Simplified script to start the recommendation service
+- **test_notebook_implementation.py** - Script to test the notebook implementation works correctly
+- **HOW_IT_WORKS.md** - Detailed documentation on the recommendation algorithms
+- **obsolete/** - Directory containing the old implementation (for reference only)
 
-- Python 3.8+
-- ODBC Driver 17 for SQL Server
-- Access to the Azure SQL database
+## Setup Instructions
 
-### Installation
-
-1. Install Python dependencies:
+1. Install required packages:
    ```
    pip install -r requirements.txt
    ```
 
-2. Configure the `.env` file with database credentials and other settings:
+2. Configure environment variables in `.env` file:
    ```
-   DB_SERVER=your-server-name.database.windows.net
+   DB_SERVER=your-azure-sql-server.database.windows.net
    DB_NAME=your-database-name
    DB_USERNAME=your-username
    DB_PASSWORD=your-password
-   API_PORT=8001
    ```
 
-### Running the Service
-
-### Without Docker (Recommended)
-
-1. Install Python dependencies:
+3. Run the recommendation service:
    ```
-   pip install -r requirements.txt
+   python start.py
    ```
 
-2. Run the start script to both generate recommendations and start the API:
+   Or use these options:
    ```
-   python start_service.py
-   ```
-
-   Or to only generate the recommendations file without starting the API:
-   ```
-   python start_service.py --generate-only
+   python start.py --generate-only  # Only generate recommendations file
+   python start.py --verify         # Verify the notebook implementation
    ```
 
-### Using Docker (Optional)
+## API Endpoints
 
-If you prefer to use Docker:
+The recommendation service provides the following endpoints:
 
-1. Build and start the service using docker-compose:
+- `GET /health` - Health check endpoint
+- `GET /recommendations/{user_id}` - Get all recommendations for a user
+- `POST /recommendations/update-after-rating` - Update recommendations after a new rating
+- `POST /recommendations/generate-file` - Generate a recommendations file
+
+## Using the Jupyter Notebook
+
+The `recommendation_system_final.ipynb` notebook provides an interactive way to work with the recommendation system. It includes:
+
+1. The complete recommendation engine implementation
+2. FastAPI service setup
+3. Interactive testing capabilities 
+4. Utility functions to generate recommendation files
+
+To use the notebook:
+
+1. Open it in Jupyter or JupyterLab:
    ```
-   docker-compose up -d
+   jupyter notebook recommendation_system_final.ipynb
    ```
 
-2. Generate recommendations file:
-   ```
-   docker exec -it movie-recommendation-service python generate_default_recommendations.py
-   ```
+2. Run all cells to load the recommendation engine
+3. Use the interactive testing section to test recommendations for specific users
+4. Optionally set `RUN_SERVER = True` to start the FastAPI server from the notebook
 
-### API Endpoints
+## Frontend Integration
 
-- `GET /recommendations/{user_id}`: Get all recommendation types for a user
-- `GET /recommendations/{user_id}/collaborative`: Get collaborative filtering recommendations
-- `GET /recommendations/{user_id}/content-based`: Get content-based recommendations 
-- `GET /recommendations/{user_id}/genres`: Get genre-specific recommendations
-- `POST /recommendations/update-after-rating`: Trigger recommendation update after a new rating
-- `POST /recommendations/generate-file`: Generate a static recommendations file
+The recommendation system integrates with the React frontend through the API endpoints. The frontend can:
 
-## Integration
+1. Fetch personalized recommendations when a user logs in
+2. Update recommendations when a user submits a new rating
+3. Display different recommendation types (collaborative, content-based, and genre-specific)
 
-### Frontend Integration
+## Example Usage (Python)
 
-The frontend HomeRecommender component calls the recommendation API through the .NET backend, displaying recommendations in categories:
+```python
+import requests
 
-1. "Movies Similar Users Enjoyed" (collaborative filtering)
-2. "Based on Your Taste" (content-based filtering)
-3. Genre-specific sections like "Recommended in Action" or "Recommended in Comedy"
+# Get recommendations for a user
+response = requests.get("http://localhost:8001/recommendations/405")
+recommendations = response.json()
 
-### Backend Integration
+# Display collaborative recommendations
+print("Collaborative Recommendations:")
+print(recommendations["collaborative"])
 
-The .NET backend proxies requests to the recommendation service and triggers updates when:
+# Display content-based recommendations
+print("Content-Based Recommendations:")
+print(recommendations["contentBased"])
 
-1. A user submits a new rating
-2. A user updates an existing rating
+# Display genre recommendations
+print("Genre Recommendations:")
+for genre, movies in recommendations["genres"].items():
+    print(f"{genre}: {movies}")
 
-## Deployment
-
-For production deployment:
-
-1. Option 1 (Without Docker):
-   - Set up a Python environment on your hosting platform
-   - Install dependencies with `pip install -r requirements.txt`
-   - Use a process manager like Supervisor or PM2 to keep the service running
-   - Run the service with `python start_service.py`
-
-2. Option 2 (With Docker):
-   - Build a Docker container with the recommendation service
-   - Deploy to Azure App Service or Azure Container Instances
-   - Update the frontend and backend to point to the deployed recommendation service URL
-   - Set up continuous generation of the fallback recommendation file
-
-## Future Improvements
-
-- Add user clustering for improved collaborative filtering
-- Implement popularity-based recommendations for new users (cold start)
-- Add temporal dynamics to consider recent viewing trends
-- Implement A/B testing of different recommendation algorithms
+# Update recommendations after rating
+requests.post(
+    "http://localhost:8001/recommendations/update-after-rating",
+    json={"user_id": "405", "show_id": "s123", "rating_value": 5}
+)

@@ -17,3 +17,8 @@ pyodbc>=4.0.35
 python-dotenv>=1.0.0
 python-multipart>=0.0.6
 httpx>=0.24.0
+
+# Jupyter notebook execution
+nbformat>=5.7.0
+nbconvert>=7.2.9
+ipykernel>=6.19.0
