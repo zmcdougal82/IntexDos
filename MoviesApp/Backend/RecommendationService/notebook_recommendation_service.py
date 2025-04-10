@@ -135,7 +135,7 @@ class NotebookRecommendationService:
             return self.sample_movies
     
     def get_genre_movies(self, genre, limit=10):
-        """Get movies for a specific genre"""
+        """Get movies for a specific genre with good ratings"""
         if not self.conn:
             # If no database connection, return sample movies
             return random.sample(self.sample_movies, min(limit, len(self.sample_movies)))
@@ -146,7 +146,18 @@ class NotebookRecommendationService:
             # Note: This assumes the genre names match column names in the database
             # We need to sanitize the genre name to ensure it's a valid column name
             sanitized_genre = ''.join(c for c in genre if c.isalnum())
-            query = f"SELECT TOP (?) show_id FROM movies_titles WHERE [{sanitized_genre}] > 0"
+            query = f"""
+            SELECT TOP (?) m.show_id 
+            FROM movies_titles m
+            JOIN (
+                SELECT show_id, AVG(CAST(rating AS FLOAT)) as avg_rating
+                FROM movies_ratings
+                GROUP BY show_id
+                HAVING AVG(CAST(rating AS FLOAT)) >= 3.5
+            ) r ON m.show_id = r.show_id
+            WHERE [{sanitized_genre}] > 0
+            ORDER BY r.avg_rating DESC
+            """
             cursor.execute(query, (limit,))
             
             # Ensure all IDs are in the 's' prefix format
@@ -184,13 +195,14 @@ class NotebookRecommendationService:
         try:
             cursor = self.conn.cursor()
             # Find users who rated the same movies similarly
-            # This is a simplified collaborative filtering approach
+            # This is a simplified collaborative filtering approach that now filters for positive ratings (>=3.5)
             query = """
             SELECT TOP (?) r2.show_id
             FROM movies_ratings r1
             JOIN movies_ratings r2 ON r1.user_id != r2.user_id 
                 AND r1.show_id = r2.show_id 
                 AND ABS(r1.rating - r2.rating) <= 1
+                AND r2.rating >= 3.5 -- Only include positively rated movies
             WHERE r1.user_id = ?
                 AND r2.show_id NOT IN (
                     SELECT show_id FROM movies_ratings WHERE user_id = ?
@@ -285,7 +297,7 @@ class NotebookRecommendationService:
             return random.sample(self.sample_movies, min(limit, len(self.sample_movies)))
     
     def get_popular_movies(self, limit=10):
-        """Get popular movies based on rating count"""
+        """Get popular movies based on rating count and average rating"""
         if not self.conn:
             # If no database connection, return sample movies
             return random.sample(self.sample_movies, min(limit, len(self.sample_movies)))
@@ -296,6 +308,7 @@ class NotebookRecommendationService:
             SELECT TOP (?) show_id
             FROM movies_ratings
             GROUP BY show_id
+            HAVING AVG(CAST(rating AS FLOAT)) >= 3.5 -- Only include well-rated movies
             ORDER BY COUNT(*) DESC
             """
             cursor.execute(query, (limit,))

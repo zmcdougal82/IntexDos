@@ -132,34 +132,6 @@ const UserProfileMenu: React.FC<UserProfileMenuProps> = ({ user, onLogout }) => 
             <button
               onClick={() => {
                 setIsOpen(false);
-                navigate('/watchlist');
-              }}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                width: '100%',
-                padding: 'var(--spacing-sm) var(--spacing-md)',
-                backgroundColor: 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-                textAlign: 'left',
-                color: 'var(--color-text)',
-                transition: 'background-color var(--transition-normal)'
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.backgroundColor = 'var(--color-background)';
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }}
-            >
-              <span style={{ marginRight: 'var(--spacing-md)' }}>🎬</span>
-              My Watchlist
-            </button>
-            
-            <button
-              onClick={() => {
-                setIsOpen(false);
                 navigate('/ratings');
               }}
               style={{
