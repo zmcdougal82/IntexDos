@@ -123,7 +123,6 @@ const RegisterPage = () => {
       
       // Show success message and redirect to login
       setIsModalOpen(true);
-      window.location.href = '/login';
     } catch (err: any) {
       console.error('Registration error:', err);
       setError(err.response?.data || 'Registration failed. Please try again.');
