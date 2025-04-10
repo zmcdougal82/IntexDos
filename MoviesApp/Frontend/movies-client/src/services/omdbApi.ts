@@ -2,9 +2,9 @@
 
 // Get the API base URL from api.ts
 const getApiUrl = () => {
-  // If we're running in local development, use the local proxy
+  // If we're running in local development, use the ASP.NET backend directly
   if (window.location.hostname === 'localhost') {
-    return "http://localhost:3001/api";
+    return "http://localhost:5237/api";
   }
   
   // For production, use the environment variable if it exists
@@ -24,16 +24,10 @@ const getApiUrl = () => {
 };
 
 // OMDB API URLs and keys
-// In development, use the local CORS proxy
-// In production, use our backend proxy
+// For all environments, use the ASP.NET backend proxy
 const getOmdbBaseUrl = () => {
-  if (window.location.hostname === 'localhost') {
-    // In local development, use the CORS proxy
-    return 'http://localhost:3001/omdb';
-  }
-  
-  // In production, use our backend proxy which will handle API keys and CORS issues
-  return `${getApiUrl()}/proxy/omdb`;
+  const apiBaseUrl = getApiUrl();
+  return `${apiBaseUrl}/proxy/omdb`;
 };
 
 const OMDB_API_BASE_URL = getOmdbBaseUrl();

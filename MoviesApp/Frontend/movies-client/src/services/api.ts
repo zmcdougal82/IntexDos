@@ -6,8 +6,8 @@ const getApiUrl = () => {
   if (window.location.hostname !== "localhost") {
     return "https://moviesapp-api-fixed.azurewebsites.net/api";
   }
-  // If running locally - use the local CORS proxy
-  return "http://localhost:3001/api";
+  // If running locally - use the ASP.NET backend directly
+  return "http://localhost:5237/api";
 };
 
 const API_URL = getApiUrl();

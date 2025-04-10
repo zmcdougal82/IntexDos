@@ -4,8 +4,20 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MoviesApp.API.Data;
 using System.Text;
+using DotNetEnv;
+
+// Load environment variables from .env file
+DotNetEnv.Env.Load();
+
+// Print the connection string for debugging
+var connStr = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+Console.WriteLine($"DEBUG: Connection string from env var: {connStr}");
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Print the connection string from configuration for debugging
+var configConnStr = builder.Configuration.GetConnectionString("DefaultConnection");
+Console.WriteLine($"DEBUG: Connection string from config: {configConnStr}");
 
 // JWT Configuration
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
@@ -48,13 +60,21 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // Add CORS policy
 builder.Services.AddCors(options =>
 {
+    // More permissive policy to match Node.js proxy behavior
+    options.AddPolicy("AllowAny", 
+        builder => builder
+            .SetIsOriginAllowed(_ => true) // Allow any origin
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials()); // Allow credentials
+
+    // Original policy
     options.AddPolicy("AllowReactApp",
         builder => builder
-            // Allow any origin - needed since the frontend might be deployed to various domains
             .SetIsOriginAllowed(_ => true) 
             .AllowAnyMethod()
             .AllowAnyHeader()
-            .AllowCredentials()); // Allow credentials (important for cookies and authentication)
+            .AllowCredentials());
 });
 
 // Add Swagger/OpenAPI support
@@ -89,8 +109,11 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// Add HttpClient factory for API proxying
-builder.Services.AddHttpClient();
+// Add HttpClient factory for API proxying with increased timeout
+builder.Services.AddHttpClient(Microsoft.Extensions.Options.Options.DefaultName, client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(300); // 5-minute timeout for external API calls
+});
 
 var app = builder.Build();
 
@@ -116,8 +139,8 @@ app.UseHttpsRedirection();
 
 app.UseRouting();
 
-// Use CORS - apply appropriate policy based on the request origin and headers
-app.UseCors("AllowReactApp");
+// Use more permissive CORS policy for the proxy functionality
+app.UseCors("AllowAny");
 
 app.UseAuthentication();
 app.UseAuthorization();

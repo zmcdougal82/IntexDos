@@ -26,7 +26,7 @@ const RecommendedMovies: React.FC<HomeRecommender> = ({ userId }) => {
 
       try {
         // Fetch the recommendations JSON file
-        const response = await fetch("/recommendations.json");
+        const response = await fetch("/homeRecommendations.json");
         if (!response.ok) {
           throw new Error("Failed to fetch recommendations JSON.");
         }

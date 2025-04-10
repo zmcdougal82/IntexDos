@@ -1,8 +1,8 @@
 // Get the API base URL from api.ts to use our backend proxy
 const getApiUrl = () => {
-  // If we're running in local development, use the local proxy
+  // If we're running in local development, use the ASP.NET backend directly
   if (window.location.hostname === 'localhost') {
-    return "http://localhost:3001/api";
+    return "http://localhost:5237/api";
   }
   
   // For production, use the environment variable if it exists
@@ -21,15 +21,8 @@ const getApiUrl = () => {
   return "https://moviesapp-api-fixed.azurewebsites.net/api";
 };
 
-// For direct OpenAI access in development, proxy in production
+// Always use the ASP.NET backend proxy controller
 const getOpenAiUrl = () => {
-  if (window.location.hostname === 'localhost') {
-    // In development, use OpenAI directly
-    return 'https://api.openai.com/v1/chat/completions';
-  }
-  
-  // In production, use our backend proxy 
-  // (we'll need to add a proxy endpoint for OpenAI in the backend)
   return `${getApiUrl()}/proxy/openai/chat/completions`;
 };
 
@@ -78,11 +71,7 @@ export const openaiApi = {
         'Content-Type': 'application/json'
       };
       
-      // In development, add the API key to headers
-      // In production, the backend will add it
-      if (window.location.hostname === 'localhost') {
-        headers['Authorization'] = `Bearer ${API_KEY}`;
-      }
+      // Our ASP.NET backend will handle the API key in all environments
       
       const response = await fetch(API_URL, {
         method: 'POST',

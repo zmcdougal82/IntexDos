@@ -88,15 +88,8 @@ async function getStreamingProviders(
     // In development, this will use our local CORS proxy
     // In production, this will use our backend proxy
     
-    // Remove the API key as our backend will add it in production
-    let endpoint = '';
-    if (window.location.hostname === 'localhost') {
-      // For local development, include API key
-      endpoint = `/${contentType}/${tmdbId}/watch/providers?api_key=${TMDB_API_KEY}`;
-    } else {
-      // For production, let the backend add the API key
-      endpoint = `/${contentType}/${tmdbId}/watch/providers`;
-    }
+    // Our ASP.NET backend will handle the API key in all environments
+    const endpoint = `/${contentType}/${tmdbId}/watch/providers`;
     
     console.log(`Fetching streaming providers for ${contentType} ID: ${tmdbId}`);
     

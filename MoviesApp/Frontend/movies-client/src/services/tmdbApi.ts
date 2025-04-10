@@ -8,25 +8,24 @@ export const getTmdbBaseUrl = () => {
 
 // Get the actual URL to use for requests
 export const getTmdbRequestUrl = (endpoint: string) => {
-  // For development environment
-  if (window.location.hostname === 'localhost') {
-    // Use the local CORS proxy in development
-    const targetUrl = encodeURIComponent(`${getTmdbBaseUrl()}${endpoint}`);
-    return `http://localhost:3001/proxy?url=${targetUrl}`;
-  }
-  
-  // For production environments, use our backend proxy
-  // This ensures the request works in Azure by letting the backend handle the API key
-  // and avoiding CORS issues
   const apiBaseUrl = getApiUrl(); // Import this function from api.ts
+  
+  // Two options for accessing TMDB, both through our ASP.NET proxy
+  
+  // Option 1: Use named endpoint (preferred for most cases)
   return `${apiBaseUrl}/proxy/tmdb/${endpoint.replace(/^\/?/, '')}`;
+  
+  // Option 2: Use direct URL proxy (alternative if needed)
+  // const targetUrl = encodeURIComponent(`${getTmdbBaseUrl()}${endpoint}`);
+  // return `${apiBaseUrl}/proxy/direct?url=${targetUrl}`;
 };
 
-// Get the API base URL from api.ts
+// Get the API base URL for our ASP.NET backend
 const getApiUrl = () => {
-  // If we're running in local development, use the local proxy
+  // For local development
   if (window.location.hostname === 'localhost') {
-    return "http://localhost:3001/api";
+    // Use ASP.NET API directly (port 5237 for HTTP, 7144 for HTTPS)
+    return "http://localhost:5237/api";
   }
   
   // For production, use the environment variable if it exists
@@ -60,14 +59,14 @@ console.log("Using TMDB proxy through: ", getApiUrl());
 
 // Base URL for poster images
 export const getTmdbImageBaseUrl = () => {
-  // For development, use proxy
-  if (window.location.hostname === 'localhost') {
-    return 'http://localhost:3001/proxy?url=' + encodeURIComponent('https://image.tmdb.org/t/p/w500');
-  }
+  // For all environments including development:
   
-  // For production environments, images can be accessed directly
-  // TMDB doesn't have CORS restrictions on their image server
+  // Option 1: Access images directly (no CORS issues with image server)
   return 'https://image.tmdb.org/t/p/w500';
+  
+  // Option 2: If needed, use our ASP.NET proxy for images
+  // const apiBaseUrl = getApiUrl();
+  // return `${apiBaseUrl}/proxy/tmdb-image/w500`;
 };
 
 const TMDB_POSTER_BASE_URL = getTmdbImageBaseUrl();
