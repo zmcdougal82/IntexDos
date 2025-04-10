@@ -38,7 +38,7 @@ const ListsPage: React.FC = () => {
   }, []);
 
   // Handle create list form submission
-  const handleCreateList = async (e: React.FormEvent) => {
+  const handleCreateList = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!newListName.trim()) {
       setCreateError('List name is required');
@@ -164,7 +164,7 @@ const ListsPage: React.FC = () => {
                 type="text"
                 placeholder="E.g., Matthew McConaughey Movies"
                 value={newListName}
-                onChange={(e) => setNewListName(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewListName(e.target.value)}
                 required
               />
             </Form.Group>
@@ -175,7 +175,7 @@ const ListsPage: React.FC = () => {
                 rows={3}
                 placeholder="Add a description for your list"
                 value={newListDescription}
-                onChange={(e) => setNewListDescription(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNewListDescription(e.target.value)}
               />
             </Form.Group>
             <Form.Group className="mb-3">
@@ -183,7 +183,7 @@ const ListsPage: React.FC = () => {
                 type="checkbox"
                 label="Make this list public"
                 checked={newListIsPublic}
-                onChange={(e) => setNewListIsPublic(e.target.checked)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewListIsPublic(e.target.checked)}
               />
             </Form.Group>
           </Modal.Body>

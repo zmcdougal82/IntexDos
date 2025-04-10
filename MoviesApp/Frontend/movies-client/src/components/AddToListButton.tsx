@@ -65,7 +65,7 @@ const AddToListButton: React.FC<AddToListButtonProps> = ({
   };
 
   // Handle creating a new list and adding the movie to it
-  const handleCreateList = async (e: React.FormEvent) => {
+  const handleCreateList = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!newListName.trim()) {
       setError('List name is required');
@@ -151,7 +151,7 @@ const AddToListButton: React.FC<AddToListButtonProps> = ({
                 type="text"
                 placeholder="E.g., Matthew McConaughey Movies"
                 value={newListName}
-                onChange={(e) => setNewListName(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewListName(e.target.value)}
                 required
               />
             </Form.Group>
@@ -162,7 +162,7 @@ const AddToListButton: React.FC<AddToListButtonProps> = ({
                 rows={3}
                 placeholder="Add a description for your list"
                 value={newListDescription}
-                onChange={(e) => setNewListDescription(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNewListDescription(e.target.value)}
               />
             </Form.Group>
           </Modal.Body>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Button, Alert, Breadcrumb } from 'react-bootstrap';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { MovieList, Movie, movieListApi } from '../services/api';
+import { MovieList, movieListApi } from '../services/api';
 
 const ListDetailsPage: React.FC = () => {
   const { listId } = useParams<{ listId: string }>();
