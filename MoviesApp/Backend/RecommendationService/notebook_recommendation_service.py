@@ -60,7 +60,7 @@ class NotebookRecommendationService:
         else:
             logger.info("Using sample data (pyodbc not available)")
             
-        # Fallback sample data if database connection fails
+        # Fallback sample data if database connection fails - using database IDs only
         self.sample_movies = [
             "s1", "s2", "s3", "s4", "s5", 
             "s6", "s7", "s8", "s9", "s10",
@@ -71,6 +71,7 @@ class NotebookRecommendationService:
             "s31", "s32", "s33", "s34", "s35",
             "s36", "s37", "s38", "s39", "s40"
         ]
+        # Ensure we're only using database IDs - NO TMDB IDs
         self.genres = [
             "Action", "Comedy", "Drama", "Horror", "SciFi", 
             "Thriller", "Romance", "Animation", "Documentary"
