@@ -108,7 +108,7 @@ const RecommendationSection = ({
         fontWeight: 600,
         color: "var(--color-primary)"
       }}>
-        {title} {totalPages > 1 && <span style={{ fontSize: '0.9rem', color: 'gray' }}>({currentPage + 1}/{totalPages})</span>}
+        {title}
       </h3>
       <div style={{ position: 'relative' }}>
         <NavigationArrow 
@@ -127,6 +127,7 @@ const RecommendationSection = ({
             paddingRight: "40px",
             transition: "transform 0.3s ease",
             overflow: "hidden",
+            justifyContent: "center",
           }}
         >
           {visibleMovies.map((movie) => (
