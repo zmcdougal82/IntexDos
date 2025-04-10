@@ -1181,38 +1181,6 @@ const MovieDetailsPage = () => {
                 </div>
               </div>
 
-              {/* Movie Trailer */}
-              <div
-                className="card"
-                style={{
-                  margin: "var(--spacing-lg) 0",
-                  padding: "var(--spacing-lg)",
-                  backgroundColor: "var(--color-background)",
-                  borderRadius: "var(--radius-md)",
-                  border: "1px solid var(--color-border)",
-                  boxShadow: "var(--shadow-sm)",
-                }}
-              >
-                <h3
-                  style={{
-                    color: "var(--color-primary)",
-                    fontWeight: 600,
-                    margin: 0,
-                    marginBottom: "var(--spacing-md)",
-                    fontSize: "1.2rem",
-                    borderBottom: "1px solid var(--color-border)",
-                    paddingBottom: "var(--spacing-sm)",
-                  }}
-                >
-                  Trailer
-                </h3>
-                <MovieTrailer
-                  title={movie.title}
-                  year={movie.releaseYear}
-                  isTV={movie.type === "TV Show"}
-                />
-              </div>
-
               {/* Movie Info Box */}
               <div
                 className="card"
@@ -1464,6 +1432,38 @@ const MovieDetailsPage = () => {
           }
         }}
       />
+
+      {/* Movie Trailer */}
+      <div
+        className="card"
+        style={{
+          margin: "var(--spacing-lg) 0",
+          padding: "var(--spacing-lg)",
+          backgroundColor: "var(--color-background)",
+          borderRadius: "var(--radius-md)",
+          border: "1px solid var(--color-border)",
+          boxShadow: "var(--shadow-sm)",
+        }}
+      >
+        <h3
+          style={{
+            color: "var(--color-primary)",
+            fontWeight: 600,
+            margin: 0,
+            marginBottom: "var(--spacing-md)",
+            fontSize: "1.2rem",
+            borderBottom: "1px solid var(--color-border)",
+            paddingBottom: "var(--spacing-sm)",
+          }}
+        >
+          Trailer
+        </h3>
+        <MovieTrailer
+          title={movie.title}
+          year={movie.releaseYear}
+          isTV={movie.type === "TV Show"}
+        />
+      </div>
 
       {/* Top Suggestions / Recommended Movies section */}
       <div
