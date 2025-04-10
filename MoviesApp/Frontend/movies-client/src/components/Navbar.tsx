@@ -100,12 +100,6 @@ const Navbar = () => {
               </Link>
 
               <Link 
-                to="/watchlist" 
-                style={{ color: 'white', textDecoration: 'none' }}
-              >
-                Watchlist
-              </Link>
-              <Link 
                 to="/ratings" 
                 style={{ color: 'white', textDecoration: 'none' }}
               >
