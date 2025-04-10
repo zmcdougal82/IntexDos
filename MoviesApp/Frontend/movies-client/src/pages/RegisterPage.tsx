@@ -275,8 +275,8 @@ const RegisterPage = () => {
             name="phone"
             value={formData.phone || ''}
             onChange={handleChange}
-            placeholder="Your phone number"
-            maxLength={11}
+            placeholder="123-456-7890"
+            maxLength={12}
           />
         </div>
         
