@@ -16,7 +16,7 @@ class NotebookRecommendationService:
     
     def __init__(self):
         """Initialize the recommendation service."""
-        # Use database-style IDs (s1, s2, etc.) instead of IMDB IDs
+        # Use database-style IDs (s1, s2, etc.) that match your database
         self.sample_movies = [
             "s1", "s2", "s3", "s4", "s5", 
             "s6", "s7", "s8", "s9", "s10",
