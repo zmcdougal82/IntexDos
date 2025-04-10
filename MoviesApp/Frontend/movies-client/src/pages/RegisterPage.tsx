@@ -276,6 +276,7 @@ const RegisterPage = () => {
             value={formData.phone || ''}
             onChange={handleChange}
             placeholder="Your phone number"
+            maxLength={11}
           />
         </div>
         
@@ -352,6 +353,7 @@ const RegisterPage = () => {
             value={formData.zip || ''}
             onChange={handleChange}
             placeholder="Your ZIP code"
+            maxLength={5}
           />
         </div>
         
