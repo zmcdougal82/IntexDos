@@ -439,9 +439,12 @@ const MovieDetailsPage = () => {
   };
 
   // Utility function to format minutes to readable format (e.g., 155 → "2h 35m")
-  const formatDuration = (rawDuration: string | undefined, type: string | undefined): string => {
+  const formatDuration = (
+    rawDuration: string | undefined,
+    type: string | undefined
+  ): string => {
     if (!rawDuration || !type) return "Unknown";
-  
+
     if (type === "TV Show") {
       // Example: "2 Seasons" or "1 Season"
       const match = rawDuration.match(/(\d+)/);
@@ -451,7 +454,7 @@ const MovieDetailsPage = () => {
       }
       return "Unknown";
     }
-  
+
     // Assume type is Movie
     const match = rawDuration.match(/(\d+)/);
     if (match) {
@@ -461,10 +464,9 @@ const MovieDetailsPage = () => {
       const remainingMins = mins % 60;
       return hours > 0 ? `${hours}h ${remainingMins}m` : `${remainingMins}m`;
     }
-  
+
     return "Unknown";
   };
-  
 
   // Calculate average rating
   const averageRating = ratings.length
@@ -1452,39 +1454,41 @@ const MovieDetailsPage = () => {
       />
 
       {/* Movie Trailer */}
-      {hasTrailer && (
-        <div
-          className="card"
-          style={{
-            margin: "var(--spacing-lg) 0",
-            padding: "var(--spacing-lg)",
-            backgroundColor: "var(--color-background)",
-            borderRadius: "var(--radius-md)",
-            border: "1px solid var(--color-border)",
-            boxShadow: "var(--shadow-sm)",
-          }}
-        >
-          <h3
-            style={{
-              color: "var(--color-primary)",
-              fontWeight: 600,
-              margin: 0,
-              marginBottom: "var(--spacing-md)",
-              fontSize: "1.2rem",
-              borderBottom: "1px solid var(--color-border)",
-              paddingBottom: "var(--spacing-sm)",
-            }}
-          >
-            Trailer
-          </h3>
-          <MovieTrailer
-            title={movie.title}
-            year={movie.releaseYear}
-            isTV={movie.type === "TV Show"}
-            onTrailerLoaded={handleTrailerStatus}
-          />
-        </div>
-      )}
+      <div
+        className="card"
+        style={{
+          margin: "var(--spacing-lg) 0",
+          padding: "var(--spacing-lg)",
+          backgroundColor: "var(--color-background)",
+          borderRadius: "var(--radius-md)",
+          border: "1px solid var(--color-border)",
+          boxShadow: "var(--shadow-sm)",
+        }}
+      >
+        {hasTrailer && (
+          <>
+            <h3
+              style={{
+                color: "var(--color-primary)",
+                fontWeight: 600,
+                margin: 0,
+                marginBottom: "var(--spacing-md)",
+                fontSize: "1.2rem",
+                borderBottom: "1px solid var(--color-border)",
+                paddingBottom: "var(--spacing-sm)",
+              }}
+            >
+              Trailer
+            </h3>
+            <MovieTrailer
+              title={movie.title}
+              year={movie.releaseYear}
+              isTV={movie.type === "TV Show"}
+              onTrailerLoaded={handleTrailerStatus}
+            />
+          </>
+        )}
+      </div>
 
       {/* Top Suggestions / Recommended Movies section */}
       <div
