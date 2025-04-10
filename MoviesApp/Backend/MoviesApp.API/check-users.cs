@@ -33,6 +33,8 @@ namespace MoviesApp.API
                 {
                     Console.WriteLine($"User ID: {user.UserId}, Name: {user.Name}, Email: {user.Email}, Role: {user.Role}");
                 }
+                
+                Console.WriteLine("User check complete.");
             }
         }
     }
