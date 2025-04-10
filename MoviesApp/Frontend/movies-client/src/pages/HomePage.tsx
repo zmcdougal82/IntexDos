@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Movie, movieApi } from "../services/api";
 import MovieCard from "../components/MovieCard";
-import HomeRecommender from "../components/HomeRecommender"
+import HomeRecommender from "../components/HomeRecommender";
 
 const HomePage = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
@@ -174,7 +174,7 @@ const HomePage = () => {
       try {
         const userData = JSON.parse(storedUser);
         // If the userData is an object with an id property, extract just the id
-        if (userData && typeof userData === 'object' && userData.id) {
+        if (userData && typeof userData === "object" && userData.id) {
           setUser(userData.id); // Set just the user ID as a string
         } else {
           // Otherwise set the whole value (should be a string)
@@ -185,7 +185,7 @@ const HomePage = () => {
       }
     }
   }, []);
-  
+
   const handleLogin = () => {
     navigate("/login");
   };
@@ -196,15 +196,17 @@ const HomePage = () => {
 
   return (
     <div className="container">
-
       {/* Home Page Promo */}
-      <div className="container" style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}>
-        <div style={{ position: 'relative', width: '1585px', height: '60vh' }}>
+      <div
+        className="container"
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <div style={{ position: "relative", width: "1585px", height: "60vh" }}>
           <iframe
             src="/scrolling.html"
             width="1585"
@@ -212,12 +214,12 @@ const HomePage = () => {
             title="Movies Scrolling Home"
             scrolling="no"
             style={{
-              border: 'none',
-              marginTop: '5px',
-              marginBottom: '20px',
-              height: '60vh',
-              width: '100%',
-              position: 'absolute',
+              border: "none",
+              marginTop: "5px",
+              marginBottom: "20px",
+              height: "60vh",
+              width: "100%",
+              position: "absolute",
               top: 0,
               left: 0,
               zIndex: 1,
@@ -225,19 +227,19 @@ const HomePage = () => {
           />
           <div
             style={{
-              position: 'absolute',
+              position: "absolute",
               top: 0,
               left: 0,
-              width: '100%',
-              height: '100%',
+              width: "100%",
+              height: "60vh",
               zIndex: 2,
-              backgroundColor: 'rgba(0, 0, 0, 0.65)', // darker overlay for better contrast
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white',
-              padding: '20px',
+              backgroundColor: "rgba(0, 0, 0, 0.65)", // darker overlay for better contrast
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "white",
+              padding: "20px",
             }}
           >
             <h1
@@ -252,7 +254,7 @@ const HomePage = () => {
             >
               Welcome to CineNiche!
             </h1>
-            
+
             {!user && (
               <div style={{ display: "flex", gap: "30px", marginTop: "1rem" }}>
                 <button
@@ -267,10 +269,11 @@ const HomePage = () => {
                     fontSize: "1.2rem",
                     fontWeight: "bold",
                     transition: "all 0.3s ease",
-                    boxShadow: "0 0 10px rgba(0, 0, 0, 0.4)"
+                    boxShadow: "0 0 10px rgba(0, 0, 0, 0.4)",
                   }}
                   onMouseOver={(e) => {
-                    e.currentTarget.style.background = "rgba(255, 255, 255, 0.1)";
+                    e.currentTarget.style.background =
+                      "rgba(255, 255, 255, 0.1)";
                   }}
                   onMouseOut={(e) => {
                     e.currentTarget.style.background = "rgba(0, 0, 0, 0.3)";
@@ -290,10 +293,11 @@ const HomePage = () => {
                     fontSize: "1.2rem",
                     fontWeight: "bold",
                     transition: "all 0.3s ease",
-                    boxShadow: "0 0 10px rgba(0, 0, 0, 0.4)"
+                    boxShadow: "0 0 10px rgba(0, 0, 0, 0.4)",
                   }}
                   onMouseOver={(e) => {
-                    e.currentTarget.style.background = "rgba(255, 255, 255, 0.1)";
+                    e.currentTarget.style.background =
+                      "rgba(255, 255, 255, 0.1)";
                   }}
                   onMouseOut={(e) => {
                     e.currentTarget.style.background = "rgba(0, 0, 0, 0.3)";
@@ -304,39 +308,38 @@ const HomePage = () => {
               </div>
             )}
           </div>
-              </div>
         </div>
+      </div>
 
       <div className="mt-4">
         {!user && (
           <>
-              {/* Company Introduction */}
-              <div
+            {/* Company Introduction */}
+            <div
+              style={{
+                textAlign: "center",
+                marginBottom: "2rem",
+                marginTop: "3rem",
+              }}
+            >
+              <h3
                 style={{
+                  fontSize: "2rem",
+                  fontWeight: 700,
+                  color: "var(--color-primary)",
                   textAlign: "center",
-                  marginBottom: "2rem",
-                  marginTop: "3rem",
+                  marginBottom: "var(--spacing-lg)",
                 }}
               >
-                <h3
-                  style={{
-                    fontSize: "2rem",
-                    fontWeight: 700,
-                    color: "var(--color-primary)",
-                    textAlign: "center",
-                    marginBottom: "var(--spacing-lg)",
-                  }}
-                >
-                  About CineNiche
-                </h3>
-                <p>
-                  At CineNiche, we believe in bringing you the best movie and TV
-                  show experiences. Explore thousands of options, discover
-                  hidden gems, and enjoy recommendations based on your
-                  preferences. Let us help you find your next favorite!
-                </p>
-              </div>
-            
+                About CineNiche
+              </h3>
+              <p>
+                At CineNiche, we believe in bringing you the best movie and TV
+                show experiences. Explore thousands of options, discover hidden
+                gems, and enjoy recommendations based on your preferences. Let
+                us help you find your next favorite!
+              </p>
+            </div>
           </>
         )}
 
