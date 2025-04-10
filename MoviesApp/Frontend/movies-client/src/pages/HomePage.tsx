@@ -219,18 +219,18 @@ const HomePage = () => {
           <div
             style={{
               position: 'absolute',
-              top: 5,
+              top: 0,
               left: 0,
               width: '100%',
               height: '100%',
               zIndex: 2,
-              backgroundColor: 'rgba(0, 0, 0, 0.3)', // translucent overlay
+              backgroundColor: 'rgba(0, 0, 0, 0.65)', // darker overlay for better contrast
               display: 'flex',
+              flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
               color: 'white',
-              fontSize: '24px',
-              gap: '1.5rem',
+              padding: '20px',
             }}
           >
             <h1
@@ -239,81 +239,64 @@ const HomePage = () => {
                 fontWeight: 700,
                 color: "var(--color-white)",
                 textAlign: "center",
-                marginBottom: 0,
+                marginBottom: "2rem",
+                textShadow: "2px 2px 4px rgba(0, 0, 0, 0.8)", // add text shadow for better readability
               }}
             >
               Welcome to CineNiche!
             </h1>
-                       {/* Register / Login CTA + Company Introduction */}
-            <br />
-            <div
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                zIndex: 2,
-                backgroundColor: 'rgba(0, 0, 0, 0.4)',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                textAlign: 'center',
-                color: 'white',
-                padding: '20px',
-                gap: '1.5rem',
-              }}
-            >
-
-
-              {!user && (
-                <div
+            
+            {!user && (
+              <div style={{ display: "flex", gap: "30px", marginTop: "1rem" }}>
+                <button
+                  onClick={handleLogin}
                   style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: "1rem",
+                    padding: "1rem 2.5rem",
+                    backgroundColor: "rgba(0, 0, 0, 0.3)",
+                    color: "white",
+                    border: "2px solid white",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    fontSize: "1.2rem",
+                    fontWeight: "bold",
+                    transition: "all 0.3s ease",
+                    boxShadow: "0 0 10px rgba(0, 0, 0, 0.4)"
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.background = "rgba(255, 255, 255, 0.1)";
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.background = "rgba(0, 0, 0, 0.3)";
                   }}
                 >
-
-                  <div style={{ display: "flex", gap: "10px" }}>
-                    <button
-                      onClick={handleLogin}
-                      style={{
-                        padding: "20px 30px",
-                        backgroundColor: "#007BFF",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "5px",
-                        cursor: "pointer",
-                        fontSize: "1rem",
-                        fontWeight: 600,
-                      }}
-                    >
-                      Log In
-                    </button>
-                    <button
-                      onClick={handleRegister}
-                      style={{
-                        padding: "20px 30px",
-                        backgroundColor: "#007BFF",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "5px",
-                        cursor: "pointer",
-                        fontSize: "1rem",
-                        fontWeight: 600,
-                      }}
-                    >
-                      Register
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-                  </div>
+                  LOG IN
+                </button>
+                <button
+                  onClick={handleRegister}
+                  style={{
+                    padding: "1rem 2.5rem",
+                    backgroundColor: "rgba(0, 0, 0, 0.3)",
+                    color: "white",
+                    border: "2px solid white",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    fontSize: "1.2rem",
+                    fontWeight: "bold",
+                    transition: "all 0.3s ease",
+                    boxShadow: "0 0 10px rgba(0, 0, 0, 0.4)"
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.background = "rgba(255, 255, 255, 0.1)";
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.background = "rgba(0, 0, 0, 0.3)";
+                  }}
+                >
+                  REGISTER
+                </button>
+              </div>
+            )}
+          </div>
               </div>
         </div>
 
