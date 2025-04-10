@@ -32,21 +32,15 @@ const MovieTrailer: React.FC<MovieTrailerProps> = ({
         if (trailerInfo) {
           setTrailerKey(trailerInfo.key);
           setTrailerName(trailerInfo.name);
-          if (onTrailerLoaded) {
-            onTrailerLoaded(trailerInfo.key); // Notify parent about trailer availability
-          }
+          onTrailerLoaded?.(trailerInfo.key); // Notify parent about trailer availability
         } else {
           setError("No trailer available");
-          if (onTrailerLoaded) {
-            onTrailerLoaded(null); // Notify parent that no trailer is available
-          }
+          onTrailerLoaded?.(null); // Notify parent that no trailer is available
         }
       } catch (err) {
         console.error("Error fetching trailer:", err);
         setError("Failed to load trailer");
-        if (onTrailerLoaded) {
-          onTrailerLoaded(null); // Notify parent that no trailer is available
-        }
+        onTrailerLoaded?.(null); // Notify parent that no trailer is available
       } finally {
         setLoading(false);
       }

@@ -32,14 +32,6 @@ const MovieDetailsPage = () => {
     "https://placehold.co/480x720/2c3e50/FFFFFF?text=Poster+Coming+Soon&font=montserrat"
   );
 
-  const handleTrailerAvailability = (key: string | null) => {
-    if (key) {
-      setHasTrailer(true); // Trailer is available
-    } else {
-      setHasTrailer(false); // No trailer available
-    }
-  };
-
   useEffect(() => {
     // Check if user is logged in - only do this once on component mount
     const checkUserLogin = () => {
@@ -468,6 +460,14 @@ const MovieDetailsPage = () => {
     }
 
     return "Unknown";
+  };
+
+  const handleTrailerAvailability = (key: string | null) => {
+    if (key) {
+      setHasTrailer(true); // Trailer is available
+    } else {
+      setHasTrailer(false); // No trailer available
+    }
   };
 
   // Calculate average rating
