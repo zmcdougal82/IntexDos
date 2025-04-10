@@ -27,7 +27,6 @@ const MovieDetailsPage = () => {
   const [showThankYouModal, setShowThankYouModal] = useState(false);
   const [showReviewsModal, setShowReviewsModal] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
-  const [hasTrailer, setHasTrailer] = useState(false);
   // Larger, better looking fallback image for the details page
   const [posterUrl, setPosterUrl] = useState<string>(
     "https://placehold.co/480x720/2c3e50/FFFFFF?text=Poster+Coming+Soon&font=montserrat"
@@ -461,15 +460,6 @@ const MovieDetailsPage = () => {
     }
 
     return "Unknown";
-  };
-
-  const handleTrailerAvailability = (key: string | null) => {
-    console.log("Trailer key received:", key);
-    if (key) {
-      setHasTrailer(true); // Trailer is available
-    } else {
-      setHasTrailer(false); // No trailer available
-    }
   };
 
   // Calculate average rating
@@ -955,7 +945,7 @@ const MovieDetailsPage = () => {
 
                 {/* Add to List button */}
                 {user && id && (
-                  <AddToListButton 
+                  <AddToListButton
                     showId={id}
                     buttonVariant="outline-primary"
                     className="mb-2"
@@ -1466,40 +1456,36 @@ const MovieDetailsPage = () => {
         }}
       />
       {/* Movie Trailer */}
-      {hasTrailer && ( // Render only if there is a trailer
-        <div
-          className="card"
+      <div
+        className="card"
+        style={{
+          margin: "var(--spacing-lg) 0",
+          padding: "var(--spacing-lg)",
+          backgroundColor: "var(--color-background)",
+          borderRadius: "var(--radius-md)",
+          border: "1px solid var(--color-border)",
+          boxShadow: "var(--shadow-sm)",
+        }}
+      >
+        <h3
           style={{
-            margin: "var(--spacing-lg) 0",
-            padding: "var(--spacing-lg)",
-            backgroundColor: "var(--color-background)",
-            borderRadius: "var(--radius-md)",
-            border: "1px solid var(--color-border)",
-            boxShadow: "var(--shadow-sm)",
+            color: "var(--color-primary)",
+            fontWeight: 600,
+            margin: 0,
+            marginBottom: "var(--spacing-md)",
+            fontSize: "1.2rem",
+            borderBottom: "1px solid var(--color-border)",
+            paddingBottom: "var(--spacing-sm)",
           }}
         >
-          <h3
-            style={{
-              color: "var(--color-primary)",
-              fontWeight: 600,
-              margin: 0,
-              marginBottom: "var(--spacing-md)",
-              fontSize: "1.2rem",
-              borderBottom: "1px solid var(--color-border)",
-              paddingBottom: "var(--spacing-sm)",
-            }}
-          >
-            Trailer
-          </h3>
-          <MovieTrailer
-            title={movie.title}
-            year={movie.releaseYear}
-            isTV={movie.type === "TV Show"}
-            onTrailerLoaded={handleTrailerAvailability} // Pass the callback here
-          />
-        </div>
-      )}
-      {!hasTrailer && <br />}
+          Trailer
+        </h3>
+        <MovieTrailer
+          title={movie.title}
+          year={movie.releaseYear}
+          isTV={movie.type === "TV Show"}
+        />
+      </div>
       {/* Top Suggestions / Recommended Movies section */}
       <div
         className="card"

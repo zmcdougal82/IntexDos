@@ -6,7 +6,6 @@ interface MovieTrailerProps {
   year?: string | number;
   isTV?: boolean;
   className?: string;
-  onTrailerLoaded?: (key: string | null) => void;
 }
 
 const MovieTrailer: React.FC<MovieTrailerProps> = ({
@@ -14,7 +13,6 @@ const MovieTrailer: React.FC<MovieTrailerProps> = ({
   year,
   isTV = false,
   className,
-  onTrailerLoaded,
 }) => {
   const [trailerKey, setTrailerKey] = useState<string | null>(null);
   const [trailerName, setTrailerName] = useState<string>("");
@@ -32,22 +30,19 @@ const MovieTrailer: React.FC<MovieTrailerProps> = ({
         if (trailerInfo) {
           setTrailerKey(trailerInfo.key);
           setTrailerName(trailerInfo.name);
-          onTrailerLoaded?.(trailerInfo.key); // Notify parent about trailer availability
         } else {
           setError("No trailer available");
-          onTrailerLoaded?.(null); // Notify parent that no trailer is available
         }
       } catch (err) {
         console.error("Error fetching trailer:", err);
         setError("Failed to load trailer");
-        onTrailerLoaded?.(null); // Notify parent that no trailer is available
       } finally {
         setLoading(false);
       }
     };
 
     fetchTrailer();
-  }, [title, year, isTV, onTrailerLoaded]);
+  }, [title, year, isTV]);
 
   if (loading) {
     return (
@@ -84,24 +79,7 @@ const MovieTrailer: React.FC<MovieTrailerProps> = ({
   }
 
   if (error || !trailerKey) {
-    return (
-      <div
-        style={{
-          backgroundColor: "rgba(0, 0, 0, 0.05)",
-          borderRadius: "var(--radius-md)",
-          height: "40px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: "0.9rem",
-          color: "var(--color-text-light)",
-          width: "100%",
-          ...(className ? {} : {}),
-        }}
-      >
-        No trailer available
-      </div>
-    );
+    return null;
   }
 
   return (

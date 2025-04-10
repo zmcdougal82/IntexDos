@@ -67,8 +67,10 @@ const RecommendedMovies: React.FC<RecommendedMoviesProps> = ({ showId }) => {
               recommendedShowIds.map(async (id: string) => {
                 // Ensure we're using database-style IDs (s1, s2, etc.)
                 // If the ID is already in the correct format, use it directly
-                const dbStyleId = id.startsWith('s') ? id : `s${id.replace(/\D/g, '')}`;
-                
+                const dbStyleId = id.startsWith("s")
+                  ? id
+                  : `s${id.replace(/\D/g, "")}`;
+
                 // Try to get from main API using database-style ID
                 const movieResponse = await movieApi.getById(dbStyleId);
                 return movieResponse.data; // Return the movie data
