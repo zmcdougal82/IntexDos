@@ -14,6 +14,8 @@ import ListsPage from "./pages/ListsPage";
 import ListDetailsPage from "./pages/ListDetailsPage";
 import Navbar from "./components/Navbar";
 import CookieConsentBanner from "./components/CookieConsentBanner";
+import 'bootstrap/dist/css/bootstrap.min.css';
+
 
 function App() {
   
