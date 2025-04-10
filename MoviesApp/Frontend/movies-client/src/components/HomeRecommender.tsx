@@ -141,28 +141,45 @@ const HomeRecommender: React.FC<HomeRecommender> = ({ userId }) => {
           const movieResponses = await Promise.all(
             recommendationsData.collaborative.map(async (id) => {
               try {
+                // Try to get from main API first
                 const movieResponse = await movieApi.getById(id);
                 return movieResponse.data;
               } catch (err) {
-                console.warn(`Failed to fetch movie ${id}:`, err);
-                return null;
+                console.warn(`Failed to fetch movie ${id} from main API - creating placeholder:`, err);
+                
+                // Create a placeholder movie object with the ID
+                // This ensures we at least display something for recommendations
+                return {
+                  showId: id,
+                  title: `Movie ${id}`,
+                  description: "Details for this recommendation aren't available in the database.",
+                  posterUrl: `https://image.tmdb.org/t/p/w500/placeholder.jpg`
+                };
               }
             })
           );
 
           setCollaborativeMovies(movieResponses.filter(movie => movie !== null) as Movie[]);
         }
-        
+
         // Process content-based recommendations
         if (recommendationsData.contentBased && recommendationsData.contentBased.length > 0) {
           const movieResponses = await Promise.all(
             recommendationsData.contentBased.map(async (id) => {
               try {
+                // Try to get from main API first
                 const movieResponse = await movieApi.getById(id);
                 return movieResponse.data;
               } catch (err) {
-                console.warn(`Failed to fetch movie ${id}:`, err);
-                return null;
+                console.warn(`Failed to fetch movie ${id} from main API - creating placeholder:`, err);
+                
+                // Create a placeholder movie object with the ID
+                return {
+                  showId: id,
+                  title: `Movie ${id}`,
+                  description: "Details for this recommendation aren't available in the database.",
+                  posterUrl: `https://image.tmdb.org/t/p/w500/placeholder.jpg`
+                };
               }
             })
           );
@@ -173,7 +190,7 @@ const HomeRecommender: React.FC<HomeRecommender> = ({ userId }) => {
         // Process genre-based recommendations
         if (recommendationsData.genres) {
           const genreResults: Record<string, Movie[]> = {};
-          
+
           for (const [genre, movieIds] of Object.entries(recommendationsData.genres)) {
             if (movieIds.length > 0) {
               const movieResponses = await Promise.all(
@@ -182,16 +199,23 @@ const HomeRecommender: React.FC<HomeRecommender> = ({ userId }) => {
                     const movieResponse = await movieApi.getById(id);
                     return movieResponse.data;
                   } catch (err) {
-                    console.warn(`Failed to fetch movie ${id}:`, err);
-                    return null;
+                    console.warn(`Failed to fetch movie ${id} from main API - creating placeholder:`, err);
+                    
+                    // Create a placeholder movie object with the ID
+                    return {
+                      showId: id,
+                      title: `Movie ${id}`,
+                      description: "Details for this recommendation aren't available in the database.",
+                      posterUrl: `https://image.tmdb.org/t/p/w500/placeholder.jpg`
+                    };
                   }
                 })
               );
-              
+
               genreResults[genre] = movieResponses.filter(movie => movie !== null) as Movie[];
             }
           }
-          
+
           setGenreMovies(genreResults);
         }
 
