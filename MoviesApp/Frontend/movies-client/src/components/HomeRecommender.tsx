@@ -12,7 +12,7 @@ interface HomeRecommender {
 const getRecommendationApiUrl = () => {
   // If running in production (like Azure static website)
   if (window.location.hostname !== "localhost") {
-    return "https://moviesapp-recommendations.azurewebsites.net";
+    return "https://moviesapp-recommendation-service.azurewebsites.net";
   }
   // If running locally
   return "http://localhost:8001";

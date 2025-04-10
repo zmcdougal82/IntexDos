@@ -32,7 +32,7 @@ namespace MoviesApp.API.Controllers
             _recommendationServiceUrl = _configuration["RecommendationService:Url"] ?? 
                 (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development" 
                     ? "http://localhost:8001" 
-                    : "https://moviesapp-recommendations.azurewebsites.net");
+                    : "https://moviesapp-recommendation-service.azurewebsites.net");
         }
 
         // GET api/recommendations/{userId}

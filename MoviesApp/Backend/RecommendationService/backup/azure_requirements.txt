@@ -1,8 +1,10 @@
-# Core dependencies
-flask>=2.0.0
+# Core dependencies - minimal set for Azure App Service
+fastapi>=0.95.0
+uvicorn>=0.21.1
 gunicorn>=20.1.0
+pydantic>=1.10.7
 
-# Data processing and machine learning
+# Data processing and machine learning - lighter versions
 pandas>=1.5.3
 numpy>=1.24.2
 scikit-learn>=1.2.2
@@ -11,7 +13,7 @@ scipy>=1.10.1
 # Environment and utilities
 python-dotenv>=1.0.0
 python-multipart>=0.0.6
-requests>=2.25.1
+httpx>=0.24.0
 
 # Azure integration
 applicationinsights>=0.11.10
