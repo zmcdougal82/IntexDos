@@ -8,6 +8,7 @@ import ReviewSummary from "../components/ReviewSummary";
 import MovieTrailer from "../components/MovieTrailer";
 import ReviewModal from "../components/ReviewModal";
 import ExternalRatings from "../components/ExternalRatings";
+import AddToListButton from "../components/AddToListButton";
 
 const MovieDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -918,8 +919,9 @@ const MovieDetailsPage = () => {
                 )}
               </div>
 
-              {/* Write a review button */}
+              {/* Action buttons */}
               <div style={{ margin: "var(--spacing-lg) 0" }}>
+                {/* Write a review button */}
                 <button
                   onClick={() => {
                     if (!user) {
@@ -942,11 +944,21 @@ const MovieDetailsPage = () => {
                     alignItems: "center",
                     justifyContent: "center",
                     gap: "var(--spacing-sm)",
+                    marginBottom: "var(--spacing-md)",
                   }}
                 >
                   <span style={{ fontSize: "1.2rem" }}>✏️</span>
                   {ratingSubmitted ? "Edit your review" : "Write a review"}
                 </button>
+
+                {/* Add to List button */}
+                {user && id && (
+                  <AddToListButton 
+                    showId={id}
+                    buttonVariant="outline-primary"
+                    className="mb-2"
+                  />
+                )}
 
                 {ratingSubmitted && (
                   <div

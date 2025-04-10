@@ -10,6 +10,8 @@ import AdminMoviesPage from "./pages/AdminMoviesPage";
 import ProfilePage from "./pages/ProfilePage";
 import WatchlistPage from "./pages/WatchlistPage";
 import RatingsPage from "./pages/RatingsPage";
+import ListsPage from "./pages/ListsPage";
+import ListDetailsPage from "./pages/ListDetailsPage";
 import Navbar from "./components/Navbar";
 import CookieConsentBanner from "./components/CookieConsentBanner";
 
@@ -47,6 +49,8 @@ function App() {
             <Route path="/admin/movies" element={<AdminMoviesPage />} />
             <Route path="/watchlist" element={<WatchlistPage />} />
             <Route path="/ratings" element={<RatingsPage />} />
+            <Route path="/lists" element={<ListsPage />} />
+            <Route path="/lists/:listId" element={<ListDetailsPage />} />
           </Routes>
         </main>
         <footer
