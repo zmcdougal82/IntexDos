@@ -1,11 +1,15 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using MoviesApp.API.Data;
 using MoviesApp.API.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace MoviesApp.API.Controllers
@@ -15,10 +19,24 @@ namespace MoviesApp.API.Controllers
     public class RatingsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly IHttpClientFactory _clientFactory;
+        private readonly IConfiguration _configuration;
+        private readonly string _recommendationServiceUrl;
 
-        public RatingsController(ApplicationDbContext context)
+        public RatingsController(
+            ApplicationDbContext context,
+            IHttpClientFactory clientFactory,
+            IConfiguration configuration)
         {
             _context = context;
+            _clientFactory = clientFactory;
+            _configuration = configuration;
+
+            // Get recommendation service URL from config or use default
+            _recommendationServiceUrl = configuration["RecommendationService:Url"] ?? 
+                (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development" 
+                    ? "http://localhost:8001" 
+                    : "https://moviesapp-recommendations.azurewebsites.net");
         }
 
         // GET: api/Ratings/movie/{showId}
@@ -56,6 +74,7 @@ namespace MoviesApp.API.Controllers
             return ratings;
         }
 
+
         // POST: api/Ratings
         [HttpPost]
         [Authorize] // Require authentication
@@ -79,6 +98,8 @@ namespace MoviesApp.API.Controllers
             var existingRating = await _context.Ratings
                 .FirstOrDefaultAsync(r => r.UserId == rating.UserId && r.ShowId == rating.ShowId);
 
+            bool isNewRating = existingRating == null;
+
             if (existingRating != null)
             {
                 // Update existing rating
@@ -86,6 +107,10 @@ namespace MoviesApp.API.Controllers
                 existingRating.ReviewText = rating.ReviewText; // Update the review text
                 existingRating.Timestamp = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
+                
+                // Trigger recommendation update in the background
+                _ = UpdateRecommendationsAsync(rating.UserId.ToString(), rating.ShowId, rating.RatingValue);
+                
                 return Ok(existingRating);
             }
 
@@ -96,6 +121,9 @@ namespace MoviesApp.API.Controllers
             try
             {
                 await _context.SaveChangesAsync();
+                
+                // Trigger recommendation update in the background
+                _ = UpdateRecommendationsAsync(rating.UserId.ToString(), rating.ShowId, rating.RatingValue);
             }
             catch (DbUpdateException)
             {
@@ -103,6 +131,33 @@ namespace MoviesApp.API.Controllers
             }
 
             return CreatedAtAction("GetUserRatings", new { userId = rating.UserId }, rating);
+        }
+        
+        // Helper method to update recommendations asynchronously
+        private async Task UpdateRecommendationsAsync(string userId, string showId, int ratingValue)
+        {
+            try
+            {
+                // Don't wait for the response, just fire the request
+                var client = _clientFactory.CreateClient();
+                var content = new StringContent(
+                    JsonSerializer.Serialize(new { 
+                        user_id = userId, 
+                        show_id = showId, 
+                        rating_value = ratingValue 
+                    }),
+                    Encoding.UTF8,
+                    "application/json");
+
+                await client.PostAsync(
+                    $"{_recommendationServiceUrl}/recommendations/update-after-rating", 
+                    content);
+            }
+            catch (Exception ex)
+            {
+                // Log but don't fail the main operation
+                Console.WriteLine($"Failed to update recommendations: {ex.Message}");
+            }
         }
 
         // DELETE: api/Ratings/5/movie/tt123456

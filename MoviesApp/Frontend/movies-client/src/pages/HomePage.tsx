@@ -172,7 +172,14 @@ const HomePage = () => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       try {
-        setUser(JSON.parse(storedUser)); // Parse and set user from localStorage
+        const userData = JSON.parse(storedUser);
+        // If the userData is an object with an id property, extract just the id
+        if (userData && typeof userData === 'object' && userData.id) {
+          setUser(userData.id); // Set just the user ID as a string
+        } else {
+          // Otherwise set the whole value (should be a string)
+          setUser(userData);
+        }
       } catch (e) {
         console.error("Error parsing user from localStorage:", e);
       }
