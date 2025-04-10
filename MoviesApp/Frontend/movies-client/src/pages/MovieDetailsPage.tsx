@@ -27,7 +27,8 @@ const MovieDetailsPage = () => {
   const [showThankYouModal, setShowThankYouModal] = useState(false);
   const [showReviewsModal, setShowReviewsModal] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
-  const [hasTrailer, setHasTrailer] = useState(false);
+  const [trailerAvailable, setTrailerAvailable] = useState(false);
+
   // Larger, better looking fallback image for the details page
   const [posterUrl, setPosterUrl] = useState<string>(
     "https://placehold.co/480x720/2c3e50/FFFFFF?text=Poster+Coming+Soon&font=montserrat"
@@ -461,15 +462,6 @@ const MovieDetailsPage = () => {
     }
 
     return "Unknown";
-  };
-
-  const handleTrailerAvailability = (key: string | null) => {
-    console.log("Trailer key received:", key);
-    if (key) {
-      setHasTrailer(true); // Trailer is available
-    } else {
-      setHasTrailer(false); // No trailer available
-    }
   };
 
   // Calculate average rating
@@ -955,7 +947,7 @@ const MovieDetailsPage = () => {
 
                 {/* Add to List button */}
                 {user && id && (
-                  <AddToListButton 
+                  <AddToListButton
                     showId={id}
                     buttonVariant="outline-primary"
                     className="mb-2"
@@ -1466,7 +1458,7 @@ const MovieDetailsPage = () => {
         }}
       />
       {/* Movie Trailer */}
-      {hasTrailer && ( // Render only if there is a trailer
+      {trailerAvailable && (
         <div
           className="card"
           style={{
@@ -1495,11 +1487,10 @@ const MovieDetailsPage = () => {
             title={movie.title}
             year={movie.releaseYear}
             isTV={movie.type === "TV Show"}
-            onTrailerLoaded={handleTrailerAvailability} // Pass the callback here
+            onTrailerLoaded={(key) => setTrailerAvailable(!!key)}
           />
         </div>
       )}
-      {!hasTrailer && <br />}
       {/* Top Suggestions / Recommended Movies section */}
       <div
         className="card"

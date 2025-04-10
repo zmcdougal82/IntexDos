@@ -84,24 +84,7 @@ const MovieTrailer: React.FC<MovieTrailerProps> = ({
   }
 
   if (error || !trailerKey) {
-    return (
-      <div
-        style={{
-          backgroundColor: "rgba(0, 0, 0, 0.05)",
-          borderRadius: "var(--radius-md)",
-          height: "40px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: "0.9rem",
-          color: "var(--color-text-light)",
-          width: "100%",
-          ...(className ? {} : {}),
-        }}
-      >
-        No trailer available
-      </div>
-    );
+    return null;
   }
 
   return (
