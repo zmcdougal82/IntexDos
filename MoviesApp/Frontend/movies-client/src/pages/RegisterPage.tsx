@@ -30,7 +30,7 @@ const RegisterPage = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target as HTMLInputElement;
-    
+  
     if (name === 'confirmPassword') {
       setConfirmPassword(value);
     } else if (type === 'checkbox') {
@@ -39,9 +39,28 @@ const RegisterPage = () => {
     } else if (type === 'number') {
       setFormData(prev => ({ ...prev, [name]: value ? parseInt(value) : undefined }));
     } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
+      let formattedValue = value;
+  
+      // Format phone numbers on the fly
+      if (name === 'phone') {
+        const digitsOnly = value.replace(/\D/g, '');
+        const part1 = digitsOnly.slice(0, 3);
+        const part2 = digitsOnly.slice(3, 6);
+        const part3 = digitsOnly.slice(6, 10);
+  
+        if (digitsOnly.length <= 3) {
+          formattedValue = part1;
+        } else if (digitsOnly.length <= 6) {
+          formattedValue = `${part1}-${part2}`;
+        } else {
+          formattedValue = `${part1}-${part2}-${part3}`;
+        }
+      }
+  
+      setFormData(prev => ({ ...prev, [name]: formattedValue }));
     }
   };
+  
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
