@@ -463,6 +463,7 @@ const MovieDetailsPage = () => {
   };
 
   const handleTrailerAvailability = (key: string | null) => {
+    console.log("Trailer key received:", key);
     if (key) {
       setHasTrailer(true); // Trailer is available
     } else {
