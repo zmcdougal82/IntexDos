@@ -53,12 +53,34 @@ def get_recommendations(user_id):
     try:
         logger.info(f"Generating all recommendations for user {user_id}")
         
-        # Generate recommendations
-        recommendations = recommendation_service.generate_recommendations(user_id)
+        # Get page and limit from query parameters, with defaults
+        page = request.args.get('page', default=0, type=int)
+        limit = request.args.get('limit', default=10, type=int)
+        
+        # Generate recommendations with pagination
+        recommendations = recommendation_service.generate_recommendations(user_id, page=page, limit=limit)
         
         return jsonify(recommendations)
     except Exception as e:
         logger.error(f"Error generating recommendations for user {user_id}: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/recommendations/<user_id>/more', methods=['GET'])
+def get_more_recommendations(user_id):
+    """Get more recommendations for a specific user and section."""
+    try:
+        section = request.args.get('section', default='collaborative', type=str)
+        page = request.args.get('page', default=1, type=int)
+        limit = request.args.get('limit', default=10, type=int)
+        
+        logger.info(f"Generating more {section} recommendations for user {user_id}, page {page}")
+        
+        # Generate more recommendations for the specified section
+        recommendations = recommendation_service.generate_more_recommendations(user_id, section, page, limit)
+        
+        return jsonify(recommendations)
+    except Exception as e:
+        logger.error(f"Error generating more recommendations for user {user_id}: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 @app.route('/recommendations/update-after-rating', methods=['POST'])

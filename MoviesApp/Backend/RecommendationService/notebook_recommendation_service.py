@@ -394,17 +394,19 @@ class NotebookRecommendationService:
             "HorrorMovies", "Thrillers", "Documentaries"
         ]
     
-    def generate_recommendations(self, user_id):
+    def generate_recommendations(self, user_id, page=0, limit=10):
         """
-        Generate recommendations for a specific user.
+        Generate recommendations for a specific user with pagination.
         
         Args:
             user_id (str): The user ID to generate recommendations for.
+            page (int): The page number for pagination (default: 0).
+            limit (int): The number of items per page (default: 10).
             
         Returns:
             dict: A dictionary containing collaborative, content-based, and genre recommendations.
         """
-        logger.info(f"Generating all recommendations for user {user_id}")
+        logger.info(f"Generating recommendations for user {user_id}, page {page}, limit {limit}")
         
         # Get recommendations from database if connection is available
         if self.conn:
@@ -453,6 +455,81 @@ class NotebookRecommendationService:
             "contentBased": content_based,
             "genres": genres_dict
         }
+    
+    def generate_more_recommendations(self, user_id, section, page, limit=10):
+        """
+        Generate more recommendations for a specific section with pagination.
+        
+        Args:
+            user_id (str): The user ID to generate recommendations for.
+            section (str): The section to generate recommendations for ('collaborative', 'contentBased', or genre name).
+            page (int): The page number for pagination.
+            limit (int): The number of items per page.
+            
+        Returns:
+            dict: A dictionary containing the requested recommendations.
+        """
+        logger.info(f"Generating more recommendations for user {user_id}, section {section}, page {page}")
+        
+        # Calculate the offset based on page and limit
+        offset = page * limit
+        
+        # Generate the appropriate recommendations based on section
+        if section == 'collaborative':
+            # Get collaborative filtering recommendations with offset
+            if self.conn:
+                recommendations = self.get_collaborative_recommendations(user_id, limit=limit)
+            else:
+                # Deterministic random sampling for consistent results
+                random.seed(int(user_id) if user_id.isdigit() else sum(ord(c) for c in user_id))
+                all_recommendations = self.sample_movies.copy()
+                random.shuffle(all_recommendations)
+                
+                # Apply pagination
+                start_idx = offset % len(all_recommendations)
+                recommendations = all_recommendations[start_idx:start_idx+limit]
+                if len(recommendations) < limit:
+                    # Wrap around if we reach the end
+                    recommendations += all_recommendations[:limit - len(recommendations)]
+            
+            return {"collaborative": recommendations}
+            
+        elif section == 'contentBased':
+            # Get content-based recommendations with offset
+            if self.conn:
+                recommendations = self.get_content_based_recommendations(user_id, limit=limit)
+            else:
+                # Deterministic random sampling with different seed
+                random.seed((int(user_id) if user_id.isdigit() else sum(ord(c) for c in user_id)) + 100)
+                all_recommendations = self.sample_movies.copy()
+                random.shuffle(all_recommendations)
+                
+                # Apply pagination
+                start_idx = offset % len(all_recommendations)
+                recommendations = all_recommendations[start_idx:start_idx+limit]
+                if len(recommendations) < limit:
+                    recommendations += all_recommendations[:limit - len(recommendations)]
+            
+            return {"contentBased": recommendations}
+            
+        else:
+            # Assume it's a genre
+            if self.conn:
+                recommendations = self.get_genre_movies(section, limit=limit)
+            else:
+                # Deterministic random sampling with genre-specific seed
+                genre_seed = sum(ord(c) for c in section)
+                random.seed((int(user_id) if user_id.isdigit() else sum(ord(c) for c in user_id)) + genre_seed)
+                all_recommendations = self.sample_movies.copy()
+                random.shuffle(all_recommendations)
+                
+                # Apply pagination
+                start_idx = offset % len(all_recommendations)
+                recommendations = all_recommendations[start_idx:start_idx+limit]
+                if len(recommendations) < limit:
+                    recommendations += all_recommendations[:limit - len(recommendations)]
+            
+            return {"genres": {section: recommendations}}
     
     def generate_all_recommendations(self):
         """

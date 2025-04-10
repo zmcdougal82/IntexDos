@@ -64,29 +64,45 @@ const NavigationArrow = ({
   );
 };
 
-const RecommendationSection = ({ 
-  title, 
-  movies, 
-  onMovieClick 
-}: { 
+interface RecommendationSectionProps { 
   title: string; 
   movies: Movie[]; 
+  sectionType: string;
+  userId: string | null;
   onMovieClick: (id: string) => void;
+  onLoadMore?: (sectionType: string, page: number) => Promise<Movie[]>;
+}
+
+const RecommendationSection: React.FC<RecommendationSectionProps> = ({ 
+  title, 
+  movies, 
+  sectionType,
+  userId,
+  onMovieClick,
+  onLoadMore
 }) => {
   const [currentPage, setCurrentPage] = useState(0);
+  const [loadedPages, setLoadedPages] = useState<number[]>([0]);
+  const [allMovies, setAllMovies] = useState<Movie[]>(movies);
+  const [loading, setLoading] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  
+  // Update allMovies when movies prop changes
+  useEffect(() => {
+    setAllMovies(movies);
+  }, [movies]);
   
   // Calculate the total number of pages
   const moviesPerPage = 5;
-  const totalPages = Math.ceil(movies.length / moviesPerPage);
+  const totalPages = Math.max(Math.ceil(allMovies.length / moviesPerPage), loadedPages.length + 1);
   
   // Get the current visible movies
-  const visibleMovies = movies.slice(
+  const visibleMovies = allMovies.slice(
     currentPage * moviesPerPage, 
     (currentPage + 1) * moviesPerPage
   );
   
-  if (movies.length === 0) return null;
+  if (allMovies.length === 0) return null;
   
   const scrollPrev = () => {
     if (currentPage > 0) {
@@ -94,9 +110,31 @@ const RecommendationSection = ({
     }
   };
   
-  const scrollNext = () => {
+  const scrollNext = async () => {
     if (currentPage < totalPages - 1) {
-      setCurrentPage(currentPage + 1);
+      // Move to next page
+      const nextPage = currentPage + 1;
+      setCurrentPage(nextPage);
+      
+      // If we haven't loaded this page yet and we have an onLoadMore callback
+      if (!loadedPages.includes(nextPage) && onLoadMore && userId) {
+        setLoading(true);
+        try {
+          const newMovies = await onLoadMore(sectionType, nextPage);
+          
+          // Add the new movies to our collection
+          if (newMovies && newMovies.length > 0) {
+            setAllMovies(prevMovies => [...prevMovies, ...newMovies]);
+          }
+          
+          // Mark this page as loaded
+          setLoadedPages(prev => [...prev, nextPage]);
+        } catch (err) {
+          console.error(`Error loading more ${sectionType} recommendations:`, err);
+        } finally {
+          setLoading(false);
+        }
+      }
     }
   };
 
@@ -389,6 +427,58 @@ const HomeRecommender: React.FC<HomeRecommender> = ({ userId }) => {
     );
   }
 
+  // Function to load more recommendations
+  const loadMoreRecommendations = async (section: string, page: number): Promise<Movie[]> => {
+    if (!userId) return [];
+    
+    try {
+      // Calculate the correct API parameters
+      const limit = 10; // Number of new recommendations to fetch
+      
+      // Call the API to get more recommendations
+      const response = await axios.get(
+        `${RECOMMENDATION_API_URL}/recommendations/${userId}/more`, 
+        { params: { section, page, limit } }
+      );
+      
+      // Extract the relevant section from the response
+      let movieIds: string[] = [];
+      if (section === 'collaborative' && response.data.collaborative) {
+        movieIds = response.data.collaborative;
+      } else if (section === 'contentBased' && response.data.contentBased) {
+        movieIds = response.data.contentBased;
+      } else if (response.data.genres && response.data.genres[section]) {
+        movieIds = response.data.genres[section];
+      }
+      
+      if (!movieIds.length) return [];
+      
+      // Fetch the movie details for each ID
+      const movies = await Promise.all(
+        movieIds.map(async (id) => {
+          try {
+            const dbStyleId = id.startsWith('s') ? id : `s${id.replace(/\D/g, '')}`;
+            const movieResponse = await movieApi.getById(dbStyleId);
+            return movieResponse.data;
+          } catch (err) {
+            console.warn(`Failed to fetch movie ${id} from main API:`, err);
+            return {
+              showId: id,
+              title: `Movie ${id}`,
+              description: "Details for this recommendation aren't available in the database.",
+              posterUrl: `https://image.tmdb.org/t/p/w500/placeholder.jpg`
+            };
+          }
+        })
+      );
+      
+      return movies.filter(movie => movie !== null) as Movie[];
+    } catch (err) {
+      console.error(`Error loading more recommendations for section ${section}:`, err);
+      return [];
+    }
+  };
+
   return (
     <div style={{ marginTop: "2rem" }}>
       <h2
@@ -409,7 +499,10 @@ const HomeRecommender: React.FC<HomeRecommender> = ({ userId }) => {
         <RecommendationSection 
           title="Movies Similar Users Enjoyed"
           movies={collaborativeMovies}
+          sectionType="collaborative"
+          userId={userId}
           onMovieClick={handleMovieClick}
+          onLoadMore={loadMoreRecommendations}
         />
       )}
       
@@ -418,7 +511,10 @@ const HomeRecommender: React.FC<HomeRecommender> = ({ userId }) => {
         <RecommendationSection 
           title="Based on Your Taste"
           movies={contentBasedMovies}
+          sectionType="contentBased"
+          userId={userId}
           onMovieClick={handleMovieClick}
+          onLoadMore={loadMoreRecommendations}
         />
       )}
       
@@ -429,7 +525,10 @@ const HomeRecommender: React.FC<HomeRecommender> = ({ userId }) => {
             key={genre}
             title={`Recommended in ${formatGenreName(genre)}`}
             movies={movies}
+            sectionType={genre}
+            userId={userId}
             onMovieClick={handleMovieClick}
+            onLoadMore={loadMoreRecommendations}
           />
         )
       ))}
