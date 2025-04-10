@@ -87,3 +87,4 @@ function App() {
 }
 
 export default App;
+// Added comment to trigger frontend workflow
