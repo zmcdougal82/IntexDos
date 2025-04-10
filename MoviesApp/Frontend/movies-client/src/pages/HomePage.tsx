@@ -209,15 +209,15 @@ const HomePage = () => {
         <div style={{ position: "relative", width: "1585px", height: "60vh" }}>
           <iframe
             src="/scrolling.html"
-            width="1585"
-            height="200px"
+            //width="1585"
+            //height="200px"
             title="Movies Scrolling Home"
             scrolling="no"
             style={{
               border: "none",
-              marginTop: "5px",
-              marginBottom: "20px",
-              height: "60vh",
+              //marginTop: "5px",
+              //marginBottom: "20px",
+              height: "100%",
               width: "100%",
               position: "absolute",
               top: 0,
@@ -231,7 +231,7 @@ const HomePage = () => {
               top: 0,
               left: 0,
               width: "100%",
-              height: "60vh",
+              height: "100%",
               zIndex: 2,
               backgroundColor: "rgba(0, 0, 0, 0.65)", // darker overlay for better contrast
               display: "flex",
