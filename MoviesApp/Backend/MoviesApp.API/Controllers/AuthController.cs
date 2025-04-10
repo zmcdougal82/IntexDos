@@ -32,8 +32,15 @@ namespace MoviesApp.API.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterModel model)
         {
+            Console.WriteLine($"Registration attempt for: {model.Email}");
+            
             if (!ModelState.IsValid)
             {
+                Console.WriteLine("Model validation failed:");
+                foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    Console.WriteLine($"- {error.ErrorMessage}");
+                }
                 return BadRequest(ModelState);
             }
 
@@ -41,39 +48,65 @@ namespace MoviesApp.API.Controllers
             var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == model.Email);
             if (existingUser != null)
             {
+                Console.WriteLine($"Email already in use: {model.Email}");
                 return BadRequest(new { Message = "Email already in use" });
             }
 
-            // Create password hash
-            string passwordHash = HashPassword(model.Password);
-
-            // Create new user
-            var user = new User
+            try
             {
-                Name = model.Name,
-                Email = model.Email,
-                PasswordHash = passwordHash,
-                Phone = model.Phone,
-                Age = model.Age,
-                Gender = model.Gender,
-                City = model.City,
-                State = model.State,
-                Zip = model.Zip,
-                Netflix = model.Netflix,
-                AmazonPrime = model.AmazonPrime,
-                DisneyPlus = model.DisneyPlus,
-                ParamountPlus = model.ParamountPlus,
-                Max = model.Max,
-                Hulu = model.Hulu,
-                AppleTVPlus = model.AppleTVPlus,
-                Peacock = model.Peacock,
-                Role = "User" // Default role
-            };
+                // Create password hash
+                string passwordHash = HashPassword(model.Password);
 
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
+                // Create new user
+                var user = new User
+                {
+                    Name = model.Name,
+                    Email = model.Email,
+                    PasswordHash = passwordHash,
+                    Phone = model.Phone,
+                    Age = model.Age,
+                    Gender = model.Gender,
+                    City = model.City,
+                    State = model.State,
+                    Zip = model.Zip,
+                    Netflix = model.Netflix,
+                    AmazonPrime = model.AmazonPrime,
+                    DisneyPlus = model.DisneyPlus,
+                    ParamountPlus = model.ParamountPlus,
+                    Max = model.Max,
+                    Hulu = model.Hulu,
+                    AppleTVPlus = model.AppleTVPlus,
+                    Peacock = model.Peacock,
+                    Role = "User" // Default role
+                };
 
-            return Ok(new { Message = "User registered successfully" });
+                Console.WriteLine($"Adding user to database: {user.Name} ({user.Email})");
+                _context.Users.Add(user);
+                
+                Console.WriteLine("Calling SaveChangesAsync...");
+                var rowsAffected = await _context.SaveChangesAsync();
+                Console.WriteLine($"SaveChangesAsync completed. Rows affected: {rowsAffected}");
+
+                if (rowsAffected > 0)
+                {
+                    Console.WriteLine($"User registered successfully with ID: {user.UserId}");
+                    return Ok(new { Message = "User registered successfully", UserId = user.UserId });
+                }
+                else
+                {
+                    Console.WriteLine("Registration failed: No rows affected by SaveChangesAsync");
+                    return StatusCode(500, new { Message = "Registration failed: Database did not save changes" });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Registration error: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                }
+                return StatusCode(500, new { Message = "Registration failed due to an error", Error = ex.Message });
+            }
         }
 
         [HttpPost("login")]
