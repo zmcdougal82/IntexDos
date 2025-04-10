@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import Button from 'react-bootstrap/Button';
-import Dropdown from 'react-bootstrap/Dropdown';
 import Modal from 'react-bootstrap/Modal';
 import Form from 'react-bootstrap/Form';
 import Alert from 'react-bootstrap/Alert';
+import ListGroup from 'react-bootstrap/ListGroup';
 import { MovieList, movieListApi } from '../services/api';
 
 interface AddToListButtonProps {
@@ -22,6 +22,7 @@ const AddToListButton: React.FC<AddToListButtonProps> = ({
   const [lists, setLists] = useState<MovieList[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showListsModal, setShowListsModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
@@ -52,6 +53,7 @@ const AddToListButton: React.FC<AddToListButtonProps> = ({
     try {
       await movieListApi.addMovieToList(listId, showId);
       setSuccessMessage(`Movie added to list successfully!`);
+      setShowListsModal(false);
       
       // Clear success message after 3 seconds
       setTimeout(() => {
@@ -93,6 +95,7 @@ const AddToListButton: React.FC<AddToListButtonProps> = ({
       setNewListName('');
       setNewListDescription('');
       setShowCreateModal(false);
+      setShowListsModal(false);
       
       // Show success message
       setSuccessMessage(`Movie added to new list "${newListName}"!`);
@@ -107,43 +110,77 @@ const AddToListButton: React.FC<AddToListButtonProps> = ({
     }
   };
 
+  // Open create list form
+  const openCreateListForm = () => {
+    setShowCreateModal(true);
+  };
+
   return (
     <div className={className}>
       {/* Success/error messages */}
       {successMessage && <Alert variant="success">{successMessage}</Alert>}
       {error && <Alert variant="danger">{error}</Alert>}
 
-  <Dropdown id="dropdown-lists">
-    <Dropdown.Toggle variant={buttonVariant} size={buttonSize}>
-      Add to List
-    </Dropdown.Toggle>
+      {/* Main button to open lists modal */}
+      <Button 
+        variant={buttonVariant} 
+        size={buttonSize} 
+        onClick={() => setShowListsModal(true)}
+        className="w-100"
+      >
+        Add to List
+      </Button>
 
-    <Dropdown.Menu>
-      {loading ? (
-        <Dropdown.Item disabled>Loading lists...</Dropdown.Item>
-      ) : lists.length > 0 ? (
-        <>
-          {lists.map(list => (
-            <Dropdown.Item 
-              key={list.listId} 
-              onClick={() => handleAddToList(list.listId)}
-            >
-              {list.name}
-            </Dropdown.Item>
-          ))}
-          <Dropdown.Divider />
-        </>
-      ) : (
-        <Dropdown.Item disabled>No lists found</Dropdown.Item>
-      )}
-      <Dropdown.Item onClick={() => setShowCreateModal(true)}>
-        <strong>Create New List</strong>
-      </Dropdown.Item>
-    </Dropdown.Menu>
-  </Dropdown>
+      {/* Lists Selection Modal */}
+      <Modal show={showListsModal} onHide={() => setShowListsModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Add to List</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {loading ? (
+            <p className="text-center">Loading your lists...</p>
+          ) : (
+            <>
+              <h5>Select an existing list:</h5>
+              {lists.length > 0 ? (
+                <ListGroup className="mb-3">
+                  {lists.map(list => (
+                    <ListGroup.Item 
+                      key={list.listId}
+                      action
+                      onClick={() => handleAddToList(list.listId)}
+                      className="d-flex justify-content-between align-items-center"
+                    >
+                      <div>
+                        <div className="fw-bold">{list.name}</div>
+                        {list.description && (
+                          <small className="text-muted">{list.description}</small>
+                        )}
+                      </div>
+                      <Button variant="outline-primary" size="sm">Add</Button>
+                    </ListGroup.Item>
+                  ))}
+                </ListGroup>
+              ) : (
+                <p className="text-muted">You haven't created any lists yet.</p>
+              )}
+              
+              <div className="text-center mt-4">
+                <Button variant="primary" onClick={openCreateListForm}>
+                  Create New List
+                </Button>
+              </div>
+            </>
+          )}
+        </Modal.Body>
+      </Modal>
 
       {/* Create List Modal */}
-      <Modal show={showCreateModal} onHide={() => setShowCreateModal(false)}>
+      <Modal 
+        show={showCreateModal} 
+        onHide={() => setShowCreateModal(false)}
+        backdrop="static"
+      >
         <Modal.Header closeButton>
           <Modal.Title>Create New List</Modal.Title>
         </Modal.Header>
@@ -157,6 +194,7 @@ const AddToListButton: React.FC<AddToListButtonProps> = ({
                 value={newListName}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewListName(e.target.value)}
                 required
+                autoFocus
               />
             </Form.Group>
             <Form.Group className="mb-3">
@@ -171,7 +209,14 @@ const AddToListButton: React.FC<AddToListButtonProps> = ({
             </Form.Group>
           </Modal.Body>
           <Modal.Footer>
-            <Button variant="secondary" onClick={() => setShowCreateModal(false)}>
+            <Button 
+              variant="secondary" 
+              onClick={() => {
+                setShowCreateModal(false);
+                setNewListName('');
+                setNewListDescription('');
+              }}
+            >
               Cancel
             </Button>
             <Button variant="primary" type="submit">

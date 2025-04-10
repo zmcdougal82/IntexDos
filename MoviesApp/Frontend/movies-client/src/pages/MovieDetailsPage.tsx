@@ -27,7 +27,6 @@ const MovieDetailsPage = () => {
   const [showThankYouModal, setShowThankYouModal] = useState(false);
   const [showReviewsModal, setShowReviewsModal] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
-  const [trailerAvailable, setTrailerAvailable] = useState(false);
 
   // Larger, better looking fallback image for the details page
   const [posterUrl, setPosterUrl] = useState<string>(
@@ -1458,39 +1457,38 @@ const MovieDetailsPage = () => {
         }}
       />
       {/* Movie Trailer */}
-      {trailerAvailable && (
-        <div
-          className="card"
+
+      <div
+        className="card"
+        style={{
+          margin: "var(--spacing-lg) 0",
+          padding: "var(--spacing-lg)",
+          backgroundColor: "var(--color-background)",
+          borderRadius: "var(--radius-md)",
+          border: "1px solid var(--color-border)",
+          boxShadow: "var(--shadow-sm)",
+        }}
+      >
+        <h3
           style={{
-            margin: "var(--spacing-lg) 0",
-            padding: "var(--spacing-lg)",
-            backgroundColor: "var(--color-background)",
-            borderRadius: "var(--radius-md)",
-            border: "1px solid var(--color-border)",
-            boxShadow: "var(--shadow-sm)",
+            color: "var(--color-primary)",
+            fontWeight: 600,
+            margin: 0,
+            marginBottom: "var(--spacing-md)",
+            fontSize: "1.2rem",
+            borderBottom: "1px solid var(--color-border)",
+            paddingBottom: "var(--spacing-sm)",
           }}
         >
-          <h3
-            style={{
-              color: "var(--color-primary)",
-              fontWeight: 600,
-              margin: 0,
-              marginBottom: "var(--spacing-md)",
-              fontSize: "1.2rem",
-              borderBottom: "1px solid var(--color-border)",
-              paddingBottom: "var(--spacing-sm)",
-            }}
-          >
-            Trailer
-          </h3>
-          <MovieTrailer
-            title={movie.title}
-            year={movie.releaseYear}
-            isTV={movie.type === "TV Show"}
-            onTrailerLoaded={(key) => setTrailerAvailable(!!key)}
-          />
-        </div>
-      )}
+          Trailer
+        </h3>
+        <MovieTrailer
+          title={movie.title}
+          year={movie.releaseYear}
+          isTV={movie.type === "TV Show"}
+        />
+      </div>
+
       {/* Top Suggestions / Recommended Movies section */}
       <div
         className="card"
