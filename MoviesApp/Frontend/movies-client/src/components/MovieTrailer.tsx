@@ -6,7 +6,6 @@ interface MovieTrailerProps {
   year?: string | number;
   isTV?: boolean;
   className?: string;
-  onTrailerLoaded?: (key: string | null) => void;
 }
 
 const MovieTrailer: React.FC<MovieTrailerProps> = ({
@@ -14,12 +13,12 @@ const MovieTrailer: React.FC<MovieTrailerProps> = ({
   year,
   isTV = false,
   className,
-  onTrailerLoaded,
 }) => {
   const [trailerKey, setTrailerKey] = useState<string | null>(null);
   const [trailerName, setTrailerName] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [isVisible, setIsVisible] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchTrailer = async () => {
@@ -32,22 +31,26 @@ const MovieTrailer: React.FC<MovieTrailerProps> = ({
         if (trailerInfo) {
           setTrailerKey(trailerInfo.key);
           setTrailerName(trailerInfo.name);
-          onTrailerLoaded?.(trailerInfo.key); // Notify parent about trailer availability
         } else {
           setError("No trailer available");
-          onTrailerLoaded?.(null); // Notify parent that no trailer is available
+          setIsVisible(false); // Hide component if no traile
         }
       } catch (err) {
         console.error("Error fetching trailer:", err);
         setError("Failed to load trailer");
-        onTrailerLoaded?.(null); // Notify parent that no trailer is available
+        setIsVisible(false); // Hide component if no traile
       } finally {
         setLoading(false);
       }
     };
 
     fetchTrailer();
-  }, [title, year, isTV, onTrailerLoaded]);
+  }, [title, year, isTV]);
+
+  // Return null early if no trailer should be displayed
+  if (!isVisible) {
+    return null;
+  }
 
   if (loading) {
     return (
