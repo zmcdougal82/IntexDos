@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { RegisterRequest, authApi } from '../services/api';
 import { hasCookieConsent } from '../components/CookieConsentBanner';
+import ConfirmationModal from '../components/UserCreationSuccess';
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState<RegisterRequest>({
@@ -27,6 +28,7 @@ const RegisterPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1); // 1: Basic info, 2: Additional info, 3: Streaming preferences
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target as HTMLInputElement;
@@ -121,6 +123,7 @@ const RegisterPage = () => {
       
       // Show success message and redirect to login
       alert('Registration successful! Please log in with your new account.');
+      setIsModalOpen(true);
       window.location.href = '/login';
     } catch (err: any) {
       console.error('Registration error:', err);
@@ -128,6 +131,10 @@ const RegisterPage = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
   };
 
   const nextStep = () => {
@@ -560,6 +567,8 @@ const RegisterPage = () => {
               )}
             </div>
           )}
+
+          <ConfirmationModal isOpen={isModalOpen} onClose={closeModal} />
           
           <form onSubmit={handleSubmit}>
             {step === 1 && renderStep1()}
