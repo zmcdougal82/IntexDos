@@ -83,18 +83,6 @@ const Navbar = () => {
           >
             Home
           </Link>
-          <Link 
-            to="/movies" 
-            style={{ color: 'white', textDecoration: 'none' }}
-          >
-            Movies
-          </Link>
-          <Link 
-            to="/tvshows" 
-            style={{ color: 'white', textDecoration: 'none' }}
-          >
-            TV Shows
-          </Link>
           
           {user && (
             <>
