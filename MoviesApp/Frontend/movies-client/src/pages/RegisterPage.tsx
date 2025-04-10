@@ -122,7 +122,6 @@ const RegisterPage = () => {
       await authApi.register(formData);
       
       // Show success message and redirect to login
-      alert('Registration successful! Please log in with your new account.');
       setIsModalOpen(true);
       window.location.href = '/login';
     } catch (err: any) {

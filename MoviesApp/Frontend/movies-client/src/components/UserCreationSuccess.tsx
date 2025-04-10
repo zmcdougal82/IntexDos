@@ -1,45 +1,24 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 
 interface ConfirmationModalProps {
   isOpen: boolean;
-  onClose: () => void; // We now use `onClose` to close the modal after redirecting.
+  onClose: () => void;
 }
 
 const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, onClose }) => {
-  const [countdown, setCountdown] = useState(3); // Set initial countdown time to 3 seconds
-
-  useEffect(() => {
-    if (isOpen) {
-      // Set countdown timer
-      const timer = setInterval(() => {
-        setCountdown((prevCountdown) => {
-          if (prevCountdown === 1) {
-            clearInterval(timer);
-            onClose();
-            window.location.href = '/login'; // Redirect to login after countdown ends
-          }
-          return prevCountdown - 1;
-        });
-      }, 1000);
-
-      // Cleanup the timer on component unmount
-      return () => clearInterval(timer);
-    }
-  }, [isOpen, onClose]);
-
-  if (!isOpen) return null;
-
   const handleOkClick = () => {
     // If the user clicks "OK", immediately close the modal and redirect
     onClose();
     window.location.href = '/login'; // Redirect to login page
   };
 
+  if (!isOpen) return null;
+
   return (
     <div style={modalBackgroundStyle}>
       <div style={modalStyle}>
         <h2>Your account was successfully created!</h2>
-        <p>Redirecting you to the login page in {countdown} seconds...</p>
+        <p>Click "OK" to be redirected to the login page.</p>
         <div>
           <button onClick={handleOkClick} style={buttonStyle}>
             OK

@@ -4,6 +4,8 @@ import Modal from 'react-bootstrap/Modal';
 import Form from 'react-bootstrap/Form';
 import Alert from 'react-bootstrap/Alert';
 import ListGroup from 'react-bootstrap/ListGroup';
+import Tab from 'react-bootstrap/Tab';
+import Nav from 'react-bootstrap/Nav';
 import { MovieList, movieListApi } from '../services/api';
 
 interface AddToListButtonProps {
@@ -22,8 +24,8 @@ const AddToListButton: React.FC<AddToListButtonProps> = ({
   const [lists, setLists] = useState<MovieList[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showListsModal, setShowListsModal] = useState(false);
-  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [activeTab, setActiveTab] = useState('existing');
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Form state for creating a new list
@@ -45,15 +47,18 @@ const AddToListButton: React.FC<AddToListButtonProps> = ({
       }
     };
 
-    fetchLists();
-  }, []);
+    // Fetch lists when modal is opened
+    if (showModal) {
+      fetchLists();
+    }
+  }, [showModal]);
 
   // Handle adding movie to a list
   const handleAddToList = async (listId: number) => {
     try {
       await movieListApi.addMovieToList(listId, showId);
       setSuccessMessage(`Movie added to list successfully!`);
-      setShowListsModal(false);
+      setShowModal(false);
       
       // Clear success message after 3 seconds
       setTimeout(() => {
@@ -94,8 +99,7 @@ const AddToListButton: React.FC<AddToListButtonProps> = ({
       // Reset form and close modal
       setNewListName('');
       setNewListDescription('');
-      setShowCreateModal(false);
-      setShowListsModal(false);
+      setShowModal(false);
       
       // Show success message
       setSuccessMessage(`Movie added to new list "${newListName}"!`);
@@ -110,120 +114,112 @@ const AddToListButton: React.FC<AddToListButtonProps> = ({
     }
   };
 
-  // Open create list form
-  const openCreateListForm = () => {
-    setShowCreateModal(true);
-  };
-
   return (
     <div className={className}>
       {/* Success/error messages */}
       {successMessage && <Alert variant="success">{successMessage}</Alert>}
       {error && <Alert variant="danger">{error}</Alert>}
 
-      {/* Main button to open lists modal */}
+      {/* Main button to open modal */}
       <Button 
         variant={buttonVariant} 
         size={buttonSize} 
-        onClick={() => setShowListsModal(true)}
+        onClick={() => setShowModal(true)}
         className="w-100"
       >
         Add to List
       </Button>
 
-      {/* Lists Selection Modal */}
-      <Modal show={showListsModal} onHide={() => setShowListsModal(false)}>
+      {/* Combined Modal with Tabs for List Selection and Creation */}
+      <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
         <Modal.Header closeButton>
           <Modal.Title>Add to List</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {loading ? (
-            <p className="text-center">Loading your lists...</p>
-          ) : (
-            <>
-              <h5>Select an existing list:</h5>
-              {lists.length > 0 ? (
-                <ListGroup className="mb-3">
-                  {lists.map(list => (
-                    <ListGroup.Item 
-                      key={list.listId}
-                      action
-                      onClick={() => handleAddToList(list.listId)}
-                      className="d-flex justify-content-between align-items-center"
-                    >
-                      <div>
-                        <div className="fw-bold">{list.name}</div>
-                        {list.description && (
-                          <small className="text-muted">{list.description}</small>
-                        )}
+          <Tab.Container activeKey={activeTab} onSelect={(k) => k && setActiveTab(k)}>
+            <Nav variant="tabs" className="mb-3">
+              <Nav.Item>
+                <Nav.Link eventKey="existing">Select Existing List</Nav.Link>
+              </Nav.Item>
+              <Nav.Item>
+                <Nav.Link eventKey="create">Create New List</Nav.Link>
+              </Nav.Item>
+            </Nav>
+            <Tab.Content>
+              {/* Existing Lists Tab */}
+              <Tab.Pane eventKey="existing">
+                {loading ? (
+                  <p className="text-center py-3">Loading your lists...</p>
+                ) : (
+                  <>
+                    {lists.length > 0 ? (
+                      <ListGroup className="my-3">
+                        {lists.map(list => (
+                          <ListGroup.Item 
+                            key={list.listId}
+                            action
+                            onClick={() => handleAddToList(list.listId)}
+                            className="d-flex justify-content-between align-items-center"
+                          >
+                            <div>
+                              <div className="fw-bold">{list.name}</div>
+                              {list.description && (
+                                <small className="text-muted">{list.description}</small>
+                              )}
+                            </div>
+                            <Button variant="outline-primary" size="sm">Add</Button>
+                          </ListGroup.Item>
+                        ))}
+                      </ListGroup>
+                    ) : (
+                      <div className="text-center py-4">
+                        <p className="text-muted mb-3">You haven't created any lists yet.</p>
+                        <Button 
+                          variant="primary" 
+                          onClick={() => setActiveTab('create')}
+                        >
+                          Create Your First List
+                        </Button>
                       </div>
-                      <Button variant="outline-primary" size="sm">Add</Button>
-                    </ListGroup.Item>
-                  ))}
-                </ListGroup>
-              ) : (
-                <p className="text-muted">You haven't created any lists yet.</p>
-              )}
+                    )}
+                  </>
+                )}
+              </Tab.Pane>
               
-              <div className="text-center mt-4">
-                <Button variant="primary" onClick={openCreateListForm}>
-                  Create New List
-                </Button>
-              </div>
-            </>
-          )}
+              {/* Create New List Tab */}
+              <Tab.Pane eventKey="create">
+                <Form onSubmit={(e: React.FormEvent) => handleCreateList(e as React.FormEvent<HTMLFormElement>)}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>List Name</Form.Label>
+                    <Form.Control
+                      type="text"
+                      placeholder="E.g., Oscar Winners 2024"
+                      value={newListName}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewListName(e.target.value)}
+                      required
+                      autoFocus
+                    />
+                  </Form.Group>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Description (Optional)</Form.Label>
+                    <Form.Control
+                      as="textarea"
+                      rows={3}
+                      placeholder="Add a description for your list"
+                      value={newListDescription}
+                      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNewListDescription(e.target.value)}
+                    />
+                  </Form.Group>
+                  <div className="d-flex justify-content-end mt-4">
+                    <Button variant="primary" type="submit">
+                      Create List & Add Movie
+                    </Button>
+                  </div>
+                </Form>
+              </Tab.Pane>
+            </Tab.Content>
+          </Tab.Container>
         </Modal.Body>
-      </Modal>
-
-      {/* Create List Modal */}
-      <Modal 
-        show={showCreateModal} 
-        onHide={() => setShowCreateModal(false)}
-        backdrop="static"
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>Create New List</Modal.Title>
-        </Modal.Header>
-        <Form onSubmit={(e: React.FormEvent) => handleCreateList(e as React.FormEvent<HTMLFormElement>)}>
-          <Modal.Body>
-            <Form.Group className="mb-3">
-              <Form.Label>List Name</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="E.g., Matthew McConaughey Movies"
-                value={newListName}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewListName(e.target.value)}
-                required
-                autoFocus
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Description (Optional)</Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={3}
-                placeholder="Add a description for your list"
-                value={newListDescription}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNewListDescription(e.target.value)}
-              />
-            </Form.Group>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button 
-              variant="secondary" 
-              onClick={() => {
-                setShowCreateModal(false);
-                setNewListName('');
-                setNewListDescription('');
-              }}
-            >
-              Cancel
-            </Button>
-            <Button variant="primary" type="submit">
-              Create List & Add Movie
-            </Button>
-          </Modal.Footer>
-        </Form>
       </Modal>
     </div>
   );
