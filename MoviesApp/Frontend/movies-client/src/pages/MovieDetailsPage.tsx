@@ -1465,29 +1465,27 @@ const MovieDetailsPage = () => {
           boxShadow: "var(--shadow-sm)",
         }}
       >
-        {hasTrailer && (
-          <>
-            <h3
-              style={{
-                color: "var(--color-primary)",
-                fontWeight: 600,
-                margin: 0,
-                marginBottom: "var(--spacing-md)",
-                fontSize: "1.2rem",
-                borderBottom: "1px solid var(--color-border)",
-                paddingBottom: "var(--spacing-sm)",
-              }}
-            >
-              Trailer
-            </h3>
-            <MovieTrailer
-              title={movie.title}
-              year={movie.releaseYear}
-              isTV={movie.type === "TV Show"}
-              onTrailerLoaded={handleTrailerStatus}
-            />
-          </>
-        )}
+        <>
+          <h3
+            style={{
+              color: "var(--color-primary)",
+              fontWeight: 600,
+              margin: 0,
+              marginBottom: "var(--spacing-md)",
+              fontSize: "1.2rem",
+              borderBottom: "1px solid var(--color-border)",
+              paddingBottom: "var(--spacing-sm)",
+            }}
+          >
+            Trailer
+          </h3>
+          <MovieTrailer
+            title={movie.title}
+            year={movie.releaseYear}
+            isTV={movie.type === "TV Show"}
+            onTrailerLoaded={handleTrailerStatus}
+          />
+        </>
       </div>
 
       {/* Top Suggestions / Recommended Movies section */}
