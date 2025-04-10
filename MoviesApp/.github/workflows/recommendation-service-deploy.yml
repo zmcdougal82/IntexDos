@@ -1,0 +1,41 @@
+name: Deploy Recommendation Service to Azure
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'MoviesApp/Backend/RecommendationService/**'
+      - '!MoviesApp/Backend/RecommendationService/.github/**'
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install dependencies
+      run: |
+        cd MoviesApp/Backend/RecommendationService
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+    - name: Create deployment package
+      run: |
+        cd MoviesApp/Backend/RecommendationService
+        zip -r deployment.zip app.py notebook_recommendation_service.py requirements.txt web.config
+
+    - name: Deploy to Azure Web App
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: 'moviesapp-recommendation-service'
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_API }}
+        package: MoviesApp/Backend/RecommendationService/deployment.zip
