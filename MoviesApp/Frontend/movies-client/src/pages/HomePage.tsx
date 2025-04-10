@@ -8,10 +8,10 @@ const HomePage = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
+  // const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const [activeGenres, setActiveGenres] = useState<string[]>([]);
+  // const [activeGenres, setActiveGenres] = useState<string[]>([]);
   const pageSize = 20;
   const observer = useRef<IntersectionObserver | null>(null);
   const [user, setUser] = useState<string | null>(null); // Store the user state
@@ -53,24 +53,13 @@ const HomePage = () => {
 
   const loadMoreMovies = async () => {
     if (!hasMore || loading) return;
-
+  
     try {
       setLoading(true);
       const nextPage = currentPage + 1;
-
-      let response;
-      if (searchTerm) {
-        return;
-      } else if (activeGenres.length > 0) {
-        response = await movieApi.getByMultipleGenres(
-          activeGenres,
-          nextPage,
-          pageSize
-        );
-      } else {
-        response = await movieApi.getAll(nextPage, pageSize);
-      }
-
+  
+      const response = await movieApi.getAll(nextPage, pageSize);
+  
       if (response.data.length === 0) {
         setHasMore(false);
       } else {
@@ -84,6 +73,7 @@ const HomePage = () => {
       setLoading(false);
     }
   };
+  
 
   // const handleSearch = async () => {
   //   if (!searchTerm.trim()) {
@@ -108,21 +98,21 @@ const HomePage = () => {
   //   }
   // };
 
-  const fetchInitialMovies = async () => {
-    try {
-      setLoading(true);
-      const response = await movieApi.getAll(1, pageSize);
-      setMovies(response.data);
-      setHasMore(response.data.length === pageSize);
-      setCurrentPage(1);
-      setError(null);
-    } catch (err) {
-      console.error("Error fetching movies:", err);
-      setError("Failed to load movies. Please try again later.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // const fetchInitialMovies = async () => {
+  //   try {
+  //     setLoading(true);
+  //     const response = await movieApi.getAll(1, pageSize);
+  //     setMovies(response.data);
+  //     setHasMore(response.data.length === pageSize);
+  //     setCurrentPage(1);
+  //     setError(null);
+  //   } catch (err) {
+  //     console.error("Error fetching movies:", err);
+  //     setError("Failed to load movies. Please try again later.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   // const handleGenreFilter = async (genre: string) => {
   //   const newGenres = activeGenres.includes(genre)
