@@ -112,7 +112,20 @@ class NotebookRecommendationService:
         try:
             cursor = self.conn.cursor()
             cursor.execute("SELECT TOP (?) show_id FROM movies_titles", (limit,))
-            movie_ids = [row.show_id for row in cursor.fetchall()]
+            # Ensure all IDs are in the 's' prefix format
+            movie_ids = []
+            for row in cursor.fetchall():
+                # Get the ID and ensure it's in the correct format (starting with 's')
+                show_id = row.show_id
+                if not show_id.startswith('s'):
+                    # If it's a TMDB ID (starts with 'tt'), extract the numeric part
+                    if show_id.startswith('tt'):
+                        show_id = f"s{show_id[2:]}"
+                    else:
+                        # For any other format, just ensure it has 's' prefix
+                        show_id = f"s{show_id}"
+                movie_ids.append(show_id)
+            
             cursor.close()
             logger.info(f"Retrieved {len(movie_ids)} movie IDs from database")
             return movie_ids
@@ -134,7 +147,21 @@ class NotebookRecommendationService:
             sanitized_genre = ''.join(c for c in genre if c.isalnum())
             query = f"SELECT TOP (?) show_id FROM movies_titles WHERE [{sanitized_genre}] > 0"
             cursor.execute(query, (limit,))
-            genre_movies = [row.show_id for row in cursor.fetchall()]
+            
+            # Ensure all IDs are in the 's' prefix format
+            genre_movies = []
+            for row in cursor.fetchall():
+                # Get the ID and ensure it's in the correct format (starting with 's')
+                show_id = row.show_id
+                if not show_id.startswith('s'):
+                    # If it's a TMDB ID (starts with 'tt'), extract the numeric part
+                    if show_id.startswith('tt'):
+                        show_id = f"s{show_id[2:]}"
+                    else:
+                        # For any other format, just ensure it has 's' prefix
+                        show_id = f"s{show_id}"
+                genre_movies.append(show_id)
+                
             cursor.close()
             
             if not genre_movies:
@@ -171,7 +198,21 @@ class NotebookRecommendationService:
             ORDER BY COUNT(*) DESC
             """
             cursor.execute(query, (limit, user_id, user_id))
-            collaborative = [row.show_id for row in cursor.fetchall()]
+            
+            # Ensure all IDs are in the 's' prefix format
+            collaborative = []
+            for row in cursor.fetchall():
+                # Get the ID and ensure it's in the correct format (starting with 's')
+                show_id = row.show_id
+                if not show_id.startswith('s'):
+                    # If it's a TMDB ID (starts with 'tt'), extract the numeric part
+                    if show_id.startswith('tt'):
+                        show_id = f"s{show_id[2:]}"
+                    else:
+                        # For any other format, just ensure it has 's' prefix
+                        show_id = f"s{show_id}"
+                collaborative.append(show_id)
+            
             cursor.close()
             
             if not collaborative:
@@ -214,7 +255,21 @@ class NotebookRecommendationService:
             ORDER BY COUNT(*) DESC
             """
             cursor.execute(query, (limit, user_id, user_id))
-            content_based = [row.show_id for row in cursor.fetchall()]
+            
+            # Ensure all IDs are in the 's' prefix format
+            content_based = []
+            for row in cursor.fetchall():
+                # Get the ID and ensure it's in the correct format (starting with 's')
+                show_id = row.show_id
+                if not show_id.startswith('s'):
+                    # If it's a TMDB ID (starts with 'tt'), extract the numeric part
+                    if show_id.startswith('tt'):
+                        show_id = f"s{show_id[2:]}"
+                    else:
+                        # For any other format, just ensure it has 's' prefix
+                        show_id = f"s{show_id}"
+                content_based.append(show_id)
+            
             cursor.close()
             
             if not content_based:
@@ -243,7 +298,21 @@ class NotebookRecommendationService:
             ORDER BY COUNT(*) DESC
             """
             cursor.execute(query, (limit,))
-            popular = [row.show_id for row in cursor.fetchall()]
+            
+            # Ensure all IDs are in the 's' prefix format
+            popular = []
+            for row in cursor.fetchall():
+                # Get the ID and ensure it's in the correct format (starting with 's')
+                show_id = row.show_id
+                if not show_id.startswith('s'):
+                    # If it's a TMDB ID (starts with 'tt'), extract the numeric part
+                    if show_id.startswith('tt'):
+                        show_id = f"s{show_id[2:]}"
+                    else:
+                        # For any other format, just ensure it has 's' prefix
+                        show_id = f"s{show_id}"
+                popular.append(show_id)
+            
             cursor.close()
             
             if not popular:
@@ -272,7 +341,21 @@ class NotebookRecommendationService:
             ORDER BY AVG(CAST(rating AS FLOAT)) DESC
             """
             cursor.execute(query, (limit,))
-            top_rated = [row.show_id for row in cursor.fetchall()]
+            
+            # Ensure all IDs are in the 's' prefix format
+            top_rated = []
+            for row in cursor.fetchall():
+                # Get the ID and ensure it's in the correct format (starting with 's')
+                show_id = row.show_id
+                if not show_id.startswith('s'):
+                    # If it's a TMDB ID (starts with 'tt'), extract the numeric part
+                    if show_id.startswith('tt'):
+                        show_id = f"s{show_id[2:]}"
+                    else:
+                        # For any other format, just ensure it has 's' prefix
+                        show_id = f"s{show_id}"
+                top_rated.append(show_id)
+            
             cursor.close()
             
             if not top_rated:
