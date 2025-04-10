@@ -83,21 +83,22 @@ const Navbar = () => {
           >
             Home
           </Link>
-          <Link 
-            to="/movies" 
-            style={{ color: 'white', textDecoration: 'none' }}
-          >
-            Movies
-          </Link>
-          <Link 
-            to="/tvshows" 
-            style={{ color: 'white', textDecoration: 'none' }}
-          >
-            TV Shows
-          </Link>
           
           {user && (
             <>
+              <Link 
+                to="/movies" 
+                style={{ color: 'white', textDecoration: 'none' }}
+              >
+                Movies
+              </Link>
+              <Link 
+                to="/tvshows" 
+                style={{ color: 'white', textDecoration: 'none' }}
+              >
+                TV Shows
+              </Link>
+
               <Link 
                 to="/watchlist" 
                 style={{ color: 'white', textDecoration: 'none' }}
@@ -109,6 +110,12 @@ const Navbar = () => {
                 style={{ color: 'white', textDecoration: 'none' }}
               >
                 My Ratings
+              </Link>
+              <Link 
+                to="/lists" 
+                style={{ color: 'white', textDecoration: 'none' }}
+              >
+                My Lists
               </Link>
               {isAdmin(user) && (
                 <Link 

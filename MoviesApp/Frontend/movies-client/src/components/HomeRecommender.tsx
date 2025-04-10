@@ -141,8 +141,12 @@ const HomeRecommender: React.FC<HomeRecommender> = ({ userId }) => {
           const movieResponses = await Promise.all(
             recommendationsData.collaborative.map(async (id) => {
               try {
-                // Try to get from main API first
-                const movieResponse = await movieApi.getById(id);
+                // Ensure we're using database-style IDs (s1, s2, etc.)
+                // If the ID is already in the correct format, use it directly
+                const dbStyleId = id.startsWith('s') ? id : `s${id.replace(/\D/g, '')}`;
+                
+                // Try to get from main API using database-style ID
+                const movieResponse = await movieApi.getById(dbStyleId);
                 return movieResponse.data;
               } catch (err) {
                 console.warn(`Failed to fetch movie ${id} from main API - creating placeholder:`, err);
@@ -167,8 +171,12 @@ const HomeRecommender: React.FC<HomeRecommender> = ({ userId }) => {
           const movieResponses = await Promise.all(
             recommendationsData.contentBased.map(async (id) => {
               try {
-                // Try to get from main API first
-                const movieResponse = await movieApi.getById(id);
+                // Ensure we're using database-style IDs (s1, s2, etc.)
+                // If the ID is already in the correct format, use it directly
+                const dbStyleId = id.startsWith('s') ? id : `s${id.replace(/\D/g, '')}`;
+                
+                // Try to get from main API using database-style ID
+                const movieResponse = await movieApi.getById(dbStyleId);
                 return movieResponse.data;
               } catch (err) {
                 console.warn(`Failed to fetch movie ${id} from main API - creating placeholder:`, err);
@@ -196,7 +204,12 @@ const HomeRecommender: React.FC<HomeRecommender> = ({ userId }) => {
               const movieResponses = await Promise.all(
                 movieIds.map(async (id) => {
                   try {
-                    const movieResponse = await movieApi.getById(id);
+                    // Ensure we're using database-style IDs (s1, s2, etc.)
+                    // If the ID is already in the correct format, use it directly
+                    const dbStyleId = id.startsWith('s') ? id : `s${id.replace(/\D/g, '')}`;
+                    
+                    // Try to get from main API using database-style ID
+                    const movieResponse = await movieApi.getById(dbStyleId);
                     return movieResponse.data;
                   } catch (err) {
                     console.warn(`Failed to fetch movie ${id} from main API - creating placeholder:`, err);

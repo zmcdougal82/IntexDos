@@ -8,6 +8,7 @@ import ReviewSummary from "../components/ReviewSummary";
 import MovieTrailer from "../components/MovieTrailer";
 import ReviewModal from "../components/ReviewModal";
 import ExternalRatings from "../components/ExternalRatings";
+import AddToListButton from "../components/AddToListButton";
 
 const MovieDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -31,12 +32,6 @@ const MovieDetailsPage = () => {
   const [posterUrl, setPosterUrl] = useState<string>(
     "https://placehold.co/480x720/2c3e50/FFFFFF?text=Poster+Coming+Soon&font=montserrat"
   );
-
-  // Handler to be passed to MovieTrailer
-  const handleTrailerStatus = (status: boolean) => {
-    setHasTrailer(status); // Updates trailer state based on trailer load status
-    console.log("Trailer available:", status); // Optionally log trailer status
-  };
 
   useEffect(() => {
     // Check if user is logged in - only do this once on component mount
@@ -439,9 +434,12 @@ const MovieDetailsPage = () => {
   };
 
   // Utility function to format minutes to readable format (e.g., 155 → "2h 35m")
-  const formatDuration = (rawDuration: string | undefined, type: string | undefined): string => {
+  const formatDuration = (
+    rawDuration: string | undefined,
+    type: string | undefined
+  ): string => {
     if (!rawDuration || !type) return "Unknown";
-  
+
     if (type === "TV Show") {
       // Example: "2 Seasons" or "1 Season"
       const match = rawDuration.match(/(\d+)/);
@@ -451,7 +449,7 @@ const MovieDetailsPage = () => {
       }
       return "Unknown";
     }
-  
+
     // Assume type is Movie
     const match = rawDuration.match(/(\d+)/);
     if (match) {
@@ -461,10 +459,17 @@ const MovieDetailsPage = () => {
       const remainingMins = mins % 60;
       return hours > 0 ? `${hours}h ${remainingMins}m` : `${remainingMins}m`;
     }
-  
+
     return "Unknown";
   };
-  
+
+  const handleTrailerAvailability = (key: string | null) => {
+    if (key) {
+      setHasTrailer(true); // Trailer is available
+    } else {
+      setHasTrailer(false); // No trailer available
+    }
+  };
 
   // Calculate average rating
   const averageRating = ratings.length
@@ -665,7 +670,6 @@ const MovieDetailsPage = () => {
           </div>
         </div>
       )}
-
       {/* Thank You Modal */}
       {showThankYouModal && (
         <div
@@ -916,8 +920,9 @@ const MovieDetailsPage = () => {
                 )}
               </div>
 
-              {/* Write a review button */}
+              {/* Action buttons */}
               <div style={{ margin: "var(--spacing-lg) 0" }}>
+                {/* Write a review button */}
                 <button
                   onClick={() => {
                     if (!user) {
@@ -940,11 +945,21 @@ const MovieDetailsPage = () => {
                     alignItems: "center",
                     justifyContent: "center",
                     gap: "var(--spacing-sm)",
+                    marginBottom: "var(--spacing-md)",
                   }}
                 >
                   <span style={{ fontSize: "1.2rem" }}>✏️</span>
                   {ratingSubmitted ? "Edit your review" : "Write a review"}
                 </button>
+
+                {/* Add to List button */}
+                {user && id && (
+                  <AddToListButton 
+                    showId={id}
+                    buttonVariant="outline-primary"
+                    className="mb-2"
+                  />
+                )}
 
                 {ratingSubmitted && (
                   <div
@@ -1406,7 +1421,6 @@ const MovieDetailsPage = () => {
           </div>
         </div>
       </div>
-
       {/* ReviewModal for adding/editing ratings */}
       <ReviewModal
         isOpen={showReviewModal}
@@ -1450,9 +1464,8 @@ const MovieDetailsPage = () => {
           }
         }}
       />
-
       {/* Movie Trailer */}
-      {hasTrailer && (
+      {hasTrailer && ( // Render only if there is a trailer
         <div
           className="card"
           style={{
@@ -1481,11 +1494,11 @@ const MovieDetailsPage = () => {
             title={movie.title}
             year={movie.releaseYear}
             isTV={movie.type === "TV Show"}
-            onTrailerLoaded={handleTrailerStatus}
+            onTrailerLoaded={handleTrailerAvailability} // Pass the callback here
           />
         </div>
       )}
-
+      {!hasTrailer && <br />}
       {/* Top Suggestions / Recommended Movies section */}
       <div
         className="card"
