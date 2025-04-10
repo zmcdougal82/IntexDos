@@ -18,12 +18,13 @@ This indicates that the publish profile credentials used in the GitHub workflow 
 2. Navigate to your App Service "moviesapp-recommendation-service"
 3. In the left menu, click on "Overview"
 4. Click on "Get publish profile" button (this will download a .PublishSettings file)
+   - Note: You can also use one of the existing .PublishSettings files in your Downloads folder
 
 ### 2. Update the GitHub Secret
 
 1. Go to your GitHub repository
 2. Navigate to "Settings" > "Secrets and variables" > "Actions"
-3. Find the secret named `AZURE_WEBAPP_PUBLISH_PROFILE`
+3. Find the secret named `AZURE_WEBAPP_PUBLISH_PROFILE` (not `AZURE_WEBAPP_PUBLISH_PROFILE_API`)
 4. Click "Update"
 5. Open the downloaded .PublishSettings file in a text editor
 6. Copy the entire contents of this file
