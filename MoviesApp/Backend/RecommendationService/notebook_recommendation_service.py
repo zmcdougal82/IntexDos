@@ -16,15 +16,16 @@ class NotebookRecommendationService:
     
     def __init__(self):
         """Initialize the recommendation service."""
+        # Use database-style IDs (s1, s2, etc.) instead of IMDB IDs
         self.sample_movies = [
-            "tt0111161", "tt0068646", "tt0071562", "tt0468569", "tt0050083", 
-            "tt0108052", "tt0167260", "tt0110912", "tt0060196", "tt0120737",
-            "tt0109830", "tt0167261", "tt0080684", "tt0133093", "tt0099685",
-            "tt0073486", "tt0047478", "tt0114369", "tt0317248", "tt0038650",
-            "tt0102926", "tt0076759", "tt0120815", "tt0103064", "tt0088763",
-            "tt0054215", "tt0110413", "tt0120586", "tt0021749", "tt0120689",
-            "tt0245429", "tt0209144", "tt0056058", "tt0095327", "tt0910970",
-            "tt0407887", "tt0114814", "tt0172495", "tt0040522", "tt0482571"
+            "s1", "s2", "s3", "s4", "s5", 
+            "s6", "s7", "s8", "s9", "s10",
+            "s11", "s12", "s13", "s14", "s15",
+            "s16", "s17", "s18", "s19", "s20",
+            "s21", "s22", "s23", "s24", "s25",
+            "s26", "s27", "s28", "s29", "s30",
+            "s31", "s32", "s33", "s34", "s35",
+            "s36", "s37", "s38", "s39", "s40"
         ]
         self.genres = [
             "Action", "Comedy", "Drama", "Horror", "SciFi", 
