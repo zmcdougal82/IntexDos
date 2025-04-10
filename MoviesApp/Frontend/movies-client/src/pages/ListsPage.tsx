@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Button, Modal, Form, Alert } from 'react-bootstrap';
-import { Link, useNavigate } from 'react-router-dom';
+import Container from 'react-bootstrap/Container';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
+import Card from 'react-bootstrap/Card';
+import Button from 'react-bootstrap/Button';
+import Modal from 'react-bootstrap/Modal';
+import Form from 'react-bootstrap/Form';
+import Alert from 'react-bootstrap/Alert';
+import { useNavigate } from 'react-router-dom';
 import { MovieList, movieListApi } from '../services/api';
 
 const ListsPage: React.FC = () => {
@@ -38,7 +45,7 @@ const ListsPage: React.FC = () => {
   }, []);
 
   // Handle create list form submission
-  const handleCreateList = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleCreateList = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newListName.trim()) {
       setCreateError('List name is required');
@@ -101,7 +108,7 @@ const ListsPage: React.FC = () => {
     <Container className="py-5">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h1>My Movie Lists</h1>
-        <Button variant="primary" onClick={() => setShowCreateModal(true)}>
+        <Button onClick={() => setShowCreateModal(true)}>
           Create New List
         </Button>
       </div>
@@ -112,12 +119,12 @@ const ListsPage: React.FC = () => {
         <div className="text-center py-5">
           <h3>You don't have any movie lists yet</h3>
           <p>Create your first list to start organizing your favorite movies!</p>
-          <Button variant="primary" onClick={() => setShowCreateModal(true)}>
+          <Button onClick={() => setShowCreateModal(true)}>
             Create a List
           </Button>
         </div>
       ) : (
-        <Row xs={1} md={2} lg={3} className="g-4">
+        <Row className="g-4 row-cols-1 row-cols-md-2 row-cols-lg-3">
           {lists.map(list => (
             <Col key={list.listId}>
               <Card className="h-100">
@@ -130,10 +137,7 @@ const ListsPage: React.FC = () => {
                     </small>
                   </Card.Text>
                   <div className="d-flex justify-content-between">
-                    <Button 
-                      variant="primary" 
-                      onClick={() => navigate(`/lists/${list.listId}`)}
-                    >
+                    <Button onClick={() => navigate(`/lists/${list.listId}`)}>
                       View List
                     </Button>
                     <Button 
@@ -155,10 +159,10 @@ const ListsPage: React.FC = () => {
         <Modal.Header closeButton>
           <Modal.Title>Create New List</Modal.Title>
         </Modal.Header>
-        <Form onSubmit={handleCreateList}>
+        <Form onSubmit={(e: React.FormEvent) => handleCreateList(e)}>
           <Modal.Body>
             {createError && <Alert variant="danger">{createError}</Alert>}
-            <Form.Group className="mb-3">
+            <div className="mb-3">
               <Form.Label>List Name</Form.Label>
               <Form.Control
                 type="text"
@@ -167,8 +171,8 @@ const ListsPage: React.FC = () => {
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewListName(e.target.value)}
                 required
               />
-            </Form.Group>
-            <Form.Group className="mb-3">
+            </div>
+            <div className="mb-3">
               <Form.Label>Description (Optional)</Form.Label>
               <Form.Control
                 as="textarea"
@@ -177,21 +181,21 @@ const ListsPage: React.FC = () => {
                 value={newListDescription}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNewListDescription(e.target.value)}
               />
-            </Form.Group>
-            <Form.Group className="mb-3">
+            </div>
+            <div className="mb-3">
               <Form.Check
                 type="checkbox"
                 label="Make this list public"
                 checked={newListIsPublic}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewListIsPublic(e.target.checked)}
               />
-            </Form.Group>
+            </div>
           </Modal.Body>
           <Modal.Footer>
             <Button variant="secondary" onClick={() => setShowCreateModal(false)}>
               Cancel
             </Button>
-            <Button variant="primary" type="submit">
+            <Button type="submit">
               Create List
             </Button>
           </Modal.Footer>
