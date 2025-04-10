@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Button, Alert, Breadcrumb } from 'react-bootstrap';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import Container from 'react-bootstrap/Container';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
+import Card from 'react-bootstrap/Card';
+import Button from 'react-bootstrap/Button';
+import Alert from 'react-bootstrap/Alert';
+import Breadcrumb from 'react-bootstrap/Breadcrumb';
+import { useParams, useNavigate } from 'react-router-dom';
 import { MovieList, movieListApi } from '../services/api';
 
 const ListDetailsPage: React.FC = () => {
@@ -58,7 +64,7 @@ const ListDetailsPage: React.FC = () => {
     return (
       <Container className="py-5">
         <Alert variant="danger">{error || 'List not found'}</Alert>
-        <Button variant="primary" onClick={() => navigate('/lists')}>
+        <Button onClick={() => navigate('/lists')}>
           Back to My Lists
         </Button>
       </Container>
@@ -68,7 +74,7 @@ const ListDetailsPage: React.FC = () => {
   return (
     <Container className="py-5">
       <Breadcrumb className="mb-3">
-        <Breadcrumb.Item linkAs={Link} linkProps={{ to: '/lists' }}>
+        <Breadcrumb.Item href="/lists" onClick={(e) => { e.preventDefault(); navigate('/lists'); }}>
           My Lists
         </Breadcrumb.Item>
         <Breadcrumb.Item active>{list.name}</Breadcrumb.Item>
@@ -88,7 +94,7 @@ const ListDetailsPage: React.FC = () => {
       </div>
 
       {list.items && list.items.length > 0 ? (
-        <Row xs={2} md={3} lg={4} className="g-4">
+        <Row className="g-4 row-cols-2 row-cols-md-3 row-cols-lg-4">
           {list.items.map(item => (
             <Col key={item.showId}>
               <Card className="h-100">
@@ -105,7 +111,7 @@ const ListDetailsPage: React.FC = () => {
                     {item.movie?.title || 'Unknown Movie'}
                   </Card.Title>
                   <Card.Text className="small text-muted">
-                    {item.movie?.releaseYear || 'Unknown year'}
+                    {item.movie?.releaseYear ? item.movie.releaseYear.toString() : 'Unknown year'}
                   </Card.Text>
                   <div className="mt-auto d-flex justify-content-between">
                     <Button
@@ -132,7 +138,7 @@ const ListDetailsPage: React.FC = () => {
         <div className="text-center py-5">
           <h3>This list is empty</h3>
           <p>Start adding movies to build your collection!</p>
-          <Button variant="primary" onClick={() => navigate('/movies')}>
+          <Button onClick={() => navigate('/movies')}>
             Browse Movies
           </Button>
         </div>

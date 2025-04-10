@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Dropdown, Modal, Form, Alert } from 'react-bootstrap';
+import Button from 'react-bootstrap/Button';
+import Dropdown from 'react-bootstrap/Dropdown';
+import Modal from 'react-bootstrap/Modal';
+import Form from 'react-bootstrap/Form';
+import Alert from 'react-bootstrap/Alert';
 import { MovieList, movieListApi } from '../services/api';
 
 interface AddToListButtonProps {
@@ -109,41 +113,41 @@ const AddToListButton: React.FC<AddToListButtonProps> = ({
       {successMessage && <Alert variant="success">{successMessage}</Alert>}
       {error && <Alert variant="danger">{error}</Alert>}
 
-      <Dropdown>
-        <Dropdown.Toggle variant={buttonVariant} size={buttonSize} id="dropdown-lists">
-          Add to List
-        </Dropdown.Toggle>
+  <Dropdown id="dropdown-lists">
+    <Dropdown.Toggle variant={buttonVariant} size={buttonSize}>
+      Add to List
+    </Dropdown.Toggle>
 
-        <Dropdown.Menu>
-          {loading ? (
-            <Dropdown.Item disabled>Loading lists...</Dropdown.Item>
-          ) : lists.length > 0 ? (
-            <>
-              {lists.map(list => (
-                <Dropdown.Item 
-                  key={list.listId} 
-                  onClick={() => handleAddToList(list.listId)}
-                >
-                  {list.name}
-                </Dropdown.Item>
-              ))}
-              <Dropdown.Divider />
-            </>
-          ) : (
-            <Dropdown.Item disabled>No lists found</Dropdown.Item>
-          )}
-          <Dropdown.Item onClick={() => setShowCreateModal(true)}>
-            <strong>Create New List</strong>
-          </Dropdown.Item>
-        </Dropdown.Menu>
-      </Dropdown>
+    <Dropdown.Menu>
+      {loading ? (
+        <Dropdown.Item disabled>Loading lists...</Dropdown.Item>
+      ) : lists.length > 0 ? (
+        <>
+          {lists.map(list => (
+            <Dropdown.Item 
+              key={list.listId} 
+              onClick={() => handleAddToList(list.listId)}
+            >
+              {list.name}
+            </Dropdown.Item>
+          ))}
+          <Dropdown.Divider />
+        </>
+      ) : (
+        <Dropdown.Item disabled>No lists found</Dropdown.Item>
+      )}
+      <Dropdown.Item onClick={() => setShowCreateModal(true)}>
+        <strong>Create New List</strong>
+      </Dropdown.Item>
+    </Dropdown.Menu>
+  </Dropdown>
 
       {/* Create List Modal */}
       <Modal show={showCreateModal} onHide={() => setShowCreateModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Create New List</Modal.Title>
         </Modal.Header>
-        <Form onSubmit={handleCreateList}>
+        <Form onSubmit={(e: React.FormEvent) => handleCreateList(e as React.FormEvent<HTMLFormElement>)}>
           <Modal.Body>
             <Form.Group className="mb-3">
               <Form.Label>List Name</Form.Label>
