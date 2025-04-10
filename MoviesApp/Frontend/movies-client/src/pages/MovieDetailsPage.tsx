@@ -33,12 +33,6 @@ const MovieDetailsPage = () => {
     "https://placehold.co/480x720/2c3e50/FFFFFF?text=Poster+Coming+Soon&font=montserrat"
   );
 
-  // Handler to be passed to MovieTrailer
-  const handleTrailerStatus = (status: boolean) => {
-    setHasTrailer(status); // Updates trailer state based on trailer load status
-    console.log("Trailer available:", status); // Optionally log trailer status
-  };
-
   useEffect(() => {
     // Check if user is logged in - only do this once on component mount
     const checkUserLogin = () => {
@@ -469,6 +463,14 @@ const MovieDetailsPage = () => {
     return "Unknown";
   };
 
+  const handleTrailerAvailability = (key: string | null) => {
+    if (key) {
+      setHasTrailer(true); // Trailer is available
+    } else {
+      setHasTrailer(false); // No trailer available
+    }
+  };
+
   // Calculate average rating
   const averageRating = ratings.length
     ? ratings.reduce((sum, r) => sum + r.ratingValue, 0) / ratings.length
@@ -668,7 +670,6 @@ const MovieDetailsPage = () => {
           </div>
         </div>
       )}
-
       {/* Thank You Modal */}
       {showThankYouModal && (
         <div
@@ -1420,7 +1421,6 @@ const MovieDetailsPage = () => {
           </div>
         </div>
       </div>
-
       {/* ReviewModal for adding/editing ratings */}
       <ReviewModal
         isOpen={showReviewModal}
@@ -1464,20 +1464,19 @@ const MovieDetailsPage = () => {
           }
         }}
       />
-
       {/* Movie Trailer */}
-      <div
-        className="card"
-        style={{
-          margin: "var(--spacing-lg) 0",
-          padding: "var(--spacing-lg)",
-          backgroundColor: "var(--color-background)",
-          borderRadius: "var(--radius-md)",
-          border: "1px solid var(--color-border)",
-          boxShadow: "var(--shadow-sm)",
-        }}
-      >
-        <>
+      {hasTrailer && ( // Render only if there is a trailer
+        <div
+          className="card"
+          style={{
+            margin: "var(--spacing-lg) 0",
+            padding: "var(--spacing-lg)",
+            backgroundColor: "var(--color-background)",
+            borderRadius: "var(--radius-md)",
+            border: "1px solid var(--color-border)",
+            boxShadow: "var(--shadow-sm)",
+          }}
+        >
           <h3
             style={{
               color: "var(--color-primary)",
@@ -1495,11 +1494,11 @@ const MovieDetailsPage = () => {
             title={movie.title}
             year={movie.releaseYear}
             isTV={movie.type === "TV Show"}
-            onTrailerLoaded={handleTrailerStatus}
+            onTrailerLoaded={handleTrailerAvailability} // Pass the callback here
           />
-        </>
-      </div>
-
+        </div>
+      )}
+      {!hasTrailer && <br />}
       {/* Top Suggestions / Recommended Movies section */}
       <div
         className="card"
