@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Movie, movieApi } from "../services/api";
 import MovieCard from "../components/MovieCard";
+import HomeRecommender from "../components/HomeRecommender"
 
 const HomePage = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
@@ -13,7 +14,7 @@ const HomePage = () => {
   const [activeGenres, setActiveGenres] = useState<string[]>([]);
   const pageSize = 20;
   const observer = useRef<IntersectionObserver | null>(null);
-  const [user, setUser] = useState(null); // Store the user state
+  const [user, setUser] = useState<string | null>(null); // Store the user state
   const lastMovieElementRef = useCallback(
     (node: HTMLDivElement | null) => {
       if (loading) return;
@@ -177,7 +178,7 @@ const HomePage = () => {
       }
     }
   }, []);
-
+  
   const handleLogin = () => {
     navigate("/login");
   };
@@ -244,73 +245,73 @@ const HomePage = () => {
               Welcome to CineNiche!
             </h1>
                        {/* Register / Login CTA + Company Introduction */}
-<br />
-<div
-  style={{
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    zIndex: 2,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    textAlign: 'center',
-    color: 'white',
-    padding: '20px',
-    gap: '1.5rem',
-  }}
->
+            <br />
+            <div
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                zIndex: 2,
+                backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                textAlign: 'center',
+                color: 'white',
+                padding: '20px',
+                gap: '1.5rem',
+              }}
+            >
 
 
-  {!user && (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: "1rem",
-      }}
-    >
+              {!user && (
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: "1rem",
+                  }}
+                >
 
-      <div style={{ display: "flex", gap: "10px" }}>
-        <button
-          onClick={handleLogin}
-          style={{
-            padding: "20px 30px",
-            backgroundColor: "#007BFF",
-            color: "white",
-            border: "none",
-            borderRadius: "5px",
-            cursor: "pointer",
-            fontSize: "1rem",
-            fontWeight: 600,
-          }}
-        >
-          Log In
-        </button>
-        <button
-          onClick={handleRegister}
-          style={{
-            padding: "20px 30px",
-            backgroundColor: "#007BFF",
-            color: "white",
-            border: "none",
-            borderRadius: "5px",
-            cursor: "pointer",
-            fontSize: "1rem",
-            fontWeight: 600,
-          }}
-        >
-          Register
-        </button>
-      </div>
-    </div>
-  )}
-</div>
+                  <div style={{ display: "flex", gap: "10px" }}>
+                    <button
+                      onClick={handleLogin}
+                      style={{
+                        padding: "20px 30px",
+                        backgroundColor: "#007BFF",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "5px",
+                        cursor: "pointer",
+                        fontSize: "1rem",
+                        fontWeight: 600,
+                      }}
+                    >
+                      Log In
+                    </button>
+                    <button
+                      onClick={handleRegister}
+                      style={{
+                        padding: "20px 30px",
+                        backgroundColor: "#007BFF",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "5px",
+                        cursor: "pointer",
+                        fontSize: "1rem",
+                        fontWeight: 600,
+                      }}
+                    >
+                      Register
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
 
                   </div>
               </div>
@@ -348,6 +349,16 @@ const HomePage = () => {
             
           </>
         )}
+
+        <div>
+          {/* Only render RecommendedMovies if user is not null */}
+          {user ? (
+            <HomeRecommender userId={user} />
+          ) : (
+            <div>No user data available</div> // Or you can render something else if needed
+          )}
+          {/* Other homepage content */}
+        </div>
 
         <div
           className="card"
