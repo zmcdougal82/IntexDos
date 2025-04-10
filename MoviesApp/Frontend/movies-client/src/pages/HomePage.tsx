@@ -85,28 +85,28 @@ const HomePage = () => {
     }
   };
 
-  const handleSearch = async () => {
-    if (!searchTerm.trim()) {
-      // Reset to initial state if search is cleared
-      setActiveGenres([]);
-      fetchInitialMovies();
-      return;
-    }
+  // const handleSearch = async () => {
+  //   if (!searchTerm.trim()) {
+  //     // Reset to initial state if search is cleared
+  //     setActiveGenres([]);
+  //     fetchInitialMovies();
+  //     return;
+  //   }
 
-    try {
-      setLoading(true);
-      setActiveGenres([]); // Clear any active genre filter
-      const response = await movieApi.searchMovies(searchTerm);
-      setMovies(response.data);
-      setHasMore(false); // With search, we don't implement pagination in this simple app
-      setError(null);
-    } catch (err) {
-      console.error("Error searching movies:", err);
-      setError("Failed to search movies. Please try again later.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  //   try {
+  //     setLoading(true);
+  //     setActiveGenres([]); // Clear any active genre filter
+  //     const response = await movieApi.searchMovies(searchTerm);
+  //     setMovies(response.data);
+  //     setHasMore(false); // With search, we don't implement pagination in this simple app
+  //     setError(null);
+  //   } catch (err) {
+  //     console.error("Error searching movies:", err);
+  //     setError("Failed to search movies. Please try again later.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   const fetchInitialMovies = async () => {
     try {
@@ -124,45 +124,45 @@ const HomePage = () => {
     }
   };
 
-  const handleGenreFilter = async (genre: string) => {
-    const newGenres = activeGenres.includes(genre)
-      ? activeGenres.filter((g) => g !== genre)
-      : [...activeGenres, genre];
+  // const handleGenreFilter = async (genre: string) => {
+  //   const newGenres = activeGenres.includes(genre)
+  //     ? activeGenres.filter((g) => g !== genre)
+  //     : [...activeGenres, genre];
 
-    setActiveGenres(newGenres);
+  //   setActiveGenres(newGenres);
 
-    try {
-      setLoading(true);
-      setSearchTerm(""); // Clear any search
+  //   try {
+  //     setLoading(true);
+  //     setSearchTerm(""); // Clear any search
 
-      let response;
-      if (newGenres.length > 0) {
-        if (newGenres.length > 1) {
-          response = await movieApi.getByMultipleGenres(newGenres, 1, pageSize);
-        } else {
-          response = await movieApi.getByGenre(newGenres[0], 1, pageSize);
-        }
-      } else {
-        response = await movieApi.getAll(1, pageSize);
-      }
+  //     let response;
+  //     if (newGenres.length > 0) {
+  //       if (newGenres.length > 1) {
+  //         response = await movieApi.getByMultipleGenres(newGenres, 1, pageSize);
+  //       } else {
+  //         response = await movieApi.getByGenre(newGenres[0], 1, pageSize);
+  //       }
+  //     } else {
+  //       response = await movieApi.getAll(1, pageSize);
+  //     }
 
-      setMovies(response.data);
-      setHasMore(response.data.length === pageSize);
-      setCurrentPage(1);
-      setError(null);
-    } catch (err) {
-      console.error(`Error fetching ${genre} movies:`, err);
-      setError(`Failed to load ${genre} movies. Please try again later.`);
-    } finally {
-      setLoading(false);
-    }
-  };
+  //     setMovies(response.data);
+  //     setHasMore(response.data.length === pageSize);
+  //     setCurrentPage(1);
+  //     setError(null);
+  //   } catch (err) {
+  //     console.error(`Error fetching ${genre} movies:`, err);
+  //     setError(`Failed to load ${genre} movies. Please try again later.`);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      handleSearch();
-    }
-  };
+  // const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  //   if (e.key === "Enter") {
+  //     handleSearch();
+  //   }
+  // };
 
   const handleMovieClick = (movieId: string) => {
     navigate(`/movie/${movieId}`);
