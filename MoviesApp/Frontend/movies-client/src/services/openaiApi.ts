@@ -26,13 +26,8 @@ const getOpenAiUrl = () => {
   return `${getApiUrl()}/proxy/openai/chat/completions`;
 };
 
+// Always use the backend proxy URL for OpenAI
 const API_URL = getOpenAiUrl();
-const API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
-
-// Check if API key is available and log a warning if it's not
-if (window.location.hostname === 'localhost' && !API_KEY) {
-  console.warn('OpenAI API key is not available in development. Summary generation will be disabled.');
-}
 
 interface SummarizationOptions {
   maxLength?: number;
@@ -61,18 +56,13 @@ export const openaiApi = {
     const maxTokens = Math.ceil((options.maxLength || 120) / 4);
     
     try {
-      // Check if API key is available
-      if (!API_KEY) {
-        return "Error: OpenAI API key is not configured. Summary generation is disabled.";
-      }
-      
       // Create request using OpenAI's chat completion API
+      // The backend proxy will handle the API key
       const headers: HeadersInit = {
         'Content-Type': 'application/json'
       };
       
       // Our ASP.NET backend will handle the API key in all environments
-      
       const response = await fetch(API_URL, {
         method: 'POST',
         headers,
