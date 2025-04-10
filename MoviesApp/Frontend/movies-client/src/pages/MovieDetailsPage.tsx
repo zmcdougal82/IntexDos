@@ -118,20 +118,23 @@ const MovieDetailsPage = () => {
               // Properly encode the path components for compatibility with Azure
               const encodedPosterPath = encodeURIComponent("Movie Posters");
               const encodedFileName = encodeURIComponent(properFileName);
-              
+
               // Format with properly encoded URL components for Azure
               setPosterUrl(
                 `https://moviesappsa79595.blob.core.windows.net/movie-posters/${encodedPosterPath}/${encodedFileName}?${sasToken}`
               );
             } catch (error) {
-              console.error(`Error constructing Azure URL for ${movieResponse.data.title}:`, error);
+              console.error(
+                `Error constructing Azure URL for ${movieResponse.data.title}:`,
+                error
+              );
               // Fall back to TMDB if there's an error constructing the URL
               const tmdbSuccess = await fetchTMDBPoster(
                 movieResponse.data.title,
                 movieResponse.data.releaseYear,
                 movieResponse.data.type === "TV Show"
               );
-              
+
               if (!tmdbSuccess) {
                 setPosterUrl(
                   "https://placehold.co/480x720/2c3e50/FFFFFF?text=Poster+Coming+Soon&font=montserrat"
@@ -1144,8 +1147,7 @@ const MovieDetailsPage = () => {
                         <span
                           key={star}
                           style={{
-                            color:
-                              averageRating >= star ? "gold" : "#d1d1d1",
+                            color: averageRating >= star ? "gold" : "#d1d1d1",
                             fontSize: "1.6rem",
                             fontWeight: "bold",
                             lineHeight: 1,
@@ -1175,32 +1177,31 @@ const MovieDetailsPage = () => {
                       isTV={movie.type === "TV Show"}
                       compact={true}
                     />
-
                   </div>
                 </div>
               </div>
 
               {/* Movie Trailer */}
-              <div 
+              <div
                 className="card"
-                style={{ 
+                style={{
                   margin: "var(--spacing-lg) 0",
                   padding: "var(--spacing-lg)",
                   backgroundColor: "var(--color-background)",
                   borderRadius: "var(--radius-md)",
                   border: "1px solid var(--color-border)",
-                  boxShadow: "var(--shadow-sm)"
+                  boxShadow: "var(--shadow-sm)",
                 }}
               >
-                <h3 
-                  style={{ 
+                <h3
+                  style={{
                     color: "var(--color-primary)",
                     fontWeight: 600,
                     margin: 0,
                     marginBottom: "var(--spacing-md)",
                     fontSize: "1.2rem",
                     borderBottom: "1px solid var(--color-border)",
-                    paddingBottom: "var(--spacing-sm)"
+                    paddingBottom: "var(--spacing-sm)",
                   }}
                 >
                   Trailer
@@ -1343,26 +1344,26 @@ const MovieDetailsPage = () => {
               </div>
 
               {movie.description && (
-                <div 
+                <div
                   className="card"
-                  style={{ 
+                  style={{
                     margin: "var(--spacing-lg) 0",
                     padding: "var(--spacing-lg)",
                     backgroundColor: "var(--color-background)",
                     borderRadius: "var(--radius-md)",
                     border: "1px solid var(--color-border)",
-                    boxShadow: "var(--shadow-sm)"
+                    boxShadow: "var(--shadow-sm)",
                   }}
                 >
-                  <h3 
-                    style={{ 
+                  <h3
+                    style={{
                       color: "var(--color-primary)",
                       fontWeight: 600,
                       margin: 0,
                       marginBottom: "var(--spacing-md)",
                       fontSize: "1.2rem",
                       borderBottom: "1px solid var(--color-border)",
-                      paddingBottom: "var(--spacing-sm)"
+                      paddingBottom: "var(--spacing-sm)",
                     }}
                   >
                     Description
@@ -1372,7 +1373,7 @@ const MovieDetailsPage = () => {
                       lineHeight: 1.6,
                       color: "var(--color-text)",
                       fontSize: "1.05rem",
-                      margin: 0
+                      margin: 0,
                     }}
                   >
                     {movie.description}
@@ -1381,26 +1382,27 @@ const MovieDetailsPage = () => {
               )}
 
               {/* Cast and Crew from TMDB with images */}
-              <div 
+              <div
                 className="card"
-                style={{ 
+                style={{
                   margin: "var(--spacing-lg) 0",
-                  padding: "var(--spacing-lg) var(--spacing-lg) var(--spacing-sm)",
+                  padding:
+                    "var(--spacing-lg) var(--spacing-lg) var(--spacing-sm)",
                   backgroundColor: "var(--color-background)",
                   borderRadius: "var(--radius-md)",
                   border: "1px solid var(--color-border)",
-                  boxShadow: "var(--shadow-sm)"
+                  boxShadow: "var(--shadow-sm)",
                 }}
               >
-                <h3 
-                  style={{ 
+                <h3
+                  style={{
                     color: "var(--color-primary)",
                     fontWeight: 600,
                     margin: 0,
                     marginBottom: "var(--spacing-md)",
                     fontSize: "1.2rem",
                     borderBottom: "1px solid var(--color-border)",
-                    paddingBottom: "var(--spacing-sm)"
+                    paddingBottom: "var(--spacing-sm)",
                   }}
                 >
                   Cast &amp; Crew
@@ -1464,30 +1466,17 @@ const MovieDetailsPage = () => {
       />
 
       {/* Top Suggestions / Recommended Movies section */}
-      <div 
-        className="card" 
-        style={{ 
+      <div
+        className="card"
+        style={{
           marginBottom: "var(--spacing-lg)",
           padding: "var(--spacing-lg)",
           backgroundColor: "var(--color-background)",
           borderRadius: "var(--radius-md)",
           border: "1px solid var(--color-border)",
-          boxShadow: "var(--shadow-sm)"
+          boxShadow: "var(--shadow-sm)",
         }}
       >
-        <h3
-          style={{
-            color: "var(--color-primary)",
-            fontWeight: 600,
-            margin: 0,
-            marginBottom: "var(--spacing-lg)",
-            fontSize: "1.2rem",
-            borderBottom: "1px solid var(--color-border)",
-            paddingBottom: "var(--spacing-sm)"
-          }}
-        >
-          Top Suggestions
-        </h3>
         <div>
           <RecommendedMovies showId={currentShowId} />
         </div>
