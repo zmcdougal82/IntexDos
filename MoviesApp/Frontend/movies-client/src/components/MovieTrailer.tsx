@@ -6,6 +6,7 @@ interface MovieTrailerProps {
   year?: string | number;
   isTV?: boolean;
   className?: string;
+  onTrailerLoaded?: (key: string | null) => void;
 }
 
 const MovieTrailer: React.FC<MovieTrailerProps> = ({
@@ -13,6 +14,7 @@ const MovieTrailer: React.FC<MovieTrailerProps> = ({
   year,
   isTV = false,
   className,
+  onTrailerLoaded,
 }) => {
   const [trailerKey, setTrailerKey] = useState<string | null>(null);
   const [trailerName, setTrailerName] = useState<string>("");
@@ -30,12 +32,21 @@ const MovieTrailer: React.FC<MovieTrailerProps> = ({
         if (trailerInfo) {
           setTrailerKey(trailerInfo.key);
           setTrailerName(trailerInfo.name);
+          if (onTrailerLoaded) {
+            onTrailerLoaded(trailerInfo.key); // Notify parent about trailer availability
+          }
         } else {
           setError("No trailer available");
+          if (onTrailerLoaded) {
+            onTrailerLoaded(null); // Notify parent that no trailer is available
+          }
         }
       } catch (err) {
         console.error("Error fetching trailer:", err);
         setError("Failed to load trailer");
+        if (onTrailerLoaded) {
+          onTrailerLoaded(null); // Notify parent that no trailer is available
+        }
       } finally {
         setLoading(false);
       }
