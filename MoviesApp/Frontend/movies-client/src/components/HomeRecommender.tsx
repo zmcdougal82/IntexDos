@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import MovieCard from "./MovieCard";
 import { movieApi, Movie } from "../services/api";
 import { useNavigate } from "react-router-dom";
@@ -26,6 +26,44 @@ interface RecommendationData {
   genres: Record<string, string[]>;
 }
 
+// Arrow Button Component for navigation
+const NavigationArrow = ({ 
+  direction, 
+  onClick, 
+  disabled 
+}: { 
+  direction: 'left' | 'right'; 
+  onClick: () => void; 
+  disabled: boolean;
+}) => {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      style={{
+        position: 'absolute',
+        top: '50%',
+        transform: 'translateY(-50%)',
+        zIndex: 10,
+        width: '40px',
+        height: '40px',
+        backgroundColor: disabled ? 'rgba(0, 0, 0, 0.2)' : 'rgba(0, 0, 0, 0.6)',
+        color: 'white',
+        borderRadius: '50%',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        border: 'none',
+        boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
+        ...(direction === 'left' ? { left: '0' } : { right: '0' })
+      }}
+    >
+      {direction === 'left' ? '←' : '→'}
+    </button>
+  );
+};
+
 const RecommendationSection = ({ 
   title, 
   movies, 
@@ -35,7 +73,32 @@ const RecommendationSection = ({
   movies: Movie[]; 
   onMovieClick: (id: string) => void;
 }) => {
+  const [currentPage, setCurrentPage] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+  
+  // Calculate the total number of pages
+  const moviesPerPage = 5;
+  const totalPages = Math.ceil(movies.length / moviesPerPage);
+  
+  // Get the current visible movies
+  const visibleMovies = movies.slice(
+    currentPage * moviesPerPage, 
+    (currentPage + 1) * moviesPerPage
+  );
+  
   if (movies.length === 0) return null;
+  
+  const scrollPrev = () => {
+    if (currentPage > 0) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+  
+  const scrollNext = () => {
+    if (currentPage < totalPages - 1) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
 
   return (
     <div style={{ marginBottom: "2.5rem" }}>
@@ -45,22 +108,42 @@ const RecommendationSection = ({
         fontWeight: 600,
         color: "var(--color-primary)"
       }}>
-        {title}
+        {title} {totalPages > 1 && <span style={{ fontSize: '0.9rem', color: 'gray' }}>({currentPage + 1}/{totalPages})</span>}
       </h3>
-      <div style={{
-        display: "flex",
-        overflowX: "auto",
-        gap: "1.5rem",
-        paddingBottom: "1rem",
-      }}>
-        {movies.map((movie) => (
-          <div key={movie.showId} style={{ flexShrink: 0, width: "200px" }}>
-            <MovieCard
-              movie={movie}
-              onClick={() => onMovieClick(movie.showId)}
-            />
-          </div>
-        ))}
+      <div style={{ position: 'relative' }}>
+        <NavigationArrow 
+          direction="left" 
+          onClick={scrollPrev} 
+          disabled={currentPage === 0} 
+        />
+        
+        <div
+          ref={containerRef}
+          style={{
+            display: "flex",
+            gap: "1.5rem",
+            paddingBottom: "1rem",
+            paddingLeft: "40px",
+            paddingRight: "40px",
+            transition: "transform 0.3s ease",
+            overflow: "hidden",
+          }}
+        >
+          {visibleMovies.map((movie) => (
+            <div key={movie.showId} style={{ flexShrink: 0, width: "200px" }}>
+              <MovieCard
+                movie={movie}
+                onClick={() => onMovieClick(movie.showId)}
+              />
+            </div>
+          ))}
+        </div>
+        
+        <NavigationArrow 
+          direction="right" 
+          onClick={scrollNext} 
+          disabled={currentPage >= totalPages - 1} 
+        />
       </div>
     </div>
   );
@@ -91,6 +174,23 @@ const HomeRecommender: React.FC<HomeRecommender> = ({ userId }) => {
     return formatted;
   };
 
+  // Function to ensure we have at least 20 recommendations per section
+  const ensureMinimumRecommendations = (ids: string[]): string[] => {
+    if (ids.length >= 20) {
+      return ids;
+    }
+    
+    // If we have fewer than 20 recommendations, duplicate the existing ones
+    // until we reach at least 20
+    const duplicatedIds: string[] = [...ids];
+    while (duplicatedIds.length < 20) {
+      // Add copies of the original recommendations
+      duplicatedIds.push(...ids.slice(0, Math.min(20 - duplicatedIds.length, ids.length)));
+    }
+    
+    return duplicatedIds;
+  };
+
   useEffect(() => {
     const fetchRecommendations = async () => {
       if (!userId) {
@@ -110,6 +210,24 @@ const HomeRecommender: React.FC<HomeRecommender> = ({ userId }) => {
           const apiResponse = await axios.get(`${RECOMMENDATION_API_URL}/recommendations/${userId}`);
           recommendationsData = apiResponse.data;
           console.log("Recommendation API response:", recommendationsData);
+          
+          // Ensure we have at least 20 recommendations in each section
+          if (recommendationsData && recommendationsData.collaborative) {
+            recommendationsData.collaborative = ensureMinimumRecommendations(recommendationsData.collaborative);
+          }
+          
+          if (recommendationsData && recommendationsData.contentBased) {
+            recommendationsData.contentBased = ensureMinimumRecommendations(recommendationsData.contentBased);
+          }
+          
+          if (recommendationsData && recommendationsData.genres) {
+            Object.keys(recommendationsData.genres).forEach(genre => {
+              if (recommendationsData) {
+                recommendationsData.genres[genre] = ensureMinimumRecommendations(recommendationsData.genres[genre]);
+              }
+            });
+          }
+          
         } catch (apiErr) {
           console.warn("Could not fetch from recommendation API, falling back to static file:", apiErr);
           
@@ -124,9 +242,10 @@ const HomeRecommender: React.FC<HomeRecommender> = ({ userId }) => {
             throw new Error("No recommendations found for this user.");
           }
           
-          // Convert the old format to the new format
+          // Convert the old format to the new format and ensure minimum length
+          const userRecommendations = ensureMinimumRecommendations(staticData[userId]);
           recommendationsData = {
-            collaborative: staticData[userId],
+            collaborative: userRecommendations,
             contentBased: [],
             genres: {}
           };
