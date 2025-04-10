@@ -26,17 +26,10 @@ const MovieDetailsPage = () => {
   const [showThankYouModal, setShowThankYouModal] = useState(false);
   const [showReviewsModal, setShowReviewsModal] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
-  const [hasTrailer, setHasTrailer] = useState(false);
   // Larger, better looking fallback image for the details page
   const [posterUrl, setPosterUrl] = useState<string>(
     "https://placehold.co/480x720/2c3e50/FFFFFF?text=Poster+Coming+Soon&font=montserrat"
   );
-
-  // Handler to be passed to MovieTrailer
-  const handleTrailerStatus = (status: boolean) => {
-    setHasTrailer(status); // Updates trailer state based on trailer load status
-    console.log("Trailer available:", status); // Optionally log trailer status
-  };
 
   useEffect(() => {
     // Check if user is logged in - only do this once on component mount
@@ -1483,7 +1476,6 @@ const MovieDetailsPage = () => {
             title={movie.title}
             year={movie.releaseYear}
             isTV={movie.type === "TV Show"}
-            onTrailerLoaded={handleTrailerStatus}
           />
         </>
       </div>
