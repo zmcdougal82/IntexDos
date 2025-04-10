@@ -142,7 +142,7 @@ namespace MoviesApp.API.Controllers
             }
         }
 
-        [HttpPost("openai/{**endpoint}")]
+        [HttpPost("openai/{*endpoint}")]
         public async Task<IActionResult> ProxyOpenAi(string endpoint)
         {
             try
@@ -154,33 +154,61 @@ namespace MoviesApp.API.Controllers
                 }
 
                 var httpClient = _httpClientFactory.CreateClient();
+                
+                // Clean and format the endpoint path
+                endpoint = endpoint?.TrimStart('/') ?? string.Empty;
+                Console.WriteLine($"OpenAI proxy request for endpoint: {endpoint}");
+                
+                // Format the full API URL properly
                 var apiUrl = $"https://api.openai.com/{endpoint}";
+                Console.WriteLine($"Forwarding to OpenAI API: {apiUrl}");
                 
                 // Read the request body
                 using var reader = new StreamReader(Request.Body);
                 var requestBody = await reader.ReadToEndAsync();
+                
+                // Log request payload for debugging (omit sensitive data)
+                Console.WriteLine($"OpenAI request payload: {requestBody.Substring(0, Math.Min(200, requestBody.Length))}...");
                 
                 // Create a new request to OpenAI
                 var content = new StringContent(requestBody, System.Text.Encoding.UTF8, "application/json");
                 
                 // Add OpenAI API key to the headers
                 httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", openAiApiKey);
+                httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
                 
-                // Forward the request to OpenAI
-                var response = await httpClient.PostAsync(apiUrl, content);
-                
-                // Read the content as string
-                var responseContent = await response.Content.ReadAsStringAsync();
-                
-                // Set the response status code to match the proxied response
-                Response.StatusCode = (int)response.StatusCode;
-                
-                // Set content type
-                var contentType = response.Content.Headers.ContentType?.ToString() ?? "application/json";
-                return Content(responseContent, contentType);
+                try
+                {
+                    // Forward the request to OpenAI
+                    var response = await httpClient.PostAsync(apiUrl, content);
+                    
+                    // Read the content as string
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    
+                    // Log response status for debugging
+                    Console.WriteLine($"OpenAI API response status: {response.StatusCode}");
+                    
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        Console.WriteLine($"OpenAI API error response: {responseContent.Substring(0, Math.Min(500, responseContent.Length))}");
+                    }
+                    
+                    // Set the response status code to match the proxied response
+                    Response.StatusCode = (int)response.StatusCode;
+                    
+                    // Set content type
+                    var contentType = response.Content.Headers.ContentType?.ToString() ?? "application/json";
+                    return Content(responseContent, contentType);
+                }
+                catch (HttpRequestException httpEx)
+                {
+                    Console.WriteLine($"HTTP request error to OpenAI API: {httpEx.Message}");
+                    return StatusCode(502, new { error = $"Failed to connect to OpenAI API: {httpEx.Message}" });
+                }
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"OpenAI proxy general error: {ex.Message}");
                 return StatusCode(500, new { error = ex.Message });
             }
         }

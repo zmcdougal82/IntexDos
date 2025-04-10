@@ -23,11 +23,14 @@ const getApiUrl = () => {
 
 // Always use the ASP.NET backend proxy controller
 const getOpenAiUrl = () => {
-  return `${getApiUrl()}/proxy/openai/chat/completions`;
+  return `${getApiUrl()}/proxy/openai/v1/chat/completions`;
 };
 
 // Always use the backend proxy URL for OpenAI
 const API_URL = getOpenAiUrl();
+
+// For debugging
+console.log("Using OpenAI API URL:", API_URL);
 
 interface SummarizationOptions {
   maxLength?: number;
@@ -59,8 +62,11 @@ export const openaiApi = {
       // Create request using OpenAI's chat completion API
       // The backend proxy will handle the API key
       const headers: HeadersInit = {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
       };
+      
+      console.log("Sending OpenAI request to:", API_URL);
       
       // Our ASP.NET backend will handle the API key in all environments
       const response = await fetch(API_URL, {
@@ -87,9 +93,27 @@ export const openaiApi = {
       });
       
       if (!response.ok) {
-        const errorData = await response.json();
-        console.error('OpenAI API error:', errorData);
-        throw new Error(errorData.error?.message || 'Error in summarization');
+        console.error('OpenAI API error status:', response.status, response.statusText);
+        
+        // Try to parse error response as JSON, but handle HTML or text responses too
+        let errorMessage = 'Error in summarization';
+        try {
+          const contentType = response.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            const errorData = await response.json();
+            console.error('OpenAI API error details:', errorData);
+            errorMessage = errorData.error?.message || errorMessage;
+          } else {
+            // Handle HTML or text responses
+            const errorText = await response.text();
+            console.error('OpenAI API error text:', errorText.substring(0, 200));
+            errorMessage = `API returned ${response.status}: ${response.statusText}`;
+          }
+        } catch (parseError) {
+          console.error('Error parsing error response:', parseError);
+        }
+        
+        throw new Error(errorMessage);
       }
       
       const result = await response.json();
