@@ -432,21 +432,32 @@ const MovieDetailsPage = () => {
   };
 
   // Utility function to format minutes to readable format (e.g., 155 → "2h 35m")
-  const formatDuration = (minutes: string | number | undefined): string => {
-    if (!minutes) return "Unknown";
-
-    const mins = typeof minutes === "string" ? parseInt(minutes) : minutes;
-    if (isNaN(mins)) return "Unknown";
-
-    const hours = Math.floor(mins / 60);
-    const remainingMins = mins % 60;
-
-    if (hours > 0) {
-      return `${hours}h ${remainingMins}m`;
-    } else {
-      return `${remainingMins}m`;
+  const formatDuration = (rawDuration: string | undefined, type: string | undefined): string => {
+    if (!rawDuration || !type) return "Unknown";
+  
+    if (type === "TV Show") {
+      // Example: "2 Seasons" or "1 Season"
+      const match = rawDuration.match(/(\d+)/);
+      if (match) {
+        const seasons = parseInt(match[1]);
+        return seasons === 1 ? "1 Season" : `${seasons} Seasons`;
+      }
+      return "Unknown";
     }
+  
+    // Assume type is Movie
+    const match = rawDuration.match(/(\d+)/);
+    if (match) {
+      const mins = parseInt(match[1]);
+      if (isNaN(mins)) return "Unknown";
+      const hours = Math.floor(mins / 60);
+      const remainingMins = mins % 60;
+      return hours > 0 ? `${hours}h ${remainingMins}m` : `${remainingMins}m`;
+    }
+  
+    return "Unknown";
   };
+  
 
   // Calculate average rating
   const averageRating = ratings.length
@@ -1245,7 +1256,7 @@ const MovieDetailsPage = () => {
                         Duration
                       </p>
                       <p style={{ margin: 0, fontSize: "1.1rem" }}>
-                        {formatDuration(movie.duration)}
+                        {formatDuration(movie.duration, movie.type)}
                       </p>
                     </div>
                   )}
