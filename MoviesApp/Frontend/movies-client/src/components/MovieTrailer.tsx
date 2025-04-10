@@ -47,7 +47,7 @@ const MovieTrailer: React.FC<MovieTrailerProps> = ({
     };
 
     fetchTrailer();
-  }, [title, year, isTV]);
+  }, [title, year, isTV, onTrailerLoaded]);
 
   if (loading) {
     return (
