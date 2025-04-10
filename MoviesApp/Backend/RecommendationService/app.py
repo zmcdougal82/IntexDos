@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-Simple Flask application for Azure App Service that serves the recommendation API
+Flask application for Azure App Service that serves the recommendation API
+with SQL database connectivity
 """
 
 import os
@@ -22,17 +23,29 @@ logger = logging.getLogger('recommendation_service')
 app = Flask(__name__)
 
 # Load environment variables
+# Note: Database connection parameters are handled in the recommendation service
 RECOMMENDATION_DATA_PATH = os.getenv('RECOMMENDATION_DATA_PATH', 'recommendations.json')
 DEFAULT_OUTPUT_PATH = os.getenv('DEFAULT_OUTPUT_PATH', '../Frontend/movies-client/public/homeRecommendations.json')
 
 # Initialize recommendation service
+# The service will automatically try to connect to the database or fall back to sample data
 recommendation_service = NotebookRecommendationService()
-logger.info("Recommendation service initialized")
+
+# Log connection status
+if hasattr(recommendation_service, 'conn') and recommendation_service.conn:
+    logger.info("Recommendation service initialized with database connection")
+else:
+    logger.warning("Recommendation service initialized with fallback sample data (no database connection)")
 
 @app.route('/health', methods=['GET'])
 def health_check():
     """Health check endpoint."""
-    return jsonify({"status": "healthy", "service": "recommendation-service"})
+    db_status = "connected" if hasattr(recommendation_service, 'conn') and recommendation_service.conn else "disconnected"
+    return jsonify({
+        "status": "healthy", 
+        "service": "recommendation-service",
+        "database": db_status
+    })
 
 @app.route('/recommendations/<user_id>', methods=['GET'])
 def get_recommendations(user_id):
@@ -93,6 +106,14 @@ def generate_recommendations_file():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    # Get port from environment variable or use default (8000)
-    port = int(os.environ.get('PORT', 8000))
-    app.run(host='0.0.0.0', port=port)
+    import argparse
+    
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description='Run the recommendation service Flask app')
+    parser.add_argument('--port', type=int, default=int(os.environ.get('PORT', 8000)),
+                        help='Port to run the server on (default: 8000)')
+    args = parser.parse_args()
+    
+    # Run the Flask app
+    logger.info(f"Starting Flask app on port {args.port}")
+    app.run(host='0.0.0.0', port=args.port)

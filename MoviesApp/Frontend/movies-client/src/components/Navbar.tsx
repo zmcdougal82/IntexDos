@@ -111,6 +111,12 @@ const Navbar = () => {
               >
                 My Ratings
               </Link>
+              <Link 
+                to="/lists" 
+                style={{ color: 'white', textDecoration: 'none' }}
+              >
+                My Lists
+              </Link>
               {isAdmin(user) && (
                 <Link 
                   to="/admin/movies" 

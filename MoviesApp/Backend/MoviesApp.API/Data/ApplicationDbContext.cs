@@ -13,6 +13,8 @@ namespace MoviesApp.API.Data
         public DbSet<User> Users { get; set; }
         public DbSet<Movie> Movies { get; set; }
         public DbSet<Rating> Ratings { get; set; }
+        public DbSet<MovieList> MovieLists { get; set; }
+        public DbSet<MovieListItem> MovieListItems { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -45,6 +47,31 @@ namespace MoviesApp.API.Data
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.Email)
                 .IsUnique();
+                
+            // Configure composite primary key for MovieListItem
+            modelBuilder.Entity<MovieListItem>()
+                .HasKey(mli => new { mli.ListId, mli.ShowId });
+                
+            // Configure one-to-many relationship: User to MovieLists
+            modelBuilder.Entity<MovieList>()
+                .HasOne(ml => ml.User)
+                .WithMany()
+                .HasForeignKey(ml => ml.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            // Configure one-to-many relationship: MovieList to MovieListItems
+            modelBuilder.Entity<MovieListItem>()
+                .HasOne(mli => mli.MovieList)
+                .WithMany(ml => ml.Items)
+                .HasForeignKey(mli => mli.ListId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            // Configure one-to-many relationship: Movie to MovieListItems
+            modelBuilder.Entity<MovieListItem>()
+                .HasOne(mli => mli.Movie)
+                .WithMany()
+                .HasForeignKey(mli => mli.ShowId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
