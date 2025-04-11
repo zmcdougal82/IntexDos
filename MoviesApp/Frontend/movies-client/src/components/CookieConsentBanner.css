@@ -17,12 +17,24 @@
 
 .cookie-banner-buttons {
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
   gap: 10px;
   margin-top: 10px;
 }
 
-.cookie-consent-banner button {
+.cookie-consent-banner .reject-button {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+}
+
+.cookie-consent-banner .reject-button:hover {
+  background-color: #d32f2f;
+}
+
+.cookie-consent-banner .accept-button {
   background-color: #4caf50;
   color: white;
   border: none;
@@ -30,6 +42,6 @@
   cursor: pointer;
 }
 
-.cookie-consent-banner button:hover {
+.cookie-consent-banner .accept-button:hover {
   background-color: #45a049;
 }

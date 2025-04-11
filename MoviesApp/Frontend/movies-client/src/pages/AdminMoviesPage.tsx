@@ -193,6 +193,7 @@ const AdminMoviesPage: React.FC = () => {
           // Pass pageSize as the limit to ensure we only get the correct number of items
           response = await movieApi.searchMovies(
             searchQuery,
+            "title", // Default to searching by title
             currentPage,
             pageSize
           );
@@ -550,6 +551,7 @@ const AdminMoviesPage: React.FC = () => {
           if (searchQuery) {
             response = await movieApi.searchMovies(
               searchQuery,
+              "title", // Default to searching by title
               currentPage,
               pageSize
             );

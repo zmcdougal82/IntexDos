@@ -41,9 +41,24 @@ function App() {
                 </>
               }
             />
-            <Route path="/movies" element={<MoviesPage />} />
-            <Route path="/tvshows" element={<TVShowsPage />} />
-            <Route path="/movie/:id" element={<MovieDetailsPage />} />
+            <Route path="/movies" element={
+              <>
+                <CookieConsentBanner />
+                <MoviesPage />
+              </>
+            } />
+            <Route path="/tvshows" element={
+              <>
+                <CookieConsentBanner />
+                <TVShowsPage />
+              </>
+            } />
+            <Route path="/movie/:id" element={
+              <>
+                <CookieConsentBanner />
+                <MovieDetailsPage />
+              </>
+            } />
             <Route path="/login" element={
               <>
                 <CookieConsentBanner />
