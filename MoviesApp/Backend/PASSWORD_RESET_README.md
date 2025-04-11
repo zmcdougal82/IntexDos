@@ -6,7 +6,7 @@ This document describes the password reset functionality implemented in the Movi
 
 The Mailgun email service has been configured with the following credentials:
 
-- API Key: `7366e6734f1c23f0db1fee6d258575cd-2b77fbb2-d23dd854`
+- API Key: `MAILGUN_API_KEY` (stored securely as an environment variable)
 - Sending Domain: `send.cineniche.co`
 - Sender Email: `noreply@send.cineniche.co`
 

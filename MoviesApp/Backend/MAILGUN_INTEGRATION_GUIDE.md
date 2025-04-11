@@ -17,13 +17,15 @@ The Mailgun integration is configured with the following settings in all environ
 
 ```json
 "Mailgun": {
-  "ApiKey": "7366e6734f1c23f0db1fee6d258575cd-2b77fbb2-d23dd854",
+  "ApiKey": "MAILGUN_API_KEY",
   "Domain": "send.cineniche.co",
   "SenderEmail": "noreply@send.cineniche.co",
   "SenderName": "CineNiche",
   "Region": "US"
 }
 ```
+
+**Important**: The actual API key should be stored as an environment variable in production environments, not in the config files.
 
 ## Testing in Development
 
