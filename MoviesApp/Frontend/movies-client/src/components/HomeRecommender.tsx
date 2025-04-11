@@ -84,7 +84,7 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
   const [currentPage, setCurrentPage] = useState(0);
   const [loadedPages, setLoadedPages] = useState<number[]>([0]);
   const [allMovies, setAllMovies] = useState<Movie[]>(movies);
-  const [loading, setLoading] = useState(false);
+  const [_loading, setLoading] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   
   // Update allMovies when movies prop changes
