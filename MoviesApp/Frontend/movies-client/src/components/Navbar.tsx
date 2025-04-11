@@ -1,10 +1,11 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { User, isAdmin } from '../services/api';
 import UserProfileMenu from './UserProfileMenu';
 
 const Navbar = () => {
   const [user, setUser] = useState<User | null>(null);
+  const location = useLocation(); 
   
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -15,7 +16,7 @@ const Navbar = () => {
         console.error('Error parsing user from localStorage:', e);
       }
     }
-  }, []);
+  }, [location]);
   
   const handleLogout = () => {
     localStorage.removeItem('user');
