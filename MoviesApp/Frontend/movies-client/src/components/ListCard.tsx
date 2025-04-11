@@ -4,10 +4,9 @@ import { MovieList } from '../services/api';
 
 interface ListCardProps {
   list: MovieList;
-  onDelete: (list: MovieList) => void;
 }
 
-const ListCard: React.FC<ListCardProps> = ({ list, onDelete }) => {
+const ListCard: React.FC<ListCardProps> = ({ list }) => {
   const navigate = useNavigate();
   
   // Get up to 4 movie posters from the list items (if available)
@@ -74,18 +73,6 @@ const ListCard: React.FC<ListCardProps> = ({ list, onDelete }) => {
           </span>
         </div>
       </div>
-      
-      <button 
-        className="list-delete-btn"
-        onClick={(e) => {
-          e.stopPropagation();
-          onDelete(list);
-        }}
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18">
-          <path fill="currentColor" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
-        </svg>
-      </button>
     </div>
   );
 };

@@ -165,8 +165,7 @@ const ListsPage: React.FC = () => {
                   {recentLists.map(list => (
                     <ListCard 
                       key={list.listId} 
-                      list={list} 
-                      onDelete={confirmDelete} 
+                      list={list}
                     />
                   ))}
                 </div>
@@ -181,8 +180,7 @@ const ListsPage: React.FC = () => {
                   {popularLists.map(list => (
                     <ListCard 
                       key={list.listId} 
-                      list={list} 
-                      onDelete={confirmDelete} 
+                      list={list}
                     />
                   ))}
                 </div>
@@ -196,8 +194,7 @@ const ListsPage: React.FC = () => {
                 {lists.map(list => (
                   <ListCard 
                     key={list.listId} 
-                    list={list} 
-                    onDelete={confirmDelete} 
+                    list={list}
                   />
                 ))}
               </div>
