@@ -84,7 +84,9 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
   const [currentPage, setCurrentPage] = useState(0);
   const [loadedPages, setLoadedPages] = useState<number[]>([0]);
   const [allMovies, setAllMovies] = useState<Movie[]>(movies);
-  const [_loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [nextPagePreloaded, setNextPagePreloaded] = useState(false);
+  const [transitionActive, setTransitionActive] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   
   // Update allMovies when movies prop changes
@@ -96,6 +98,48 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
   const moviesPerPage = 5;
   const totalPages = Math.max(Math.ceil(allMovies.length / moviesPerPage), loadedPages.length + 1);
   
+  // Preload the next page of movies
+  useEffect(() => {
+    const preloadNextPage = async () => {
+      const nextPage = currentPage + 1;
+      // If we haven't loaded the next page yet and it's within bounds
+      if (
+        !loadedPages.includes(nextPage) && 
+        nextPage < totalPages + 1 && 
+        onLoadMore && 
+        userId && 
+        !nextPagePreloaded &&
+        !isLoading
+      ) {
+        setNextPagePreloaded(true);
+        try {
+          // Preload next page data
+          const newMovies = await onLoadMore(sectionType, nextPage);
+          
+          // Add the new movies to our collection
+          if (newMovies && newMovies.length > 0) {
+            setAllMovies(prevMovies => [...prevMovies, ...newMovies]);
+            
+            // Preload the images
+            newMovies.forEach(movie => {
+              if (movie.posterUrl) {
+                const img = new Image();
+                img.src = movie.posterUrl;
+              }
+            });
+          }
+          
+          // Mark this page as loaded
+          setLoadedPages(prev => [...prev, nextPage]);
+        } catch (err) {
+          console.error(`Error preloading next page for ${sectionType}:`, err);
+        }
+      }
+    };
+    
+    preloadNextPage();
+  }, [currentPage, loadedPages, totalPages, onLoadMore, userId, sectionType, nextPagePreloaded, isLoading]);
+  
   // Get the current visible movies
   const visibleMovies = allMovies.slice(
     currentPage * moviesPerPage, 
@@ -105,20 +149,24 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
   if (allMovies.length === 0) return null;
   
   const scrollPrev = () => {
-    if (currentPage > 0) {
-      setCurrentPage(currentPage - 1);
+    if (currentPage > 0 && !transitionActive) {
+      setTransitionActive(true);
+      // Using setTimeout to allow the fade-out to complete
+      setTimeout(() => {
+        setCurrentPage(currentPage - 1);
+        setTransitionActive(false);
+      }, 150); // Match this with CSS transition time
     }
   };
   
   const scrollNext = async () => {
-    if (currentPage < totalPages - 1) {
-      // Move to next page
-      const nextPage = currentPage + 1;
-      setCurrentPage(nextPage);
+    if (currentPage < totalPages - 1 && !transitionActive) {
+      setTransitionActive(true);
       
-      // If we haven't loaded this page yet and we have an onLoadMore callback
+      // Check if we need to load more data
+      const nextPage = currentPage + 1;
       if (!loadedPages.includes(nextPage) && onLoadMore && userId) {
-        setLoading(true);
+        setIsLoading(true);
         try {
           const newMovies = await onLoadMore(sectionType, nextPage);
           
@@ -132,9 +180,16 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
         } catch (err) {
           console.error(`Error loading more ${sectionType} recommendations:`, err);
         } finally {
-          setLoading(false);
+          setIsLoading(false);
         }
       }
+      
+      // Using setTimeout to allow the fade-out to complete
+      setTimeout(() => {
+        setCurrentPage(nextPage);
+        setTransitionActive(false);
+        setNextPagePreloaded(false); // Reset so we can preload the next page
+      }, 150); // Match this with CSS transition time
     }
   };
 
@@ -152,7 +207,7 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
         <NavigationArrow 
           direction="left" 
           onClick={scrollPrev} 
-          disabled={currentPage === 0} 
+          disabled={currentPage === 0 || transitionActive} 
         />
         
         <div
@@ -163,25 +218,40 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
             paddingBottom: "1rem",
             paddingLeft: "40px",
             paddingRight: "40px",
-            transition: "transform 0.3s ease",
             overflow: "hidden",
             justifyContent: "center",
+            minHeight: "370px", // Set minimum height to prevent layout shifts
+            position: "relative"
           }}
         >
-          {visibleMovies.map((movie) => (
-            <div key={movie.showId} style={{ flexShrink: 0, width: "200px" }}>
-              <MovieCard
-                movie={movie}
-                onClick={() => onMovieClick(movie.showId)}
-              />
-            </div>
-          ))}
+          <div 
+            style={{
+              display: "flex",
+              gap: "1.5rem",
+              opacity: transitionActive ? 0 : 1,
+              transition: "opacity 150ms ease-in-out",
+              position: "absolute",
+              top: 0,
+              left: "40px",
+              right: "40px",
+              width: "calc(100% - 80px)"
+            }}
+          >
+            {visibleMovies.map((movie) => (
+              <div key={movie.showId} style={{ flexShrink: 0, width: "200px" }}>
+                <MovieCard
+                  movie={movie}
+                  onClick={() => onMovieClick(movie.showId)}
+                />
+              </div>
+            ))}
+          </div>
         </div>
         
         <NavigationArrow 
           direction="right" 
           onClick={scrollNext} 
-          disabled={currentPage >= totalPages - 1} 
+          disabled={currentPage >= totalPages - 1 || transitionActive || isLoading} 
         />
       </div>
     </div>
@@ -403,19 +473,28 @@ const HomeRecommender: React.FC<HomeRecommender> = ({ userId }) => {
       const limit = 10; // Number of new recommendations to fetch
       
       // Call the API to get more recommendations
+      console.log(`Loading more for section: ${section}, page: ${page}, limit: ${limit}`);
       const response = await axios.get(
         `${RECOMMENDATION_API_URL}/recommendations/${userId}/more`, 
         { params: { section, page, limit } }
       );
       
+      // Log the full response for debugging
+      console.log(`API Response for ${section}:`, response.data);
+      
       // Extract the relevant section from the response
       let movieIds: string[] = [];
       if (section === 'collaborative' && response.data.collaborative) {
+        console.log('Found collaborative data:', response.data.collaborative);
         movieIds = response.data.collaborative;
       } else if (section === 'contentBased' && response.data.contentBased) {
+        console.log('Found contentBased data:', response.data.contentBased);
         movieIds = response.data.contentBased;
       } else if (response.data.genres && response.data.genres[section]) {
+        console.log(`Found genre data for ${section}:`, response.data.genres[section]);
         movieIds = response.data.genres[section];
+      } else {
+        console.warn(`No matching data found for section: ${section} in response:`, response.data);
       }
       
       if (!movieIds.length) return [];
