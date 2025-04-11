@@ -9,7 +9,11 @@ const LoginPage = () => {
     password: '',
   });
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
+  const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -53,6 +57,31 @@ const LoginPage = () => {
     }
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!forgotPasswordEmail) {
+      setError('Please enter your email address');
+      return;
+    }
+    
+    try {
+      setForgotPasswordLoading(true);
+      setError(null);
+      
+      await authApi.forgotPassword({ email: forgotPasswordEmail });
+      
+      setSuccess('If your email exists in our system, you will receive a password reset link shortly.');
+      setShowForgotPassword(false);
+    } catch (err: any) {
+      console.error('Forgot password error:', err);
+      // We don't display specific error messages for security reasons
+      setSuccess('If your email exists in our system, you will receive a password reset link shortly.');
+    } finally {
+      setForgotPasswordLoading(false);
+    }
+  };
+
   return (
     <div className="container">
       <div style={{
@@ -73,7 +102,7 @@ const LoginPage = () => {
             marginBottom: 'var(--spacing-xl)',
             color: 'var(--color-primary)'
           }}>
-            Welcome Back
+            {showForgotPassword ? 'Reset Password' : 'Welcome Back'}
           </h1>
           
           {error && (
@@ -93,91 +122,164 @@ const LoginPage = () => {
               )}
             </div>
           )}
-          
-          <form onSubmit={handleSubmit}>
-            <div style={{ marginBottom: 'var(--spacing-lg)' }}>
-              <label 
-                htmlFor="email"
-                className="mb-2"
-              >
-                Email
-              </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={credentials.email}
-                onChange={handleChange}
-                placeholder="Your email address"
-                required
-              />
-            </div>
-            
-            <div style={{ marginBottom: 'var(--spacing-lg)' }}>
-              <div style={{ 
-                display: 'flex', 
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: 'var(--spacing-sm)'
-              }}>
-                <label htmlFor="password">Password</label>
-                <a 
-                  href="#" 
-                  style={{ 
-                    fontSize: '0.875rem',
-                    color: 'var(--color-text-light)'
-                  }}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    alert('Password reset functionality would be implemented here');
-                  }}
-                >
-                  Forgot password?
-                </a>
-              </div>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                value={credentials.password}
-                onChange={handleChange}
-                placeholder="Your password"
-                required
-              />
-            </div>
-            
-            <button
-              type="submit"
-              disabled={loading}
-              style={{
-                width: '100%',
-                padding: 'var(--spacing-md)',
-                backgroundColor: 'var(--color-primary)',
-                marginTop: 'var(--spacing-md)',
-                fontSize: '1rem',
-                fontWeight: 500
-              }}
-            >
-              {loading ? 'Signing in...' : 'Sign In'}
-            </button>
-            
-            <div style={{ 
-              marginTop: 'var(--spacing-xl)',
-              textAlign: 'center',
-              color: 'var(--color-text-light)'
+
+          {success && (
+            <div style={{
+              padding: 'var(--spacing-md)',
+              backgroundColor: '#f0fff4',
+              color: 'var(--color-success)',
+              borderRadius: 'var(--radius-md)',
+              marginBottom: 'var(--spacing-lg)',
+              borderLeft: '4px solid var(--color-success)'
             }}>
-              Don't have an account?{' '}
-              <Link 
-                to="/register"
+              {success}
+            </div>
+          )}
+          
+          {showForgotPassword ? (
+            <form onSubmit={handleForgotPassword}>
+              <div style={{ marginBottom: 'var(--spacing-lg)' }}>
+                <label 
+                  htmlFor="forgotPasswordEmail"
+                  className="mb-2"
+                >
+                  Email
+                </label>
+                <input
+                  type="email"
+                  id="forgotPasswordEmail"
+                  value={forgotPasswordEmail}
+                  onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                  placeholder="Your email address"
+                  required
+                />
+              </div>
+              
+              <button
+                type="submit"
+                disabled={forgotPasswordLoading}
                 style={{
-                  color: 'var(--color-primary)',
+                  width: '100%',
+                  padding: 'var(--spacing-md)',
+                  backgroundColor: 'var(--color-primary)',
+                  marginTop: 'var(--spacing-md)',
+                  fontSize: '1rem',
                   fontWeight: 500
                 }}
               >
-                Create account
-              </Link>
-            </div>
-          </form>
+                {forgotPasswordLoading ? 'Sending...' : 'Send Reset Link'}
+              </button>
+              
+              <div style={{ 
+                marginTop: 'var(--spacing-xl)',
+                textAlign: 'center',
+                color: 'var(--color-text-light)'
+              }}>
+                <a 
+                  href="#" 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setShowForgotPassword(false);
+                    setError(null);
+                    setSuccess(null);
+                  }}
+                  style={{
+                    color: 'var(--color-primary)',
+                    fontWeight: 500
+                  }}
+                >
+                  Back to Login
+                </a>
+              </div>
+            </form>
+          ) : (
+            <form onSubmit={handleSubmit}>
+              <div style={{ marginBottom: 'var(--spacing-lg)' }}>
+                <label 
+                  htmlFor="email"
+                  className="mb-2"
+                >
+                  Email
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={credentials.email}
+                  onChange={handleChange}
+                  placeholder="Your email address"
+                  required
+                />
+              </div>
+              
+              <div style={{ marginBottom: 'var(--spacing-lg)' }}>
+                <div style={{ 
+                  display: 'flex', 
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: 'var(--spacing-sm)'
+                }}>
+                  <label htmlFor="password">Password</label>
+                  <a 
+                    href="#" 
+                    style={{ 
+                      fontSize: '0.875rem',
+                      color: 'var(--color-text-light)'
+                    }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setShowForgotPassword(true);
+                      setError(null);
+                      setSuccess(null);
+                    }}
+                  >
+                    Forgot password?
+                  </a>
+                </div>
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  value={credentials.password}
+                  onChange={handleChange}
+                  placeholder="Your password"
+                  required
+                />
+              </div>
+              
+              <button
+                type="submit"
+                disabled={loading}
+                style={{
+                  width: '100%',
+                  padding: 'var(--spacing-md)',
+                  backgroundColor: 'var(--color-primary)',
+                  marginTop: 'var(--spacing-md)',
+                  fontSize: '1rem',
+                  fontWeight: 500
+                }}
+              >
+                {loading ? 'Signing in...' : 'Sign In'}
+              </button>
+              
+              <div style={{ 
+                marginTop: 'var(--spacing-xl)',
+                textAlign: 'center',
+                color: 'var(--color-text-light)'
+              }}>
+                Don't have an account?{' '}
+                <Link 
+                  to="/register"
+                  style={{
+                    color: 'var(--color-primary)',
+                    fontWeight: 500
+                  }}
+                >
+                  Create account
+                </Link>
+              </div>
+            </form>
+          )}
         </div>
       </div>
     </div>

@@ -130,6 +130,17 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  token: string;
+  email: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
 export interface RegisterRequest {
   name: string;
   email: string;
@@ -237,6 +248,12 @@ export const authApi = {
 
   register: (userData: RegisterRequest) =>
     api.post<{ message: string }>("/auth/register", userData),
+    
+  forgotPassword: (data: ForgotPasswordRequest) =>
+    api.post<{ message: string }>("/auth/forgot-password", data),
+    
+  resetPassword: (data: ResetPasswordRequest) =>
+    api.post<{ message: string }>("/auth/reset-password", data),
 };
 
 // API functions for Users

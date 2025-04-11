@@ -11,6 +11,7 @@ import ProfilePage from "./pages/ProfilePage";
 import RatingsPage from "./pages/RatingsPage";
 import ListsPage from "./pages/ListsPage";
 import ListDetailsPage from "./pages/ListDetailsPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import Navbar from "./components/Navbar";
 import CookieConsentBanner from "./components/CookieConsentBanner";
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -51,6 +52,7 @@ function App() {
             <Route path="/ratings" element={<RatingsPage />} />
             <Route path="/lists" element={<ListsPage />} />
             <Route path="/lists/:listId" element={<ListDetailsPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
           </Routes>
         </main>
         <footer
