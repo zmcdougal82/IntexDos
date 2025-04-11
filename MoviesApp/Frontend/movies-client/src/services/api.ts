@@ -265,31 +265,36 @@ export const ratingApi = {
 // API functions for MovieLists
 export const movieListApi = {
   // Get all lists for the current user
-  getMyLists: () => api.get<MovieList[]>('/MovieLists'),
+  getMyLists: () => api.get<MovieList[]>("/MovieLists"),
 
   // Get a specific list with its movies
   getListById: (listId: number) => api.get<MovieList>(`/MovieLists/${listId}`),
 
   // Create a new list
-  createList: (list: { name: string, description?: string, isPublic?: boolean }) => 
-    api.post<MovieList>('/MovieLists', list),
+  createList: (list: {
+    name: string;
+    description?: string;
+    isPublic?: boolean;
+  }) => api.post<MovieList>("/MovieLists", list),
 
   // Update an existing list
-  updateList: (listId: number, updates: { name?: string, description?: string, isPublic?: boolean }) => 
-    api.put<void>(`/MovieLists/${listId}`, updates),
+  updateList: (
+    listId: number,
+    updates: { name?: string; description?: string; isPublic?: boolean }
+  ) => api.put<void>(`/MovieLists/${listId}`, updates),
 
   // Delete a list
   deleteList: (listId: number) => api.delete<void>(`/MovieLists/${listId}`),
 
   // Add a movie to a list
-  addMovieToList: (listId: number, showId: string) => 
+  addMovieToList: (listId: number, showId: string) =>
     api.post(`/MovieLists/${listId}/movies`, JSON.stringify(showId), {
-      headers: { 'Content-Type': 'application/json' }
+      headers: { "Content-Type": "application/json" },
     }),
 
   // Remove a movie from a list
-  removeMovieFromList: (listId: number, showId: string) => 
-    api.delete(`/MovieLists/${listId}/movies/${showId}`)
+  removeMovieFromList: (listId: number, showId: string) =>
+    api.delete(`/MovieLists/${listId}/movies/${showId}`),
 };
 
 export default api;
