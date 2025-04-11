@@ -61,6 +61,188 @@ const NavigationArrow = ({
   );
 };
 
+// Preload an image and return a promise
+const preloadImage = (url?: string): Promise<boolean> => {
+  return new Promise((resolve) => {
+    if (!url) {
+      resolve(true);
+      return;
+    }
+
+    const img = new Image();
+    img.onload = () => resolve(true);
+    img.onerror = () => {
+      console.warn(`Failed to load image: ${url}`);
+      resolve(false);
+    };
+    img.src = url;
+  });
+};
+
+// Individual movie card with preloading
+interface SingleMovieCardProps {
+  movie: Movie;
+  onClick: (id: string) => void;
+}
+
+const SingleMovieCard: React.FC<SingleMovieCardProps> = ({ movie, onClick }) => {
+  const [isLoaded, setIsLoaded] = useState<boolean>(false);
+  
+  useEffect(() => {
+    // Reset loaded state when movie changes
+    setIsLoaded(false);
+    
+    // Preload the image
+    if (movie.posterUrl) {
+      const img = new Image();
+      img.onload = () => setIsLoaded(true);
+      img.onerror = () => {
+        console.warn(`Failed to load image for movie: ${movie.showId}`);
+        setIsLoaded(true); // Mark as loaded anyway to avoid blocking
+      };
+      img.src = movie.posterUrl;
+    } else {
+      setIsLoaded(true); // No image to load
+    }
+  }, [movie]);
+  
+  return (
+    <div
+      style={{
+        width: "200px",
+        height: "300px",
+        position: "relative",
+        margin: "0 auto",
+      }}
+    >
+      {/* Placeholder while loading */}
+      {!isLoaded && (
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            backgroundColor: "#f0f0f0",
+            borderRadius: "8px",
+            overflow: "hidden",
+          }}
+        >
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: "-100%",
+              width: "200%",
+              height: "100%",
+              background:
+                "linear-gradient(to right, #f0f0f0 0%, #e0e0e0 50%, #f0f0f0 100%)",
+              animation: "shimmer 2s infinite linear",
+            }}
+          />
+        </div>
+      )}
+
+      {/* Only render the actual card when image is loaded */}
+      {isLoaded && (
+        <div style={{ width: "100%", height: "100%" }}>
+          <MovieCard movie={movie} onClick={() => onClick(movie.showId)} />
+        </div>
+      )}
+    </div>
+  );
+};
+
+interface MoviePageProps {
+  movies: Movie[];
+  onMovieClick: (id: string) => void;
+  pageKey: string; // Unique key for this page of movies
+}
+
+// Complete page of movies that waits for all images to load before display
+const MoviePage: React.FC<MoviePageProps> = ({ movies, onMovieClick, pageKey }) => {
+  const [allLoaded, setAllLoaded] = useState<boolean>(false);
+  
+  useEffect(() => {
+    // Preload all images before showing
+    const loadAllImages = async () => {
+      setAllLoaded(false);
+      
+      // Wait for all images to load in parallel
+      const loadPromises = movies.map(movie => 
+        preloadImage(movie.posterUrl)
+      );
+      
+      // Wait for all promises to resolve
+      await Promise.all(loadPromises);
+      
+      // Show the content once all are loaded
+      setAllLoaded(true);
+    };
+    
+    loadAllImages();
+  }, [movies]);
+  
+  // Show a loading placeholder if not all images are loaded
+  if (!allLoaded) {
+    return (
+      <div style={{ 
+        display: "grid", 
+        gridTemplateColumns: "repeat(5, 1fr)",
+        gap: "1.5rem", 
+        width: "100%",
+      }}>
+        {movies.map((_, index) => (
+          <div
+            key={`loading-${index}`}
+            style={{
+              width: "200px",
+              height: "300px",
+              backgroundColor: "#f0f0f0",
+              borderRadius: "8px",
+              overflow: "hidden",
+            }}
+          >
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                left: "-100%",
+                width: "200%",
+                height: "100%",
+                background:
+                  "linear-gradient(to right, #f0f0f0 0%, #e0e0e0 50%, #f0f0f0 100%)",
+                animation: "shimmer 2s infinite linear",
+              }}
+            />
+          </div>
+        ))}
+      </div>
+    );
+  }
+  
+  return (
+    <div 
+      key={pageKey}
+      style={{ 
+        display: "grid", 
+        gridTemplateColumns: "repeat(5, 1fr)",
+        gap: "1.5rem", 
+        width: "100%"
+      }}
+    >
+      {movies.map(movie => (
+        <SingleMovieCard
+          key={movie.showId}
+          movie={movie}
+          onClick={onMovieClick}
+        />
+      ))}
+    </div>
+  );
+};
+
 interface RecommendationSectionProps { 
   title: string; 
   movies: Movie[]; 
@@ -82,74 +264,8 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
   const [loadedPages, setLoadedPages] = useState<number[]>([0]);
   const [allMovies, setAllMovies] = useState<Movie[]>(movies);
   const [isLoading, setIsLoading] = useState(false);
-  const [imagesLoaded, setImagesLoaded] = useState<Record<string, boolean>>({});
-  const containerRef = useRef<HTMLDivElement>(null);
   
   const moviesPerPage = 5;
-  
-  // Image preload state
-  const [imageLoadPromises, setImageLoadPromises] = useState<Record<string, Promise<boolean>>>({});
-  
-  // Improved robust image preloading function
-  const preloadImage = (movie: Movie): Promise<boolean> => {
-    if (!movie || !movie.posterUrl) {
-      // If no movie or no poster URL, mark as loaded
-      return Promise.resolve(true);
-    }
-    
-    // Skip if already loaded
-    if (imagesLoaded[movie.showId]) {
-      return Promise.resolve(true);
-    }
-    
-    // If we already have a promise for this image, return it
-    if (movie.showId in imageLoadPromises) {
-      return imageLoadPromises[movie.showId];
-    }
-    
-    // Create a new promise for this image
-    const loadPromise = new Promise<boolean>((resolve) => {
-      // Create a new image object to preload
-      const img = new Image();
-      
-      // Set up handlers
-      img.onload = () => {
-        // Mark as loaded in the state
-        setImagesLoaded(prev => ({...prev, [movie.showId]: true}));
-        resolve(true);
-      };
-      
-      img.onerror = () => {
-        console.warn(`Failed to load image for movie: ${movie.showId}`);
-        // Even on error, we'll mark it as "loaded" to avoid blocking navigation
-        setImagesLoaded(prev => ({...prev, [movie.showId]: true}));
-        resolve(false);
-      };
-      
-      // Start loading (after handlers are set up)
-      if (movie.posterUrl) {
-        img.src = movie.posterUrl;
-      }
-    });
-    
-    // Save this promise
-    setImageLoadPromises(prev => ({
-      ...prev,
-      [movie.showId]: loadPromise
-    }));
-    
-    return loadPromise;
-  };
-  
-  // Update allMovies when movies prop changes
-  useEffect(() => {
-    setAllMovies(movies);
-    
-    // Start preloading all visible movies
-    if (movies.length > 0) {
-      movies.forEach(movie => preloadImage(movie));
-    }
-  }, [movies]);
   
   // Calculate the total number of pages
   const totalPages = Math.max(
@@ -165,48 +281,19 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
     );
   };
   
-  const visibleMovies = getCurrentPageMovies(currentPage);
+  // Update allMovies when movies prop changes
+  useEffect(() => {
+    setAllMovies(movies);
+  }, [movies]);
   
-  if (allMovies.length === 0) return null;
-  
-  // Enhanced scrollPrev function - ensures all images are loaded before page change
+  // Simplified scrollPrev function
   const scrollPrev = () => {
     if (currentPage > 0 && !isLoading) {
-      const targetPage = currentPage - 1;
-      
-      // Check if the previous page's images are all loaded
-      const prevPageMovies = getCurrentPageMovies(targetPage);
-      const allPrevPageImagesLoaded = prevPageMovies.every(
-        movie => !movie.posterUrl || imagesLoaded[movie.showId]
-      );
-      
-      // If not all images are loaded yet, start preloading them but don't change page
-      if (!allPrevPageImagesLoaded) {
-        console.log("Waiting for all images to load before changing page...");
-        
-        // Aggressively preload the images needed
-        prevPageMovies.forEach(movie => {
-          if (!imagesLoaded[movie.showId]) {
-            preloadImage(movie);
-          }
-        });
-        
-        // Don't proceed with the page change until all images are loaded
-        return;
-      }
-      
-      // Only go to the previous page when all images are loaded
-      setCurrentPage(targetPage);
+      setCurrentPage(currentPage - 1);
     }
   };
-  
-  // Check if all images for a given page are loaded
-  const areAllImagesLoadedForPage = (page: number): boolean => {
-    const pageMovies = getCurrentPageMovies(page);
-    return pageMovies.every(movie => !movie.posterUrl || imagesLoaded[movie.showId]);
-  };
 
-  // Enhanced scrollNext function - ensures all images are loaded before page change
+  // Enhanced scrollNext function
   const scrollNext = async () => {
     if (currentPage < totalPages - 1 && !isLoading) {
       const targetPage = currentPage + 1;
@@ -217,21 +304,18 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
         try {
           const newMovies = await onLoadMore(sectionType, targetPage);
           
-          // Add the new movies to our collection
+          // Add the new movies to our collection if we got any
           if (newMovies && newMovies.length > 0) {
             setAllMovies(prevMovies => {
               // Filter out any duplicates
               const existingIds = new Set(prevMovies.map(m => m.showId));
               const uniqueNewMovies = newMovies.filter(m => !existingIds.has(m.showId));
               
-              // Preload these images
-              uniqueNewMovies.forEach(movie => preloadImage(movie));
-              
               return [...prevMovies, ...uniqueNewMovies];
             });
           }
           
-          // Mark this page as loaded
+          // Mark this page as loaded regardless of results
           setLoadedPages(prev => [...prev, targetPage]);
         } catch (err) {
           console.error(`Error loading more ${sectionType} recommendations:`, err);
@@ -241,31 +325,16 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
         }
       }
       
-      // Check if the next page's images are all loaded
-      const nextPageMovies = getCurrentPageMovies(targetPage);
-      const allNextPageImagesLoaded = nextPageMovies.every(
-        movie => !movie.posterUrl || imagesLoaded[movie.showId]
-      );
-      
-      // If not all images are loaded yet, start preloading them but don't change page
-      if (!allNextPageImagesLoaded) {
-        console.log("Waiting for all images to load before changing page...");
-        
-        // Aggressively preload the images needed
-        nextPageMovies.forEach(movie => {
-          if (!imagesLoaded[movie.showId]) {
-            preloadImage(movie);
-          }
-        });
-        
-        // Don't proceed with the page change until all images are loaded
-        return;
-      }
-      
-      // Only go to the next page when all images are loaded
+      // Go to next page
       setCurrentPage(targetPage);
     }
   };
+
+  // Generate a unique key for the current page to force re-render
+  const pageKey = `${sectionType}-page-${currentPage}`;
+  const visibleMovies = getCurrentPageMovies(currentPage);
+
+  if (allMovies.length === 0) return null;
 
   return (
     <div style={{ marginBottom: "2.5rem" }}>
@@ -281,15 +350,10 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
         <NavigationArrow 
           direction="left" 
           onClick={scrollPrev} 
-          disabled={
-            currentPage === 0 || 
-            isLoading || 
-            (currentPage > 0 && !areAllImagesLoadedForPage(currentPage - 1))
-          } 
+          disabled={currentPage === 0 || isLoading} 
         />
         
         <div
-          ref={containerRef}
           style={{
             position: "relative",
             paddingBottom: "1rem",
@@ -298,82 +362,19 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
             overflow: "hidden",
             height: "395px",
             backgroundColor: "transparent",
-            transform: 'translateZ(0)',
-            willChange: 'transform'
           }}
         >
-          {/* Simple content display without transitions */}
-          <div style={{
-            display: "flex",
-            gap: "1.5rem",
-            justifyContent: "center",
-            width: "100%"
-          }}>
-            {visibleMovies.map((movie) => (
-              <div 
-                key={movie.showId} 
-                style={{ 
-                  flexShrink: 0, 
-                  width: "200px",
-                  position: 'relative',
-                  height: '300px',
-                  transform: 'translateZ(0)'
-                }}
-              >
-                {/* Placeholder for unloaded images */}
-                {!imagesLoaded[movie.showId] && (
-                  <div style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    backgroundColor: '#f0f0f0',
-                    borderRadius: '8px',
-                    overflow: 'hidden',
-                    zIndex: 2
-                  }}>
-                    <div style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: '-100%',
-                      width: '200%',
-                      height: '100%',
-                      background: 'linear-gradient(to right, #f0f0f0 0%, #e0e0e0 50%, #f0f0f0 100%)',
-                      animation: 'shimmer 2s infinite linear'
-                    }} />
-                  </div>
-                )}
-                
-                {/* Only render MovieCard when image is loaded */}
-                {imagesLoaded[movie.showId] && (
-                  <div style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    zIndex: 1
-                  }}>
-                    <MovieCard
-                      movie={movie}
-                      onClick={() => onMovieClick(movie.showId)}
-                    />
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+          <MoviePage 
+            movies={visibleMovies}
+            onMovieClick={onMovieClick}
+            pageKey={pageKey}
+          />
         </div>
         
         <NavigationArrow 
           direction="right" 
           onClick={scrollNext} 
-          disabled={
-            currentPage >= totalPages - 1 || 
-            isLoading || 
-            (currentPage < totalPages - 1 && !areAllImagesLoadedForPage(currentPage + 1))
-          } 
+          disabled={currentPage >= totalPages - 1 || isLoading} 
         />
       </div>
     </div>
