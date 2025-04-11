@@ -26,15 +26,16 @@ namespace MoviesApp.API.Services
 
         public async Task SendPasswordResetEmailAsync(User user, string token)
         {
-            var apiKey = _configuration["Mailgun:ApiKey"];
+            // Try to get API key from environment variables first (more secure), then fall back to config
+            var apiKey = Environment.GetEnvironmentVariable("MAILGUN_API_KEY") ?? _configuration["Mailgun:ApiKey"];
             var domain = _configuration["Mailgun:Domain"];
             var senderEmail = _configuration["Mailgun:SenderEmail"];
             var senderName = _configuration["Mailgun:SenderName"];
             var region = _configuration["Mailgun:Region"] ?? "US"; // Default to US region
 
-            if (string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(domain) || string.IsNullOrEmpty(senderEmail))
+            if (string.IsNullOrEmpty(apiKey) || apiKey == "MAILGUN_API_KEY" || string.IsNullOrEmpty(domain) || string.IsNullOrEmpty(senderEmail))
             {
-                throw new InvalidOperationException("Mailgun API key, domain or sender email is not configured.");
+                throw new InvalidOperationException($"Mailgun API key, domain or sender email is not properly configured. API Key: {(string.IsNullOrEmpty(apiKey) ? "missing" : (apiKey == "MAILGUN_API_KEY" ? "using placeholder" : "present"))}");
             }
 
             // Print some debug information
