@@ -153,7 +153,7 @@ const TVShowsPage = () => {
             <div style={{ display: 'flex', gap: 'var(--spacing-sm)' }}>
               <input
                 type="text"
-                placeholder="Search titles, directors, or actors..."
+                placeholder="Search titles, directors, actors, or keywords..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 style={{ flex: 1 }}
