@@ -11,14 +11,19 @@ const ListCard: React.FC<ListCardProps> = ({ list, onDelete }) => {
   const navigate = useNavigate();
   
   // Get up to 4 movie posters from the list items (if available)
-  const posterUrls = list.items
-    ?.filter(item => item.movie?.posterUrl)
-    .map(item => item.movie?.posterUrl)
-    .slice(0, 4) || [];
+  let posterUrls: string[] = [];
+  
+  if (list.items && list.items.length > 0) {
+    posterUrls = list.items
+      .filter(item => item.movie && item.movie.posterUrl)
+      .map(item => item.movie!.posterUrl!)
+      .slice(0, 4);
+  }
   
   // If we don't have 4 posters, fill with placeholders
+  const placeholderUrl = `https://placehold.co/320x480/2c3e50/FFFFFF?text=No+Poster&font=montserrat`;
   while (posterUrls.length < 4) {
-    posterUrls.push(`https://placehold.co/320x480/2c3e50/FFFFFF?text=No+Poster&font=montserrat`);
+    posterUrls.push(placeholderUrl);
   }
 
   return (
