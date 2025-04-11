@@ -157,16 +157,6 @@ builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
-
-// Register Recommendation Service
-builder.Services.AddScoped<MoviesApp.API.Services.IRecommendationService, MoviesApp.API.Services.RecommendationService>();
-
-// Register Background Service for Curated Lists Generation
-builder.Services.AddHostedService<MoviesApp.API.Services.CuratedListsGeneratorService>();
-
-// Add Configuration for Curated Lists
-builder.Configuration.GetSection("CuratedLists")["RefreshIntervalDays"] = "7";
-
 // Run database setup to create password_reset_tokens table if it doesn't exist
 using (var scope = app.Services.CreateScope())
 {

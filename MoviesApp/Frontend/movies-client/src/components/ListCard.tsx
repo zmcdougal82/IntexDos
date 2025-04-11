@@ -25,17 +25,17 @@ const ListCard: React.FC<ListCardProps> = ({ list }) => {
     
     // Clone the items array to avoid modifying the original
     posterUrls = [...list.items]
-      // FIRST sort by dateAdded (oldest first - to get the first 4 films added)
+      // Filter only items with movies that have posterUrls FIRST
+      .filter(item => item.movie && item.movie.posterUrl)
+      // THEN sort by dateAdded (oldest first - to get the first 4 films added)
       .sort((a, b) => {
         if (!a.dateAdded || !b.dateAdded) return 0;
         return new Date(a.dateAdded).getTime() - new Date(b.dateAdded).getTime();
       })
-      // Take the first 4 movies added
-      .slice(0, 4)
-      // THEN filter only items with movies that have posterUrls
-      .filter(item => item.movie && item.movie.posterUrl)
       // Map to the poster URLs
-      .map(item => item.movie!.posterUrl!);
+      .map(item => item.movie!.posterUrl!)
+      // Take only the first 4
+      .slice(0, 4);
       
     console.log(`List "${list.name}" showing the first ${posterUrls.length} added films:`, posterUrls);
   }
