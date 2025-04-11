@@ -1,4 +1,10 @@
+
+
+
 # IntexDos
+
+#IMPORTANT
+Mailgun has blocked our domain for the time being so there may be disruptions in forgot password and reset password funcionality until that is fixed.
 
 ## Movie Rating Application
 
