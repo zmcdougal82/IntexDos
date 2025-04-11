@@ -151,10 +151,12 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
     }
   }, [movies]);
   
-  // Calculate the total number of pages
+  // Calculate the total number of pages - we'll always assume there are more pages available
+  // This is because our recommendation system is designed to provide endless recommendations
   const totalPages = Math.max(
     Math.ceil(allMovies.length / moviesPerPage), 
-    loadedPages.length + 1
+    loadedPages.length + 1,
+    currentPage + 2 // Always assume at least one more page is available
   );
   
   // Get the current visible movies
@@ -221,7 +223,7 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
           setIsLoading(false);
           // Mark this page as loaded to prevent infinite loading attempts
           setLoadedPages(prev => [...prev, targetPage]);
-        }, 5000); // 5 second timeout
+        }, 8000); // 8 second timeout to account for API response delays
         
         try {
           const newMovies = await onLoadMore(sectionType, targetPage);
