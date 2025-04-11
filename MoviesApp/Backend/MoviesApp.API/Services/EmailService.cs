@@ -87,67 +87,56 @@ namespace MoviesApp.API.Services
 
             try
             {
-                // In development mode, just log the email with the password reset link
+                // Always log email details for debugging
+                Console.WriteLine();
+                Console.WriteLine("==== EMAIL DETAILS ====");
+                Console.WriteLine($"To: {user.Email}");
+                Console.WriteLine($"From: {senderEmail}");
+                Console.WriteLine($"Subject: CineNiche Password Reset");
+                Console.WriteLine($"Reset Link: {resetLink}");
+                Console.WriteLine("========================");
+                
+                // Always use SparkPost to send the actual email, regardless of environment
+                // Create the SparkPost client
+                var client = new Client(apiKey);
+                
+                // Set API host if provided in config
+                if (!string.IsNullOrEmpty(apiUrl))
+                {
+                    client.ApiHost = apiUrl;
+                }
+
+                // Create and send the transmission
+                var transmission = new Transmission();
+                transmission.Content.From.Email = senderEmail;
+                if (!string.IsNullOrEmpty(senderName))
+                {
+                    transmission.Content.From.Name = senderName;
+                }
+                transmission.Content.Subject = "CineNiche Password Reset";
+                transmission.Content.Html = htmlContent;
+
+                var recipient = new Recipient
+                {
+                    Address = new Address { Email = user.Email, Name = user.Name }
+                };
+                transmission.Recipients.Add(recipient);
+
+                // Send the email
+                var response = client.Transmissions.Send(transmission);
+                
+                // Log the transmission ID for tracking
+                Console.WriteLine($"Email sent via SparkPost with ID: {response?.Id}");
+                
+                // In development mode, also log the reset link for easy testing
                 if (isDevelopment)
                 {
-                    // Log a visible box with the reset link for local testing
                     Console.WriteLine();
-                    Console.WriteLine("██████████████████████████████████████████████████████████████");
-                    Console.WriteLine("█                                                            █");
-                    Console.WriteLine("█  MOCK EMAIL SERVICE - FOR TESTING PASSWORD RESET           █");
-                    Console.WriteLine("█                                                            █");
-                    Console.WriteLine("█  Since SparkPost integration requires domain verification, █");
-                    Console.WriteLine("█  we've implemented a mock email service for testing        █");
-                    Console.WriteLine("█  that provides the password reset link directly here.      █");
-                    Console.WriteLine("█                                                            █");
-                    Console.WriteLine("█  COPY THIS LINK TO RESET YOUR PASSWORD:                    █");
+                    Console.WriteLine("████████████████████████████████████████████████");
+                    Console.WriteLine("█  DEVELOPMENT MODE - PASSWORD RESET LINK:     █");
                     Console.WriteLine($"█  {resetLink}");
-                    Console.WriteLine("█                                                            █");
-                    Console.WriteLine("█  You can use this link to test the password reset flow.    █");
-                    Console.WriteLine("█                                                            █");
-                    Console.WriteLine("██████████████████████████████████████████████████████████████");
+                    Console.WriteLine("████████████████████████████████████████████████");
                     Console.WriteLine();
-                    
-                    // Log email details for debugging
-                    Console.WriteLine("==== EMAIL DETAILS ====");
-                    Console.WriteLine($"To: {user.Email}");
-                    Console.WriteLine($"From: {senderEmail}");
-                    Console.WriteLine($"Subject: CineNiche Password Reset");
-                    Console.WriteLine("========================");
-                } 
-                // In production (Azure), use SparkPost to actually send the email
-                else 
-                {
-                    // Create the SparkPost client
-                    var client = new Client(apiKey);
-                    
-                    // Set API host if provided in config
-                    if (!string.IsNullOrEmpty(apiUrl))
-                    {
-                        client.ApiHost = apiUrl;
-                    }
-
-                    // Create and send the transmission
-                    var transmission = new Transmission();
-                    transmission.Content.From.Email = senderEmail;
-                    if (!string.IsNullOrEmpty(senderName))
-                    {
-                        transmission.Content.From.Name = senderName;
-                    }
-                    transmission.Content.Subject = "CineNiche Password Reset";
-                    transmission.Content.Html = htmlContent;
-
-                    var recipient = new Recipient
-                    {
-                        Address = new Address { Email = user.Email, Name = user.Name }
-                    };
-                    transmission.Recipients.Add(recipient);
-
-                    // Send the email
-                    var response = client.Transmissions.Send(transmission);
-                    
-                    // Log the transmission ID for tracking
-                    Console.WriteLine($"Email sent via SparkPost with ID: {response?.Id}");
                 }
             }
             catch (Exception ex)
