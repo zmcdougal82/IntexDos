@@ -26,6 +26,8 @@ namespace MoviesApp.API.Controllers
             int userId = GetCurrentUserId();
             var lists = await _context.MovieLists
                 .Where(l => l.UserId == userId)
+                .Include(l => l.Items)
+                .ThenInclude(i => i.Movie)
                 .ToListAsync();
                 
             return Ok(lists);

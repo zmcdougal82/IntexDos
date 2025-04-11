@@ -14,15 +14,25 @@ const ListCard: React.FC<ListCardProps> = ({ list, onDelete }) => {
   let posterUrls: string[] = [];
   
   if (list.items && list.items.length > 0) {
+    // Debug the raw list items
+    console.log(`List "${list.name}" raw items:`, list.items);
+    
+    // Check if each item has a movie with posterUrl
+    list.items.forEach((item, index) => {
+      console.log(`Item ${index} has movie:`, !!item.movie, 
+                 "has posterUrl:", item.movie ? !!item.movie.posterUrl : false,
+                 "posterUrl value:", item.movie?.posterUrl);
+    });
+    
     // Clone the items array to avoid modifying the original
     posterUrls = [...list.items]
-      // Sort by dateAdded (oldest first - to get the first 4 films added)
+      // Filter only items with movies that have posterUrls FIRST
+      .filter(item => item.movie && item.movie.posterUrl)
+      // THEN sort by dateAdded (oldest first - to get the first 4 films added)
       .sort((a, b) => {
         if (!a.dateAdded || !b.dateAdded) return 0;
         return new Date(a.dateAdded).getTime() - new Date(b.dateAdded).getTime();
       })
-      // Filter only items with movies that have posterUrls
-      .filter(item => item.movie && item.movie.posterUrl)
       // Map to the poster URLs
       .map(item => item.movie!.posterUrl!)
       // Take only the first 4
