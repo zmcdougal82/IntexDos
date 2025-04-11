@@ -91,72 +91,199 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
   const [allImagesLoaded, setAllImagesLoaded] = useState<boolean>(false);
   const [transitionDirection, setTransitionDirection] = useState<'left' | 'right' | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [nextPageReady, setNextPageReady] = useState(false);
+  const [preloadQueue, setPreloadQueue] = useState<string[]>([]);
   
   // Transition duration in ms
   const TRANSITION_DURATION = 300;
   const moviesPerPage = 5;
   
-  // Track image loading for each movie
-  const preloadImage = (movie: Movie) => {
-    if (movie.posterUrl && !imagesLoaded[movie.showId]) {
-      const img = new Image();
-      img.onload = () => {
-        setImagesLoaded(prev => ({...prev, [movie.showId]: true}));
-      };
-      img.onerror = () => {
-        // Even on error, mark as loaded to avoid retrying indefinitely
-        setImagesLoaded(prev => ({...prev, [movie.showId]: true}));
-      };
-      img.src = movie.posterUrl;
-      return false;
+  // Enhanced image preloading with cache
+  const imageCache = useRef<Set<string>>(new Set());
+  
+  // Track image loading for each movie with enhanced priority queuing
+  const preloadImage = (movie: Movie, priority: 'high' | 'medium' | 'low' = 'medium') => {
+    if (!movie || !movie.posterUrl) return true;
+    
+    // Skip if already loaded or being loaded
+    if (imagesLoaded[movie.showId] || imageCache.current.has(movie.showId)) {
+      return true;
     }
-    return true;
+    
+    // Mark that we've started loading this image
+    imageCache.current.add(movie.showId);
+    
+    // Create a new image object
+    const img = new Image();
+    
+    // Set up load handlers
+    img.onload = () => {
+      // Mark as successfully loaded
+      setImagesLoaded(prev => ({...prev, [movie.showId]: true}));
+      
+      // Continue with next image in queue if any
+      setPreloadQueue(prevQueue => {
+        const newQueue = [...prevQueue];
+        newQueue.shift(); // Remove the first item
+        return newQueue;
+      });
+    };
+    
+    img.onerror = () => {
+      // Even on error, mark as loaded to avoid retrying indefinitely
+      console.warn(`Failed to load image for movie: ${movie.showId}`);
+      setImagesLoaded(prev => ({...prev, [movie.showId]: true}));
+      
+      // Continue with next image in queue
+      setPreloadQueue(prevQueue => {
+        const newQueue = [...prevQueue];
+        newQueue.shift();
+        return newQueue;
+      });
+    };
+    
+    // Add to preload queue with appropriate priority
+    setPreloadQueue(prevQueue => {
+      // If high priority, add to front of queue
+      if (priority === 'high') {
+        return [movie.showId, ...prevQueue];
+      } 
+      // If already in queue, don't add again
+      else if (prevQueue.includes(movie.showId)) {
+        return prevQueue;
+      }
+      // Otherwise add to end of queue
+      return [...prevQueue, movie.showId];
+    });
+    
+    // Start loading if first item or if high priority
+    if (priority === 'high' || preloadQueue.length === 0) {
+      img.src = movie.posterUrl;
+    }
+    
+    return false;
   };
+  
+  // Process the preload queue
+  useEffect(() => {
+    if (preloadQueue.length > 0) {
+      const currentMovieId = preloadQueue[0];
+      const currentMovie = allMovies.find(m => m.showId === currentMovieId);
+      
+      if (currentMovie && currentMovie.posterUrl && !imagesLoaded[currentMovieId]) {
+        const img = new Image();
+        img.onload = () => {
+          setImagesLoaded(prev => ({...prev, [currentMovieId]: true}));
+          setPreloadQueue(prevQueue => {
+            const newQueue = [...prevQueue];
+            newQueue.shift();
+            return newQueue;
+          });
+        };
+        img.onerror = () => {
+          setImagesLoaded(prev => ({...prev, [currentMovieId]: true}));
+          setPreloadQueue(prevQueue => {
+            const newQueue = [...prevQueue];
+            newQueue.shift();
+            return newQueue;
+          });
+        };
+        img.src = currentMovie.posterUrl;
+      } else {
+        // Skip this item if movie not found or already loaded
+        setPreloadQueue(prevQueue => {
+          const newQueue = [...prevQueue];
+          newQueue.shift();
+          return newQueue;
+        });
+      }
+    }
+  }, [preloadQueue, allMovies, imagesLoaded]);
   
   // Update allMovies when movies prop changes
   useEffect(() => {
     setAllMovies(movies);
     
-    // Preload the initial images and mark loading state
+    // Reset loading states
+    setAllImagesLoaded(false);
+    
+    // Immediately start preloading current page with high priority
     if (movies.length > 0) {
-      setAllImagesLoaded(false);
-      const preloadPromises = movies.map(movie => preloadImage(movie));
+      const currentPageMovies = movies.slice(0, moviesPerPage);
       
-      // Check if all images are already loaded
-      if (preloadPromises.every(loaded => loaded)) {
-        setAllImagesLoaded(true);
-      }
+      // High priority for visible movies
+      currentPageMovies.forEach(movie => preloadImage(movie, 'high'));
+      
+      // Medium priority for next page
+      const nextPageMovies = movies.slice(moviesPerPage, moviesPerPage * 2);
+      nextPageMovies.forEach(movie => preloadImage(movie, 'medium'));
+      
+      // Low priority for all remaining
+      const remainingMovies = movies.slice(moviesPerPage * 2);
+      remainingMovies.forEach(movie => preloadImage(movie, 'low'));
     }
   }, [movies]);
   
   // Check if all currently visible movies' images are loaded
   useEffect(() => {
     const currentMovies = getCurrentPageMovies(currentPage);
-    const allLoaded = currentMovies.every(movie => 
+    const allCurrentLoaded = currentMovies.every(movie => 
       !movie.posterUrl || imagesLoaded[movie.showId]
     );
     
-    if (allLoaded && !allImagesLoaded) {
+    // Update the allImagesLoaded state for current page
+    if (allCurrentLoaded && !allImagesLoaded) {
       setAllImagesLoaded(true);
     }
-  }, [imagesLoaded, currentPage]);
+    
+    // Check if next page is ready (for smoother transitions)
+    const nextPageIndex = currentPage + 1;
+    const nextPageMovies = getCurrentPageMovies(nextPageIndex);
+    const nextPageLoaded = nextPageMovies.length > 0 && 
+      nextPageMovies.every(movie => !movie.posterUrl || imagesLoaded[movie.showId]);
+    
+    setNextPageReady(nextPageLoaded);
+  }, [imagesLoaded, currentPage, allImagesLoaded]);
   
   // Calculate the total number of pages
-  const totalPages = Math.max(Math.ceil(allMovies.length / moviesPerPage), loadedPages.length + 1);
+  // Set a reasonably high limit to prevent running out prematurely, especially for genres
+  const initialMaxPages = 10;
+  const totalPages = Math.max(
+    Math.ceil(allMovies.length / moviesPerPage), 
+    loadedPages.length + 1,
+    // Make sure we have at least 10 pages available initially
+    initialMaxPages 
+  );
   
-  // Preload the adjacent pages
+  // Enhanced preloading of adjacent pages
   useEffect(() => {
     const preloadAdjacentPages = async () => {
-      // Try to preload both next and previous pages
-      const pagesToPreload = [currentPage + 1, currentPage - 1].filter(
+      // Always prioritize loading the next page
+      const priorityPages = [currentPage + 1];
+      
+      // Then add the previous page
+      if (currentPage > 0) {
+        priorityPages.push(currentPage - 1);
+      }
+      
+      // Also look two pages ahead
+      if (currentPage + 2 < totalPages) {
+        priorityPages.push(currentPage + 2);
+      }
+      
+      // Filter out pages we've already loaded
+      const pagesToPreload = priorityPages.filter(
         page => page >= 0 && page < totalPages + 1 && !loadedPages.includes(page)
       );
       
       for (const pageToPreload of pagesToPreload) {
         if (onLoadMore && userId && !isLoading) {
           try {
-            // Preload page data
+            // Fetch data for this page
+            console.log(`Preloading data for ${sectionType}, page ${pageToPreload}`);
+            setIsLoading(true);
             const newMovies = await onLoadMore(sectionType, pageToPreload);
+            setIsLoading(false);
             
             // Add the new movies to our collection
             if (newMovies && newMovies.length > 0) {
@@ -164,24 +291,42 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
                 // Filter out any duplicates
                 const existingIds = new Set(prevMovies.map(m => m.showId));
                 const uniqueNewMovies = newMovies.filter(m => !existingIds.has(m.showId));
-                return [...prevMovies, ...uniqueNewMovies];
+                
+                if (uniqueNewMovies.length > 0) {
+                  // Determine priority based on page proximity to current
+                  const priority = pageToPreload === currentPage + 1 ? 'high' : 'medium';
+                  
+                  // Start preloading these images
+                  uniqueNewMovies.forEach(movie => preloadImage(movie, priority));
+                  
+                  return [...prevMovies, ...uniqueNewMovies];
+                }
+                return prevMovies;
               });
-              
-              // Preload the images immediately
-              newMovies.forEach(movie => preloadImage(movie));
             }
             
-            // Mark this page as loaded
-            setLoadedPages(prev => [...prev, pageToPreload]);
-          } catch (err) {
-            console.error(`Error preloading page ${pageToPreload} for ${sectionType}:`, err);
-          }
+      // Mark this page as loaded even if we get no results
+      // to avoid repeated attempts that will also fail
+      setLoadedPages(prev => [...prev, pageToPreload]);
+      
+      // If we got no results and we're at the end, let's handle this gracefully
+      if (!newMovies || newMovies.length === 0) {
+        // Only display warning to console, not to user
+        console.warn(`No more recommendations available for ${sectionType} at page ${pageToPreload}`);
+      }
+    } catch (err) {
+      console.error(`Error preloading page ${pageToPreload} for ${sectionType}:`, err);
+      setIsLoading(false);
+      
+      // Still mark the page as loaded to prevent repeated failing calls
+      setLoadedPages(prev => [...prev, pageToPreload]);
+    }
         }
       }
     };
     
     preloadAdjacentPages();
-  }, [currentPage, loadedPages, totalPages, onLoadMore, userId, sectionType, isLoading, imagesLoaded]);
+  }, [currentPage, loadedPages, totalPages, onLoadMore, userId, sectionType, isLoading]);
   
   // Get the current and next visible movies
   const getCurrentPageMovies = (page: number) => {
@@ -196,7 +341,15 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
   if (allMovies.length === 0) return null;
   
   const scrollPrev = () => {
+    // Only allow scrolling if we're not already in transition
     if (currentPage > 0 && !transitionActive) {
+      // Check if previous page images are loaded
+      const prevPageMovies = getCurrentPageMovies(currentPage - 1);
+      const prevPageReady = prevPageMovies.every(
+        movie => !movie.posterUrl || imagesLoaded[movie.showId]
+      );
+      
+      // Start transition animation
       setTransitionActive(true);
       setTransitionDirection('left');
       
@@ -204,50 +357,12 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
       const targetPage = currentPage - 1;
       setNextPage(targetPage);
       
-      // Using setTimeout to allow the animation to play
-      setTimeout(() => {
-        setCurrentPage(targetPage);
-        setNextPage(null);
-        setTransitionActive(false);
-        setTransitionDirection(null);
-      }, TRANSITION_DURATION);
-    }
-  };
-  
-  const scrollNext = async () => {
-    if (currentPage < totalPages - 1 && !transitionActive && !isLoading) {
-      setTransitionActive(true);
-      setTransitionDirection('right');
-      
-      // Check if we need to load more data
-      const targetPage = currentPage + 1;
-      setNextPage(targetPage);
-      
-      if (!loadedPages.includes(targetPage) && onLoadMore && userId) {
-        setIsLoading(true);
-        try {
-          const newMovies = await onLoadMore(sectionType, targetPage);
-          
-          // Add the new movies to our collection
-          if (newMovies && newMovies.length > 0) {
-            setAllMovies(prevMovies => {
-              // Filter out any duplicates
-              const existingIds = new Set(prevMovies.map(m => m.showId));
-              const uniqueNewMovies = newMovies.filter(m => !existingIds.has(m.showId));
-              return [...prevMovies, ...uniqueNewMovies];
-            });
-            
-            // Preload images with the enhanced preloader
-            newMovies.forEach(movie => preloadImage(movie));
-          }
-          
-          // Mark this page as loaded
-          setLoadedPages(prev => [...prev, targetPage]);
-        } catch (err) {
-          console.error(`Error loading more ${sectionType} recommendations:`, err);
-        } finally {
-          setIsLoading(false);
-        }
+      // If not all images are loaded, we'll show loading state during transition
+      if (!prevPageReady) {
+        setAllImagesLoaded(false);
+        
+        // Aggressively preload the images we need
+        prevPageMovies.forEach(movie => preloadImage(movie, 'high'));
       }
       
       // Using setTimeout to allow the animation to complete
@@ -256,6 +371,96 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
         setNextPage(null);
         setTransitionActive(false);
         setTransitionDirection(null);
+        
+        // Check again if all images are loaded for the new page
+        const newCurrentMovies = getCurrentPageMovies(targetPage);
+        const allLoaded = newCurrentMovies.every(
+          movie => !movie.posterUrl || imagesLoaded[movie.showId]
+        );
+        setAllImagesLoaded(allLoaded);
+      }, TRANSITION_DURATION);
+    }
+  };
+  
+  const scrollNext = async () => {
+    // Only scroll if not at the end, not in transition, not loading
+    if (currentPage < totalPages - 1 && !transitionActive && !isLoading) {
+      const targetPage = currentPage + 1;
+      
+      // Start transition animation
+      setTransitionActive(true);
+      setTransitionDirection('right');
+      setNextPage(targetPage);
+      
+      // Check if we need to load more data
+      if (!loadedPages.includes(targetPage) && onLoadMore && userId) {
+        setIsLoading(true);
+        setAllImagesLoaded(false); // Show loading state
+        
+        try {
+          console.log(`Loading more ${sectionType} recommendations for page ${targetPage}`);
+          const newMovies = await onLoadMore(sectionType, targetPage);
+          
+          // Add the new movies to our collection if we got any
+          if (newMovies && newMovies.length > 0) {
+            setAllMovies(prevMovies => {
+              // Filter out any duplicates
+              const existingIds = new Set(prevMovies.map(m => m.showId));
+              const uniqueNewMovies = newMovies.filter(m => !existingIds.has(m.showId));
+              
+              // Start preloading these images with high priority
+              uniqueNewMovies.forEach(movie => preloadImage(movie, 'high'));
+              
+              // If we actually got new movies, increase the totalPages
+              if (uniqueNewMovies.length > 0) {
+                // This will be handled by the totalPages calculation on next render
+                return [...prevMovies, ...uniqueNewMovies];
+              }
+              
+              return prevMovies;
+            });
+          }
+          
+          // Mark this page as loaded regardless of results
+          setLoadedPages(prev => [...prev, targetPage]);
+        } catch (err) {
+          console.error(`Error loading more ${sectionType} recommendations:`, err);
+          // Mark the page as loaded anyway to prevent repeated failing requests
+          setLoadedPages(prev => [...prev, targetPage]);
+        } finally {
+          setIsLoading(false);
+        }
+      } else {
+        // If we already have the data, make sure the images are being loaded
+        const nextPageMovies = getCurrentPageMovies(targetPage);
+        nextPageMovies.forEach(movie => preloadImage(movie, 'high'));
+      }
+      
+      // Using setTimeout to allow the animation to complete
+      setTimeout(() => {
+        setCurrentPage(targetPage);
+        setNextPage(null);
+        setTransitionActive(false);
+        setTransitionDirection(null);
+        
+        // Check if all images are loaded for new current page
+        const newCurrentMovies = getCurrentPageMovies(targetPage);
+        const allLoaded = newCurrentMovies.every(
+          movie => !movie.posterUrl || imagesLoaded[movie.showId]
+        );
+        setAllImagesLoaded(allLoaded);
+        
+        // Additionally, try to preload the next two pages proactively
+        if (targetPage + 1 < totalPages) {
+          getCurrentPageMovies(targetPage + 1).forEach(movie => 
+            preloadImage(movie, 'medium')
+          );
+        }
+        if (targetPage + 2 < totalPages) {
+          getCurrentPageMovies(targetPage + 2).forEach(movie => 
+            preloadImage(movie, 'low')
+          );
+        }
       }, TRANSITION_DURATION);
     }
   };
@@ -270,7 +475,7 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
     backgroundColor: "transparent" // Ensure no background color
   };
 
-  // This styling approach provides a cleaner and more consistent transition
+  // Enhanced styling approach with better placeholder support
   const pageStyles = (isVisible: boolean, direction: number) => ({
     display: "flex",
     gap: "1.5rem",
@@ -310,6 +515,54 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
     ? getCurrentPageMovies(nextPage) 
     : (transitionDirection === 'right' ? nextForwardMovies : prevPageMovies);
 
+  // Create a movie card with placeholder handling  
+  const renderMovieCard = (movie: Movie, isLoaded: boolean) => {
+    return (
+      <div 
+        key={movie.showId} 
+        style={{ 
+          flexShrink: 0, 
+          width: "200px",
+          // Use opacity transition for smoother rendering
+          opacity: isLoaded ? 1 : 0.7,
+          transition: 'opacity 0.3s ease-in',
+          position: 'relative'
+        }}
+      >
+        {/* Show a shimmer placeholder if not loaded */}
+        {!isLoaded && (
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: '#f0f0f0',
+            borderRadius: '8px',
+            overflow: 'hidden',
+            zIndex: 0
+          }}>
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: '-100%',
+              width: '200%',
+              height: '100%',
+              background: 'linear-gradient(to right, #f0f0f0 0%, #e0e0e0 50%, #f0f0f0 100%)',
+              animation: 'shimmer 2s infinite',
+            }} />
+          </div>
+        )}
+        
+        {/* The actual movie card */}
+        <MovieCard
+          movie={movie}
+          onClick={() => onMovieClick(movie.showId)}
+        />
+      </div>
+    );
+  };
+
   return (
     <div style={{ marginBottom: "2.5rem" }}>
       <h3 style={{ 
@@ -324,15 +577,15 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
         <NavigationArrow 
           direction="left" 
           onClick={scrollPrev} 
-          disabled={currentPage === 0 || transitionActive} 
+          disabled={currentPage === 0 || transitionActive || isLoading} 
         />
         
         <div
           ref={containerRef}
           style={containerStyles}
         >
-          {/* Loading overlay that shows until all images are loaded */}
-          {!allImagesLoaded && (
+          {/* Improved loading overlay with shimmer effect */}
+          {(!allImagesLoaded || isLoading) && (
             <div style={{
               position: 'absolute',
               top: 0,
@@ -345,42 +598,38 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
               backgroundColor: 'rgba(255, 255, 255, 0.7)',
               zIndex: 10
             }}>
-              <div>Loading movies...</div>
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center'
+              }}>
+                <div style={{
+                  width: '40px',
+                  height: '40px',
+                  border: '3px solid #f3f3f3',
+                  borderTop: '3px solid var(--color-primary)',
+                  borderRadius: '50%',
+                  marginBottom: '10px',
+                  animation: 'spin 1s linear infinite',
+                }}>
+                </div>
+                <div>Loading movies...</div>
+              </div>
             </div>
           )}
           
           {/* Current page content - always rendered */}
           <div style={pageStyles(!transitionActive, getCurrentPageTransform())}>
-            {visibleMovies.map((movie) => (
-              <div key={movie.showId} style={{ 
-                flexShrink: 0, 
-                width: "200px",
-                opacity: imagesLoaded[movie.showId] ? 1 : 0,
-                transition: 'opacity 0.3s ease-in'
-              }}>
-                <MovieCard
-                  movie={movie}
-                  onClick={() => onMovieClick(movie.showId)}
-                />
-              </div>
-            ))}
+            {visibleMovies.map((movie) => 
+              renderMovieCard(movie, Boolean(imagesLoaded[movie.showId]))
+            )}
           </div>
           
           {/* Target page content - shown during transition */}
           <div style={pageStyles(transitionActive, getNextPageTransform())}>
-            {targetPageMovies.map((movie) => (
-              <div key={movie.showId} style={{ 
-                flexShrink: 0, 
-                width: "200px",
-                opacity: imagesLoaded[movie.showId] ? 1 : 0,
-                transition: 'opacity 0.3s ease-in'
-              }}>
-                <MovieCard
-                  movie={movie}
-                  onClick={() => onMovieClick(movie.showId)}
-                />
-              </div>
-            ))}
+            {targetPageMovies.map((movie) => 
+              renderMovieCard(movie, Boolean(imagesLoaded[movie.showId]))
+            )}
           </div>
         </div>
         
