@@ -6,6 +6,8 @@ import Card from 'react-bootstrap/Card';
 import Button from 'react-bootstrap/Button';
 import Alert from 'react-bootstrap/Alert';
 import Breadcrumb from 'react-bootstrap/Breadcrumb';
+import Modal from 'react-bootstrap/Modal';
+import Form from 'react-bootstrap/Form';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MovieList, movieListApi } from '../services/api';
 
@@ -15,6 +17,11 @@ const ListDetailsPage: React.FC = () => {
   const [list, setList] = useState<MovieList | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editIsPublic, setEditIsPublic] = useState(false);
+  const [updateError, setUpdateError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchList = async () => {
@@ -24,6 +31,12 @@ const ListDetailsPage: React.FC = () => {
         setLoading(true);
         const response = await movieListApi.getListById(parseInt(listId, 10));
         setList(response.data);
+        
+        // Initialize edit form with current values
+        setEditName(response.data.name || '');
+        setEditDescription(response.data.description || '');
+        setEditIsPublic(response.data.isPublic || false);
+        
         setError(null);
       } catch (err) {
         console.error('Error fetching list details:', err);
@@ -35,6 +48,54 @@ const ListDetailsPage: React.FC = () => {
 
     fetchList();
   }, [listId]);
+  
+  // Function to open the edit modal
+  const openEditModal = () => {
+    if (list) {
+      setEditName(list.name);
+      setEditDescription(list.description || '');
+      setEditIsPublic(list.isPublic);
+      setUpdateError(null);
+      setShowEditModal(true);
+    }
+  };
+  
+  // Handle edit form submission
+  const handleUpdateList = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!listId || !list) return;
+    
+    if (!editName.trim()) {
+      setUpdateError('List name is required');
+      return;
+    }
+    
+    try {
+      await movieListApi.updateList(
+        parseInt(listId, 10), 
+        {
+          name: editName,
+          description: editDescription || undefined,
+          isPublic: editIsPublic
+        }
+      );
+      
+      // Update local state with new values
+      setList({
+        ...list,
+        name: editName,
+        description: editDescription,
+        isPublic: editIsPublic
+      });
+      
+      // Close the modal
+      setShowEditModal(false);
+      setUpdateError(null);
+    } catch (err) {
+      console.error('Error updating list:', err);
+      setUpdateError('Failed to update list. Please try again.');
+    }
+  };
 
   const handleRemoveMovie = async (showId: string) => {
     if (!listId || !list) return;
@@ -88,9 +149,20 @@ const ListDetailsPage: React.FC = () => {
             Created: {new Date(list.createdDate).toLocaleDateString()}
           </p>
         </div>
-        <Button variant="outline-primary" onClick={() => navigate('/movies')}>
-          Add Movies
-        </Button>
+        <div className="d-flex gap-2">
+          <Button 
+            variant="outline-secondary" 
+            onClick={openEditModal}
+          >
+            Edit List
+          </Button>
+          <Button 
+            variant="outline-primary" 
+            onClick={() => navigate('/movies')}
+          >
+            Add Movies
+          </Button>
+        </div>
       </div>
 
       {list.items && list.items.length > 0 ? (
@@ -143,6 +215,64 @@ const ListDetailsPage: React.FC = () => {
           </Button>
         </div>
       )}
+
+      {/* Edit List Modal */}
+      <Modal 
+        show={showEditModal} 
+        onHide={() => setShowEditModal(false)}
+        centered
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Edit List</Modal.Title>
+        </Modal.Header>
+        <Form onSubmit={handleUpdateList}>
+          <Modal.Body>
+            {updateError && (
+              <Alert variant="danger">{updateError}</Alert>
+            )}
+            <Form.Group className="mb-3">
+              <Form.Label>List Name</Form.Label>
+              <Form.Control
+                type="text"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                required
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Description (Optional)</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={3}
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Check
+                type="checkbox"
+                label="Make this list public"
+                checked={editIsPublic}
+                onChange={(e) => setEditIsPublic(e.target.checked)}
+              />
+            </Form.Group>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button 
+              variant="secondary" 
+              onClick={() => setShowEditModal(false)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant="primary" 
+              type="submit"
+            >
+              Save Changes
+            </Button>
+          </Modal.Footer>
+        </Form>
+      </Modal>
     </Container>
   );
 };
