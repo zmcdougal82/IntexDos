@@ -582,7 +582,7 @@ const HomeRecommender: React.FC<HomeRecommenderProps> = ({ userId }) => {
     
     try {
       console.log(`Loading more for section "${section}", page ${page}`);
-      const limit = 10; // Number of new recommendations to fetch
+      const limit = 15; // Increased limit for better pagination
       
       // Construct the API endpoint for more recommendations
       const endpoint = `${RECOMMENDATION_API_URL}/recommendations/${userId}/more`;
@@ -602,6 +602,26 @@ const HomeRecommender: React.FC<HomeRecommenderProps> = ({ userId }) => {
         movieIds = response.data.genres[section];
       }
       
+      // If we get no results for collaborative section, fall back to popular movies
+      if (!movieIds.length && section === 'collaborative') {
+        console.log("Ran out of collaborative recommendations, fetching popular movies as fallback");
+        try {
+          // Fetch popular movies as fallback using getAll API
+          const popularResponse = await movieApi.getAll(page + 1, limit);
+          if (popularResponse.data && popularResponse.data.length > 0) {
+            // Return the popular movies directly
+            return popularResponse.data.filter((movie: Movie) => 
+              movie !== null && 
+              movie.showId && 
+              movie.title
+            );
+          }
+        } catch (popularErr) {
+          console.error("Error fetching popular movies fallback:", popularErr);
+        }
+      }
+      
+      // Return empty array if no movieIds and fallback failed
       if (!movieIds.length) return [];
       
       // Create a set of all already displayed movie IDs to prevent duplicates
