@@ -26,7 +26,19 @@ const MoviesPage = () => {
 
       let response;
 
-      if (searchQuery) {
+      // Handle case when both search query and genres are selected
+      if (searchQuery && selectedGenres.length > 0) {
+        // First search by query and field
+        const searchResponse = await movieApi.searchMovies(searchQuery, searchField, pageNum);
+        // Then filter those results by selected genres (client-side filtering)
+        response = {
+          ...searchResponse,
+          data: searchResponse.data.filter(item => {
+            // Check if the item has any of the selected genres
+            return selectedGenres.some(genre => (item as any)[genre] === 1);
+          })
+        };
+      } else if (searchQuery) {
         response = await movieApi.searchMovies(searchQuery, searchField, pageNum);
       } else if (selectedGenres.length > 0) {
         // Use the multi-genre endpoint when multiple genres are selected
@@ -117,6 +129,7 @@ const MoviesPage = () => {
       }
     });
     setPage(1);
+    // Don't clear searchQuery so users can filter search results by genre
   };
 
   const handleSearch = async (e: React.FormEvent) => {
