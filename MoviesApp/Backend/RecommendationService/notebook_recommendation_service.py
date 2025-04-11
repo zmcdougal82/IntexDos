@@ -491,11 +491,16 @@ class NotebookRecommendationService:
             selected_genres = random.sample(available_genres, min(3, len(available_genres)))
             
             for genre in selected_genres:
-                genre_movies = self.get_genre_movies(genre, limit=10, offset=offset)
+                # Get twice as many recommendations as needed to ensure we have enough after validation
+                genre_movies = self.get_genre_movies(genre, limit=20, offset=offset)
                 # Validate genre movie IDs
                 genre_movies = self.validate_movie_ids(genre_movies)
-                if genre_movies:  # Only add genres that have valid movies
-                    genres_dict[genre] = genre_movies
+                if genre_movies and len(genre_movies) > 0:  # Only add genres that have valid movies
+                    # Limit to requested number after validation
+                    genres_dict[genre] = genre_movies[:limit]
+                    logger.info(f"Genre {genre}: {len(genre_movies)} valid recommendations found")
+                else:
+                    logger.warning(f"No valid movies found for genre {genre}")
             
         else:
             # Fallback to random recommendations if no database connection
@@ -549,10 +554,14 @@ class NotebookRecommendationService:
         if section == 'collaborative':
             # Get collaborative filtering recommendations with offset
             if self.conn:
-                recommendations = self.get_collaborative_recommendations(user_id, limit=limit, offset=offset)
+                # Request more recommendations than needed to ensure we have enough after validation
+                expanded_limit = limit * 2
+                recommendations = self.get_collaborative_recommendations(user_id, limit=expanded_limit, offset=offset)
                 # Validate the recommendations
                 recommendations = self.validate_movie_ids(recommendations)
-                logger.info(f"Returning {len(recommendations)} validated collaborative recommendations")
+                logger.info(f"Returning {len(recommendations)} validated collaborative recommendations (requested {expanded_limit})")
+                # Limit to the requested number after validation
+                recommendations = recommendations[:limit]
             else:
                 # Deterministic random sampling for consistent results
                 random.seed(int(user_id) if user_id.isdigit() else sum(ord(c) for c in user_id))
@@ -571,10 +580,14 @@ class NotebookRecommendationService:
         elif section == 'contentBased':
             # Get content-based recommendations with offset
             if self.conn:
-                recommendations = self.get_content_based_recommendations(user_id, limit=limit, offset=offset)
+                # Request more recommendations than needed to ensure we have enough after validation
+                expanded_limit = limit * 2
+                recommendations = self.get_content_based_recommendations(user_id, limit=expanded_limit, offset=offset)
                 # Validate the recommendations
                 recommendations = self.validate_movie_ids(recommendations)
-                logger.info(f"Returning {len(recommendations)} validated content-based recommendations")
+                logger.info(f"Returning {len(recommendations)} validated content-based recommendations (requested {expanded_limit})")
+                # Limit to the requested number after validation
+                recommendations = recommendations[:limit]
             else:
                 # Deterministic random sampling with different seed
                 random.seed((int(user_id) if user_id.isdigit() else sum(ord(c) for c in user_id)) + 100)
@@ -592,10 +605,14 @@ class NotebookRecommendationService:
         else:
             # Assume it's a genre
             if self.conn:
-                recommendations = self.get_genre_movies(section, limit=limit, offset=offset)
+                # Request more recommendations than needed to ensure we have enough after validation
+                expanded_limit = limit * 2
+                recommendations = self.get_genre_movies(section, limit=expanded_limit, offset=offset)
                 # Validate the recommendations
                 recommendations = self.validate_movie_ids(recommendations)
-                logger.info(f"Returning {len(recommendations)} validated genre recommendations for {section}")
+                logger.info(f"Returning {len(recommendations)} validated genre recommendations for {section} (requested {expanded_limit})")
+                # Limit to the requested number after validation
+                recommendations = recommendations[:limit]
             else:
                 # Deterministic random sampling with genre-specific seed
                 genre_seed = sum(ord(c) for c in section)

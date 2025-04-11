@@ -467,80 +467,133 @@ const HomeRecommender: React.FC<HomeRecommender> = ({ userId }) => {
           throw new Error("No recommendations data available.");
         }
 
-        // Process collaborative filtering recommendations
-        if (recommendationsData.collaborative && recommendationsData.collaborative.length > 0) {
-          const movieResponses = await Promise.all(
-            recommendationsData.collaborative.map(async (id) => {
-              try {
-                // Ensure we're using database-style IDs (s1, s2, etc.)
-                // If the ID is already in the correct format, use it directly
-                const dbStyleId = id.startsWith('s') ? id : `s${id.replace(/\D/g, '')}`;
-                
-                // Try to get from main API using database-style ID
-                const movieResponse = await movieApi.getById(dbStyleId);
-                return movieResponse.data;
-              } catch (err) {
-                console.warn(`Failed to fetch movie ${id} from main API - skipping this recommendation`);
-                return null; // Return null to filter it out later
-              }
-            })
-          );
-
-          setCollaborativeMovies(movieResponses.filter(movie => movie !== null) as Movie[]);
-        }
-
-        // Process content-based recommendations
-        if (recommendationsData.contentBased && recommendationsData.contentBased.length > 0) {
-          const movieResponses = await Promise.all(
-            recommendationsData.contentBased.map(async (id) => {
-              try {
-                // Ensure we're using database-style IDs (s1, s2, etc.)
-                // If the ID is already in the correct format, use it directly
-                const dbStyleId = id.startsWith('s') ? id : `s${id.replace(/\D/g, '')}`;
-                
-                // Try to get from main API using database-style ID
-                const movieResponse = await movieApi.getById(dbStyleId);
-                return movieResponse.data;
-              } catch (err) {
-                console.warn(`Failed to fetch movie ${id} from main API - skipping this recommendation`);
-                return null; // Return null to filter it out later
-              }
-            })
-          );
-
-          setContentBasedMovies(movieResponses.filter(movie => movie !== null) as Movie[]);
-        }
+// Process collaborative filtering recommendations
+if (recommendationsData.collaborative && recommendationsData.collaborative.length > 0) {
+  const movieResponses = await Promise.all(
+    recommendationsData.collaborative.map(async (id) => {
+      try {
+        // Ensure we're using database-style IDs (s1, s2, etc.)
+        // If the ID is already in the correct format, use it directly
+        const dbStyleId = id.startsWith('s') ? id : `s${id.replace(/\D/g, '')}`;
         
-        // Process genre-based recommendations
-        if (recommendationsData.genres) {
-          const genreResults: Record<string, Movie[]> = {};
-
-          for (const [genre, movieIds] of Object.entries(recommendationsData.genres)) {
-            if (movieIds.length > 0) {
-              const movieResponses = await Promise.all(
-                movieIds.map(async (id) => {
-                  try {
-                    // Ensure we're using database-style IDs (s1, s2, etc.)
-                    // If the ID is already in the correct format, use it directly
-                    const dbStyleId = id.startsWith('s') ? id : `s${id.replace(/\D/g, '')}`;
-                    
-                    // Try to get from main API using database-style ID
-                    const movieResponse = await movieApi.getById(dbStyleId);
-                    return movieResponse.data;
-                  } catch (err) {
-                    console.warn(`Failed to fetch movie ${id} from main API - skipping this recommendation`);
-                    // Skip this movie if it's not in the database
-                    return null;
-                  }
-                })
-              );
-
-              genreResults[genre] = movieResponses.filter(movie => movie !== null) as Movie[];
-            }
-          }
-
-          setGenreMovies(genreResults);
+        // Try to get from main API using database-style ID
+        const movieResponse = await movieApi.getById(dbStyleId);
+        
+        // Verify the movie data is valid and has essential properties
+        if (movieResponse.data && movieResponse.data.showId && movieResponse.data.title) {
+          return movieResponse.data;
+        } else {
+          console.warn(`Movie ${id} data is incomplete - skipping this recommendation`);
+          return null;
         }
+      } catch (err) {
+        console.warn(`Failed to fetch movie ${id} from main API - skipping this recommendation`);
+        return null; // Return null to filter it out later
+      }
+    })
+  );
+
+  // Filter out any null or invalid movies
+  const validMovies = movieResponses.filter(movie => 
+    movie !== null && 
+    movie !== undefined && 
+    movie.showId && 
+    movie.title
+  ) as Movie[];
+  
+  setCollaborativeMovies(validMovies);
+  console.log(`Filtered collaborative recommendations: ${validMovies.length} valid out of ${movieResponses.length} total`);
+}
+
+// Process content-based recommendations
+if (recommendationsData.contentBased && recommendationsData.contentBased.length > 0) {
+  const movieResponses = await Promise.all(
+    recommendationsData.contentBased.map(async (id) => {
+      try {
+        // Ensure we're using database-style IDs (s1, s2, etc.)
+        // If the ID is already in the correct format, use it directly
+        const dbStyleId = id.startsWith('s') ? id : `s${id.replace(/\D/g, '')}`;
+        
+        // Try to get from main API using database-style ID
+        const movieResponse = await movieApi.getById(dbStyleId);
+        
+        // Verify the movie data is valid and has essential properties
+        if (movieResponse.data && movieResponse.data.showId && movieResponse.data.title) {
+          return movieResponse.data;
+        } else {
+          console.warn(`Movie ${id} data is incomplete - skipping this recommendation`);
+          return null;
+        }
+      } catch (err) {
+        console.warn(`Failed to fetch movie ${id} from main API - skipping this recommendation`);
+        return null; // Return null to filter it out later
+      }
+    })
+  );
+
+  // Filter out any null or invalid movies
+  const validMovies = movieResponses.filter(movie => 
+    movie !== null && 
+    movie !== undefined && 
+    movie.showId && 
+    movie.title
+  ) as Movie[];
+  
+  setContentBasedMovies(validMovies);
+  console.log(`Filtered content-based recommendations: ${validMovies.length} valid out of ${movieResponses.length} total`);
+}
+        
+// Process genre-based recommendations
+if (recommendationsData.genres) {
+  const genreResults: Record<string, Movie[]> = {};
+
+  for (const [genre, movieIds] of Object.entries(recommendationsData.genres)) {
+    if (movieIds.length > 0) {
+      const movieResponses = await Promise.all(
+        movieIds.map(async (id) => {
+          try {
+            // Ensure we're using database-style IDs (s1, s2, etc.)
+            // If the ID is already in the correct format, use it directly
+            const dbStyleId = id.startsWith('s') ? id : `s${id.replace(/\D/g, '')}`;
+            
+            // Try to get from main API using database-style ID
+            const movieResponse = await movieApi.getById(dbStyleId);
+            
+            // Verify the movie data is valid and has essential properties
+            if (movieResponse.data && movieResponse.data.showId && movieResponse.data.title) {
+              return movieResponse.data;
+            } else {
+              console.warn(`Movie ${id} data is incomplete - skipping this recommendation`);
+              return null;
+            }
+          } catch (err) {
+            console.warn(`Failed to fetch movie ${id} from main API - skipping this recommendation`);
+            // Skip this movie if it's not in the database
+            return null;
+          }
+        })
+      );
+
+      // Filter out any null or invalid movies
+      const validMovies = movieResponses.filter(movie => 
+        movie !== null && 
+        movie !== undefined && 
+        movie.showId && 
+        movie.title
+      ) as Movie[];
+      
+      // Only add genres that have valid movies after filtering
+      if (validMovies.length > 0) {
+        genreResults[genre] = validMovies;
+        console.log(`Filtered ${genre} recommendations: ${validMovies.length} valid out of ${movieResponses.length} total`);
+      } else {
+        console.log(`Skipping ${genre} recommendations as no valid movies were found`);
+      }
+    }
+  }
+
+  setGenreMovies(genreResults);
+}
 
         setLoading(false);
       } catch (err) {
@@ -579,57 +632,73 @@ const HomeRecommender: React.FC<HomeRecommender> = ({ userId }) => {
     );
   }
 
-  // Function to load more recommendations
-  const loadMoreRecommendations = async (section: string, page: number): Promise<Movie[]> => {
-    if (!userId) return [];
+// Function to load more recommendations
+const loadMoreRecommendations = async (section: string, page: number): Promise<Movie[]> => {
+  if (!userId) return [];
+  
+  try {
+    // Calculate the correct API parameters
+    const limit = 10; // Number of new recommendations to fetch
     
-    try {
-      // Calculate the correct API parameters
-      const limit = 10; // Number of new recommendations to fetch
-      
-      // Call the API to get more recommendations
-      console.log(`Loading more for section: ${section}, page: ${page}, limit: ${limit}`);
-      const response = await axios.get(
-        `${RECOMMENDATION_API_URL}/recommendations/${userId}/more`, 
-        { params: { section, page, limit } }
-      );
-      
-      // Log the full response for debugging
-      console.log(`API Response for ${section}:`, response.data);
-      
-      // Extract the relevant section from the response
-      let movieIds: string[] = [];
-      if (section === 'collaborative' && response.data.collaborative) {
-        console.log('Found collaborative data:', response.data.collaborative);
-        movieIds = response.data.collaborative;
-      } else if (section === 'contentBased' && response.data.contentBased) {
-        console.log('Found contentBased data:', response.data.contentBased);
-        movieIds = response.data.contentBased;
-      } else if (response.data.genres && response.data.genres[section]) {
-        console.log(`Found genre data for ${section}:`, response.data.genres[section]);
-        movieIds = response.data.genres[section];
-      } else {
-        console.warn(`No matching data found for section: ${section} in response:`, response.data);
-      }
-      
-      if (!movieIds.length) return [];
-      
-      // Fetch the movie details for each ID
-      const movies = await Promise.all(
-        movieIds.map(async (id) => {
-          try {
-            const dbStyleId = id.startsWith('s') ? id : `s${id.replace(/\D/g, '')}`;
-            const movieResponse = await movieApi.getById(dbStyleId);
+    // Call the API to get more recommendations
+    console.log(`Loading more for section: ${section}, page: ${page}, limit: ${limit}`);
+    const response = await axios.get(
+      `${RECOMMENDATION_API_URL}/recommendations/${userId}/more`, 
+      { params: { section, page, limit } }
+    );
+    
+    // Log the full response for debugging
+    console.log(`API Response for ${section}:`, response.data);
+    
+    // Extract the relevant section from the response
+    let movieIds: string[] = [];
+    if (section === 'collaborative' && response.data.collaborative) {
+      console.log('Found collaborative data:', response.data.collaborative);
+      movieIds = response.data.collaborative;
+    } else if (section === 'contentBased' && response.data.contentBased) {
+      console.log('Found contentBased data:', response.data.contentBased);
+      movieIds = response.data.contentBased;
+    } else if (response.data.genres && response.data.genres[section]) {
+      console.log(`Found genre data for ${section}:`, response.data.genres[section]);
+      movieIds = response.data.genres[section];
+    } else {
+      console.warn(`No matching data found for section: ${section} in response:`, response.data);
+    }
+    
+    if (!movieIds.length) return [];
+    
+    // Fetch the movie details for each ID
+    const movies = await Promise.all(
+      movieIds.map(async (id) => {
+        try {
+          const dbStyleId = id.startsWith('s') ? id : `s${id.replace(/\D/g, '')}`;
+          const movieResponse = await movieApi.getById(dbStyleId);
+          
+          // Verify the movie data is valid and has essential properties
+          if (movieResponse.data && movieResponse.data.showId && movieResponse.data.title) {
             return movieResponse.data;
-          } catch (err) {
-            console.warn(`Failed to fetch movie ${id} from main API:`, err);
-            // Skip this movie since it's not in the database
+          } else {
+            console.warn(`Movie ${id} data is incomplete when loading more - skipping`);
             return null;
           }
-        })
-      );
-      
-      return movies.filter(movie => movie !== null) as Movie[];
+        } catch (err) {
+          console.warn(`Failed to fetch movie ${id} from main API:`, err);
+          // Skip this movie since it's not in the database
+          return null;
+        }
+      })
+    );
+    
+    // Apply more rigorous filtering to ensure only valid movies are included
+    const validMovies = movies.filter(movie => 
+      movie !== null && 
+      movie !== undefined && 
+      movie.showId && 
+      movie.title
+    ) as Movie[];
+    
+    console.log(`Loaded more ${section} recommendations: ${validMovies.length} valid out of ${movies.length} total`);
+    return validMovies;
     } catch (err) {
       console.error(`Error loading more recommendations for section ${section}:`, err);
       return [];
