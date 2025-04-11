@@ -154,23 +154,74 @@ const SingleMovieCard: React.FC<SingleMovieCardProps> = ({ movie, onClick }) => 
   );
 };
 
-// Simple Card Grid component
-const MovieGrid: React.FC<{
+interface MoviePageProps {
   movies: Movie[];
   onMovieClick: (id: string) => void;
-  pageKey: string;
-}> = ({ movies, onMovieClick, pageKey }) => {
-  // Preload all images before rendering
-  useEffect(() => {
-    // Start preloading all images
-    movies.forEach(movie => {
-      if (movie.posterUrl) {
-        const img = new Image();
-        img.src = movie.posterUrl;
-      }
-    });
-  }, [movies]);
+  pageKey: string; // Unique key for this page of movies
+}
 
+// Complete page of movies that waits for all images to load before display
+const MoviePage: React.FC<MoviePageProps> = ({ movies, onMovieClick, pageKey }) => {
+  const [allLoaded, setAllLoaded] = useState<boolean>(false);
+  
+  useEffect(() => {
+    // Preload all images before showing
+    const loadAllImages = async () => {
+      setAllLoaded(false);
+      
+      // Wait for all images to load in parallel
+      const loadPromises = movies.map(movie => 
+        preloadImage(movie.posterUrl)
+      );
+      
+      // Wait for all promises to resolve
+      await Promise.all(loadPromises);
+      
+      // Show the content once all are loaded
+      setAllLoaded(true);
+    };
+    
+    loadAllImages();
+  }, [movies]);
+  
+  // Show a loading placeholder if not all images are loaded
+  if (!allLoaded) {
+    return (
+      <div style={{ 
+        display: "grid", 
+        gridTemplateColumns: "repeat(5, 1fr)",
+        gap: "1.5rem", 
+        width: "100%",
+      }}>
+        {movies.map((_, index) => (
+          <div
+            key={`loading-${index}`}
+            style={{
+              width: "200px",
+              height: "300px",
+              backgroundColor: "#f0f0f0",
+              borderRadius: "8px",
+              overflow: "hidden",
+            }}
+          >
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                left: "-100%",
+                width: "200%",
+                height: "100%",
+                background:
+                  "linear-gradient(to right, #f0f0f0 0%, #e0e0e0 50%, #f0f0f0 100%)",
+                animation: "shimmer 2s infinite linear",
+              }}
+            />
+          </div>
+        ))}
+      </div>
+    );
+  }
+  
   return (
     <div 
       key={pageKey}
@@ -313,7 +364,7 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
             backgroundColor: "transparent",
           }}
         >
-          <MovieGrid 
+          <MoviePage 
             movies={visibleMovies}
             onMovieClick={onMovieClick}
             pageKey={pageKey}
@@ -335,8 +386,6 @@ const HomeRecommender: React.FC<HomeRecommenderProps> = ({ userId }) => {
   const [contentBasedMovies, setContentBasedMovies] = useState<Movie[]>([]);
   const [genreMovies, setGenreMovies] = useState<Record<string, Movie[]>>({});
   const [loading, setLoading] = useState<boolean>(false);
-  const [initialLoading, setInitialLoading] = useState<boolean>(true);
-  const [loadingProgress, setLoadingProgress] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
 
   const navigate = useNavigate();
@@ -357,66 +406,6 @@ const HomeRecommender: React.FC<HomeRecommenderProps> = ({ userId }) => {
     return formatted;
   };
 
-  // Loading overlay component
-  const LoadingOverlay = ({ progress }: { progress: number }) => {
-    return (
-      <div style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1000
-      }}>
-        <h2 style={{ marginBottom: '1rem' }}>Preloading Movie Recommendations</h2>
-        <div style={{ 
-          width: '300px', 
-          height: '20px', 
-          backgroundColor: '#f0f0f0',
-          borderRadius: '10px',
-          overflow: 'hidden',
-          marginBottom: '1rem'
-        }}>
-          <div style={{
-            width: `${progress}%`,
-            height: '100%',
-            backgroundColor: 'var(--color-primary)',
-            transition: 'width 0.3s ease-in-out'
-          }} />
-        </div>
-        <p>{progress}% complete</p>
-      </div>
-    );
-  };
-
-  // Function to preload a batch of movies for a section
-  const preloadMoviesForSection = async (section: string, startPage: number, batchSize: number) => {
-    const totalToLoad = 100;
-    const batchCount = Math.ceil(totalToLoad / batchSize);
-    const loadedMovies: Movie[] = [];
-    
-    for (let i = 0; i < batchCount; i++) {
-      const page = startPage + i;
-      try {
-        const newMovies = await loadMoreRecommendations(section, page, batchSize);
-        if (newMovies.length === 0) break; // No more movies available
-        
-        loadedMovies.push(...newMovies);
-        if (loadedMovies.length >= totalToLoad) break; // We have enough movies
-      } catch (err) {
-        console.error(`Error batch loading movies for ${section}:`, err);
-        break;
-      }
-    }
-    
-    return loadedMovies;
-  };
-
   useEffect(() => {
     const fetchRecommendations = async () => {
       if (!userId) {
@@ -425,7 +414,6 @@ const HomeRecommender: React.FC<HomeRecommenderProps> = ({ userId }) => {
       }
 
       setLoading(true);
-      setInitialLoading(true);
       setError(null);
 
       try {
@@ -584,11 +572,13 @@ const HomeRecommender: React.FC<HomeRecommenderProps> = ({ userId }) => {
     navigate(`/movie/${movieId}`);
   };
 
-  // Function to load more recommendations (up to 100 per section)
-  const loadMoreRecommendations = async (section: string, page: number, limit: number = 20): Promise<Movie[]> => {
+  // Function to load more recommendations
+  const loadMoreRecommendations = async (section: string, page: number): Promise<Movie[]> => {
     if (!userId) return [];
     
     try {
+      const limit = 10; // Number of new recommendations to fetch
+      
       const response = await axios.get(
         `${RECOMMENDATION_API_URL}/recommendations/${userId}/more`, 
         { params: { section, page, limit } }
@@ -640,129 +630,6 @@ const HomeRecommender: React.FC<HomeRecommenderProps> = ({ userId }) => {
     }
   };
 
-  // Check if we have any recommendations to display
-  const hasRecommendations = 
-    collaborativeMovies.length > 0 || 
-    contentBasedMovies.length > 0 || 
-    Object.values(genreMovies).some(movies => movies.length > 0);
-
-  // Effect to preload additional movies for all sections
-  useEffect(() => {
-    const preloadAdditionalMovies = async () => {
-      if (!userId || loading || error || !hasRecommendations) return;
-      
-      try {
-        // Start preloading process
-        setInitialLoading(true);
-        setLoadingProgress(0);
-        
-        // Determine sections to preload
-        const sectionsToPreload: string[] = [];
-        
-        // Add collaborative section if present
-        if (collaborativeMovies.length > 0) {
-          sectionsToPreload.push('collaborative');
-        }
-        
-        // Add content-based section if present
-        if (contentBasedMovies.length > 0) {
-          sectionsToPreload.push('contentBased');
-        }
-        
-        // Add genre sections if present
-        const genreSections = Object.keys(genreMovies).filter(genre => genreMovies[genre].length > 0);
-        sectionsToPreload.push(...genreSections);
-        
-        // Calculate progress increment per section
-        const progressPerSection = 100 / sectionsToPreload.length;
-        let currentProgress = 0;
-        
-        // Additional movies map to store results
-        const additionalMovies: Record<string, Movie[]> = {};
-        
-        // Load movies for each section
-        for (let i = 0; i < sectionsToPreload.length; i++) {
-          const section = sectionsToPreload[i];
-          console.log(`Preloading additional movies for section: ${section}`);
-          
-          try {
-            // Preload a batch of movies (starting from the second page as the first is already loaded)
-            const newMovies = await preloadMoviesForSection(section, 1, 20);
-            additionalMovies[section] = newMovies;
-            
-            // Also preload the images for these movies
-            await Promise.all(
-              newMovies.map(movie => preloadImage(movie.posterUrl))
-            );
-            
-            // Update progress
-            currentProgress += progressPerSection;
-            setLoadingProgress(Math.min(Math.round(currentProgress), 99));
-          } catch (err) {
-            console.error(`Error preloading movies for section ${section}:`, err);
-          }
-        }
-        
-        // Update movie collections with preloaded content
-        if (additionalMovies.collaborative && additionalMovies.collaborative.length > 0) {
-          setCollaborativeMovies(prev => {
-            const existingIds = new Set(prev.map(m => m.showId));
-            return [...prev, ...additionalMovies.collaborative.filter(m => !existingIds.has(m.showId))];
-          });
-        }
-        
-        if (additionalMovies.contentBased && additionalMovies.contentBased.length > 0) {
-          setContentBasedMovies(prev => {
-            const existingIds = new Set(prev.map(m => m.showId));
-            return [...prev, ...additionalMovies.contentBased.filter(m => !existingIds.has(m.showId))];
-          });
-        }
-        
-        // Update genre collections
-        for (const genre of Object.keys(genreMovies)) {
-          if (additionalMovies[genre] && additionalMovies[genre].length > 0) {
-            setGenreMovies(prev => {
-              const updatedGenres = { ...prev };
-              const existingIds = new Set(prev[genre]?.map(m => m.showId) || []);
-              updatedGenres[genre] = [
-                ...(prev[genre] || []), 
-                ...additionalMovies[genre].filter(m => !existingIds.has(m.showId))
-              ];
-              return updatedGenres;
-            });
-          }
-        }
-        
-        // Complete loading
-        setLoadingProgress(100);
-        setTimeout(() => {
-          setInitialLoading(false);
-        }, 500); // Give a small delay to show 100%
-      } catch (err) {
-        console.error("Error preloading additional movies:", err);
-        setInitialLoading(false);
-      }
-    };
-    
-    // Start preloading after initial data is loaded
-    if (hasRecommendations && !loading && !initialLoading) {
-      preloadAdditionalMovies();
-    }
-  }, [
-    userId, 
-    loading, 
-    hasRecommendations, 
-    collaborativeMovies.length, 
-    contentBasedMovies.length, 
-    Object.keys(genreMovies).length
-  ]);
-
-  // Show loading overlay during initial loading
-  if (initialLoading) {
-    return <LoadingOverlay progress={loadingProgress} />;
-  }
-  
-  // Show regular loading message during initial API fetch
   if (loading) {
     return <div style={{ padding: "2rem 0", textAlign: "center" }}>Loading your personalized recommendations...</div>;
   }
@@ -770,6 +637,12 @@ const HomeRecommender: React.FC<HomeRecommenderProps> = ({ userId }) => {
   if (error) {
     return <div style={{ padding: "2rem 0", color: "var(--color-error)" }}>{error}</div>;
   }
+
+  // Check if we have any recommendations to display
+  const hasRecommendations = 
+    collaborativeMovies.length > 0 || 
+    contentBasedMovies.length > 0 || 
+    Object.values(genreMovies).some(movies => movies.length > 0);
 
   if (!hasRecommendations) {
     return (
