@@ -249,26 +249,55 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
     }
   };
 
-  // Get transform values for animation
-  const getTransform = (isNextPage: boolean) => {
-    if (!transitionActive || transitionDirection === null) {
-      return 'translateX(0)';
-    }
-    
-    const distance = '100%';
-    
-    if (isNextPage) {
-      // Next page starts offscreen and moves in
-      return transitionDirection === 'right' 
-        ? `translateX(${distance})` 
-        : `translateX(-${distance})`;
-    } else {
-      // Current page starts centered and moves out
-      return transitionDirection === 'right' 
-        ? `translateX(-${distance})` 
-        : `translateX(${distance})`;
-    }
+  const containerStyles = {
+    position: "relative" as const,
+    paddingBottom: "1rem",
+    paddingLeft: "40px",
+    paddingRight: "40px",
+    overflow: "hidden",
+    height: "395px", // Fixed height to prevent layout shifts
+    backgroundColor: "transparent" // Ensure no background color
   };
+
+  // This styling approach provides a cleaner and more consistent transition
+  const pageStyles = (isVisible: boolean, direction: number) => ({
+    display: "flex",
+    gap: "1.5rem",
+    position: "absolute" as const,
+    top: 0,
+    left: 0,
+    right: 0,
+    width: "100%",
+    justifyContent: "center",
+    visibility: isVisible ? "visible" as const : "hidden" as const,
+    opacity: isVisible ? 1 : 0,
+    transform: `translateX(${direction}%)`,
+    transition: transitionActive 
+      ? `opacity ${TRANSITION_DURATION}ms ease-out, transform ${TRANSITION_DURATION}ms ease-out` 
+      : "none",
+    willChange: "opacity, transform", // Performance optimization
+    zIndex: isVisible ? 2 : 1
+  });
+
+  // Calculate direction and offset for each page
+  const getCurrentPageTransform = () => {
+    if (!transitionActive) return 0;
+    return transitionDirection === 'right' ? -100 : 100;
+  };
+
+  const getNextPageTransform = () => {
+    if (!transitionActive) return transitionDirection === 'right' ? 100 : -100;
+    return 0;
+  };
+
+  // This approach ensures we always preload the next possible page direction
+  const prevPageMovies = currentPage > 0 ? getCurrentPageMovies(currentPage - 1) : [];
+  const nextForwardMovies = currentPage < totalPages - 1 ? getCurrentPageMovies(currentPage + 1) : [];
+  
+  // Determine which page to show as the "next" page during transition
+  const targetPageMovies = nextPage !== null 
+    ? getCurrentPageMovies(nextPage) 
+    : (transitionDirection === 'right' ? nextForwardMovies : prevPageMovies);
 
   return (
     <div style={{ marginBottom: "2.5rem" }}>
@@ -289,33 +318,10 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
         
         <div
           ref={containerRef}
-          style={{
-            position: "relative",
-            paddingBottom: "1rem",
-            paddingLeft: "40px",
-            paddingRight: "40px",
-            overflow: "hidden",
-            height: "395px", // Fixed height to prevent layout shifts
-            backgroundColor: "transparent" // Ensure no background color
-          }}
+          style={containerStyles}
         >
-          {/* Current page content */}
-          <div 
-            style={{
-              display: "flex",
-              gap: "1.5rem",
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              width: "100%",
-              justifyContent: "center",
-              opacity: transitionActive ? 0 : 1,
-              transform: transitionActive ? getTransform(false) : 'translateX(0)',
-              transition: `opacity ${TRANSITION_DURATION}ms ease-in-out, transform ${TRANSITION_DURATION}ms ease-in-out`,
-              willChange: "opacity, transform" // Performance optimization
-            }}
-          >
+          {/* Current page content - always rendered */}
+          <div style={pageStyles(!transitionActive, getCurrentPageTransform())}>
             {visibleMovies.map((movie) => (
               <div key={movie.showId} style={{ flexShrink: 0, width: "200px" }}>
                 <MovieCard
@@ -326,34 +332,17 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
             ))}
           </div>
           
-          {/* Next/previous page content - shown during transition */}
-          {nextPage !== null && nextPageMovies.length > 0 && (
-            <div 
-              style={{
-                display: "flex",
-                gap: "1.5rem",
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                width: "100%",
-                justifyContent: "center",
-                opacity: transitionActive ? 1 : 0,
-                transform: !transitionActive ? getTransform(true) : 'translateX(0)',
-                transition: `opacity ${TRANSITION_DURATION}ms ease-in-out, transform ${TRANSITION_DURATION}ms ease-in-out`,
-                willChange: "opacity, transform" // Performance optimization
-              }}
-            >
-              {nextPageMovies.map((movie) => (
-                <div key={movie.showId} style={{ flexShrink: 0, width: "200px" }}>
-                  <MovieCard
-                    movie={movie}
-                    onClick={() => onMovieClick(movie.showId)}
-                  />
-                </div>
-              ))}
-            </div>
-          )}
+          {/* Target page content - shown during transition */}
+          <div style={pageStyles(transitionActive, getNextPageTransform())}>
+            {targetPageMovies.map((movie) => (
+              <div key={movie.showId} style={{ flexShrink: 0, width: "200px" }}>
+                <MovieCard
+                  movie={movie}
+                  onClick={() => onMovieClick(movie.showId)}
+                />
+              </div>
+            ))}
+          </div>
         </div>
         
         <NavigationArrow 
