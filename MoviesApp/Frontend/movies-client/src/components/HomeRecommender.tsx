@@ -4,15 +4,18 @@ import { movieApi, Movie } from "../services/api";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-interface HomeRecommenderProps {
-  userId: string | null;
+interface HomeRecommender {
+  userId: string | null; // Accept userId as string or null
 }
 
 // Get recommendation API URL based on environment
 const getRecommendationApiUrl = () => {
-  return window.location.hostname !== "localhost"
-    ? "https://moviesapp-recommendation-service.azurewebsites.net"
-    : "http://localhost:8001";
+  // If running in production (like Azure static website)
+  if (window.location.hostname !== "localhost") {
+    return "https://moviesapp-recommendation-service.azurewebsites.net";
+  }
+  // If running locally
+  return "http://localhost:8001";
 };
 
 const RECOMMENDATION_API_URL = getRecommendationApiUrl();
@@ -82,188 +85,111 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
   const [loadedPages, setLoadedPages] = useState<number[]>([0]);
   const [allMovies, setAllMovies] = useState<Movie[]>(movies);
   const [isLoading, setIsLoading] = useState(false);
-  const [imagesLoaded, setImagesLoaded] = useState<Record<string, boolean>>({});
+  const [nextPagePreloaded, setNextPagePreloaded] = useState(false);
+  const [transitionActive, setTransitionActive] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  
-  const moviesPerPage = 5;
-  
-  // Image preload state
-  const [imageLoadPromises, setImageLoadPromises] = useState<Record<string, Promise<boolean>>>({});
-  
-  // Improved robust image preloading function
-  const preloadImage = (movie: Movie): Promise<boolean> => {
-    if (!movie || !movie.posterUrl) {
-      // If no movie or no poster URL, mark as loaded
-      return Promise.resolve(true);
-    }
-    
-    // Skip if already loaded
-    if (imagesLoaded[movie.showId]) {
-      return Promise.resolve(true);
-    }
-    
-    // If we already have a promise for this image, return it
-    if (movie.showId in imageLoadPromises) {
-      return imageLoadPromises[movie.showId];
-    }
-    
-    // Create a new promise for this image
-    const loadPromise = new Promise<boolean>((resolve) => {
-      // Create a new image object to preload
-      const img = new Image();
-      
-      // Set up handlers
-      img.onload = () => {
-        // Mark as loaded in the state
-        setImagesLoaded(prev => ({...prev, [movie.showId]: true}));
-        resolve(true);
-      };
-      
-      img.onerror = () => {
-        console.warn(`Failed to load image for movie: ${movie.showId}`);
-        // Even on error, we'll mark it as "loaded" to avoid blocking navigation
-        setImagesLoaded(prev => ({...prev, [movie.showId]: true}));
-        resolve(false);
-      };
-      
-      // Start loading (after handlers are set up)
-      if (movie.posterUrl) {
-        img.src = movie.posterUrl;
-      }
-    });
-    
-    // Save this promise
-    setImageLoadPromises(prev => ({
-      ...prev,
-      [movie.showId]: loadPromise
-    }));
-    
-    return loadPromise;
-  };
   
   // Update allMovies when movies prop changes
   useEffect(() => {
     setAllMovies(movies);
-    
-    // Start preloading all visible movies
-    if (movies.length > 0) {
-      movies.forEach(movie => preloadImage(movie));
-    }
   }, [movies]);
   
   // Calculate the total number of pages
-  const totalPages = Math.max(
-    Math.ceil(allMovies.length / moviesPerPage), 
-    loadedPages.length + 1
-  );
+  const moviesPerPage = 5;
+  const totalPages = Math.max(Math.ceil(allMovies.length / moviesPerPage), loadedPages.length + 1);
   
-  // Get the current visible movies
-  const getCurrentPageMovies = (page: number) => {
-    return allMovies.slice(
-      page * moviesPerPage, 
-      (page + 1) * moviesPerPage
-    );
-  };
-  
-  const visibleMovies = getCurrentPageMovies(currentPage);
-  
-  if (allMovies.length === 0) return null;
-  
-  // Enhanced scrollPrev function - ensures all images are loaded before page change
-  const scrollPrev = () => {
-    if (currentPage > 0 && !isLoading) {
-      const targetPage = currentPage - 1;
-      
-      // Check if the previous page's images are all loaded
-      const prevPageMovies = getCurrentPageMovies(targetPage);
-      const allPrevPageImagesLoaded = prevPageMovies.every(
-        movie => !movie.posterUrl || imagesLoaded[movie.showId]
-      );
-      
-      // If not all images are loaded yet, start preloading them but don't change page
-      if (!allPrevPageImagesLoaded) {
-        console.log("Waiting for all images to load before changing page...");
-        
-        // Aggressively preload the images needed
-        prevPageMovies.forEach(movie => {
-          if (!imagesLoaded[movie.showId]) {
-            preloadImage(movie);
-          }
-        });
-        
-        // Don't proceed with the page change until all images are loaded
-        return;
-      }
-      
-      // Only go to the previous page when all images are loaded
-      setCurrentPage(targetPage);
-    }
-  };
-  
-  // Check if all images for a given page are loaded
-  const areAllImagesLoadedForPage = (page: number): boolean => {
-    const pageMovies = getCurrentPageMovies(page);
-    return pageMovies.every(movie => !movie.posterUrl || imagesLoaded[movie.showId]);
-  };
-
-  // Enhanced scrollNext function - ensures all images are loaded before page change
-  const scrollNext = async () => {
-    if (currentPage < totalPages - 1 && !isLoading) {
-      const targetPage = currentPage + 1;
-      
-      // Check if we need to load more data
-      if (!loadedPages.includes(targetPage) && onLoadMore && userId) {
-        setIsLoading(true);
+  // Preload the next page of movies
+  useEffect(() => {
+    const preloadNextPage = async () => {
+      const nextPage = currentPage + 1;
+      // If we haven't loaded the next page yet and it's within bounds
+      if (
+        !loadedPages.includes(nextPage) && 
+        nextPage < totalPages + 1 && 
+        onLoadMore && 
+        userId && 
+        !nextPagePreloaded &&
+        !isLoading
+      ) {
+        setNextPagePreloaded(true);
         try {
-          const newMovies = await onLoadMore(sectionType, targetPage);
+          // Preload next page data
+          const newMovies = await onLoadMore(sectionType, nextPage);
           
           // Add the new movies to our collection
           if (newMovies && newMovies.length > 0) {
-            setAllMovies(prevMovies => {
-              // Filter out any duplicates
-              const existingIds = new Set(prevMovies.map(m => m.showId));
-              const uniqueNewMovies = newMovies.filter(m => !existingIds.has(m.showId));
-              
-              // Preload these images
-              uniqueNewMovies.forEach(movie => preloadImage(movie));
-              
-              return [...prevMovies, ...uniqueNewMovies];
+            setAllMovies(prevMovies => [...prevMovies, ...newMovies]);
+            
+            // Preload the images
+            newMovies.forEach(movie => {
+              if (movie.posterUrl) {
+                const img = new Image();
+                img.src = movie.posterUrl;
+              }
             });
           }
           
           // Mark this page as loaded
-          setLoadedPages(prev => [...prev, targetPage]);
+          setLoadedPages(prev => [...prev, nextPage]);
+        } catch (err) {
+          console.error(`Error preloading next page for ${sectionType}:`, err);
+        }
+      }
+    };
+    
+    preloadNextPage();
+  }, [currentPage, loadedPages, totalPages, onLoadMore, userId, sectionType, nextPagePreloaded, isLoading]);
+  
+  // Get the current visible movies
+  const visibleMovies = allMovies.slice(
+    currentPage * moviesPerPage, 
+    (currentPage + 1) * moviesPerPage
+  );
+  
+  if (allMovies.length === 0) return null;
+  
+  const scrollPrev = () => {
+    if (currentPage > 0 && !transitionActive) {
+      setTransitionActive(true);
+      // Using setTimeout to allow the fade-out to complete
+      setTimeout(() => {
+        setCurrentPage(currentPage - 1);
+        setTransitionActive(false);
+      }, 150); // Match this with CSS transition time
+    }
+  };
+  
+  const scrollNext = async () => {
+    if (currentPage < totalPages - 1 && !transitionActive) {
+      setTransitionActive(true);
+      
+      // Check if we need to load more data
+      const nextPage = currentPage + 1;
+      if (!loadedPages.includes(nextPage) && onLoadMore && userId) {
+        setIsLoading(true);
+        try {
+          const newMovies = await onLoadMore(sectionType, nextPage);
+          
+          // Add the new movies to our collection
+          if (newMovies && newMovies.length > 0) {
+            setAllMovies(prevMovies => [...prevMovies, ...newMovies]);
+          }
+          
+          // Mark this page as loaded
+          setLoadedPages(prev => [...prev, nextPage]);
         } catch (err) {
           console.error(`Error loading more ${sectionType} recommendations:`, err);
-          setLoadedPages(prev => [...prev, targetPage]);
         } finally {
           setIsLoading(false);
         }
       }
       
-      // Check if the next page's images are all loaded
-      const nextPageMovies = getCurrentPageMovies(targetPage);
-      const allNextPageImagesLoaded = nextPageMovies.every(
-        movie => !movie.posterUrl || imagesLoaded[movie.showId]
-      );
-      
-      // If not all images are loaded yet, start preloading them but don't change page
-      if (!allNextPageImagesLoaded) {
-        console.log("Waiting for all images to load before changing page...");
-        
-        // Aggressively preload the images needed
-        nextPageMovies.forEach(movie => {
-          if (!imagesLoaded[movie.showId]) {
-            preloadImage(movie);
-          }
-        });
-        
-        // Don't proceed with the page change until all images are loaded
-        return;
-      }
-      
-      // Only go to the next page when all images are loaded
-      setCurrentPage(targetPage);
+      // Using setTimeout to allow the fade-out to complete
+      setTimeout(() => {
+        setCurrentPage(nextPage);
+        setTransitionActive(false);
+        setNextPagePreloaded(false); // Reset so we can preload the next page
+      }, 150); // Match this with CSS transition time
     }
   };
 
@@ -281,86 +207,42 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
         <NavigationArrow 
           direction="left" 
           onClick={scrollPrev} 
-          disabled={
-            currentPage === 0 || 
-            isLoading || 
-            (currentPage > 0 && !areAllImagesLoadedForPage(currentPage - 1))
-          } 
+          disabled={currentPage === 0 || transitionActive} 
         />
         
         <div
           ref={containerRef}
           style={{
-            position: "relative",
+            display: "flex",
+            gap: "1.5rem",
             paddingBottom: "1rem",
             paddingLeft: "40px",
             paddingRight: "40px",
             overflow: "hidden",
-            height: "395px",
-            backgroundColor: "transparent",
-            transform: 'translateZ(0)',
-            willChange: 'transform'
+            justifyContent: "center",
+            minHeight: "370px", // Set minimum height to prevent layout shifts
+            position: "relative"
           }}
         >
-          {/* Simple content display without transitions */}
-          <div style={{
-            display: "flex",
-            gap: "1.5rem",
-            justifyContent: "center",
-            width: "100%"
-          }}>
+          <div 
+            style={{
+              display: "flex",
+              gap: "1.5rem",
+              opacity: transitionActive ? 0 : 1,
+              transition: "opacity 150ms ease-in-out",
+              position: "absolute",
+              top: 0,
+              left: "40px",
+              right: "40px",
+              width: "calc(100% - 80px)"
+            }}
+          >
             {visibleMovies.map((movie) => (
-              <div 
-                key={movie.showId} 
-                style={{ 
-                  flexShrink: 0, 
-                  width: "200px",
-                  position: 'relative',
-                  height: '300px',
-                  transform: 'translateZ(0)'
-                }}
-              >
-                {/* Placeholder for unloaded images */}
-                {!imagesLoaded[movie.showId] && (
-                  <div style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    backgroundColor: '#f0f0f0',
-                    borderRadius: '8px',
-                    overflow: 'hidden',
-                    zIndex: 2
-                  }}>
-                    <div style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: '-100%',
-                      width: '200%',
-                      height: '100%',
-                      background: 'linear-gradient(to right, #f0f0f0 0%, #e0e0e0 50%, #f0f0f0 100%)',
-                      animation: 'shimmer 2s infinite linear'
-                    }} />
-                  </div>
-                )}
-                
-                {/* Only render MovieCard when image is loaded */}
-                {imagesLoaded[movie.showId] && (
-                  <div style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    zIndex: 1
-                  }}>
-                    <MovieCard
-                      movie={movie}
-                      onClick={() => onMovieClick(movie.showId)}
-                    />
-                  </div>
-                )}
+              <div key={movie.showId} style={{ flexShrink: 0, width: "200px" }}>
+                <MovieCard
+                  movie={movie}
+                  onClick={() => onMovieClick(movie.showId)}
+                />
               </div>
             ))}
           </div>
@@ -369,25 +251,21 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
         <NavigationArrow 
           direction="right" 
           onClick={scrollNext} 
-          disabled={
-            currentPage >= totalPages - 1 || 
-            isLoading || 
-            (currentPage < totalPages - 1 && !areAllImagesLoadedForPage(currentPage + 1))
-          } 
+          disabled={currentPage >= totalPages - 1 || transitionActive || isLoading} 
         />
       </div>
     </div>
   );
 };
 
-const HomeRecommender: React.FC<HomeRecommenderProps> = ({ userId }) => {
+const HomeRecommender: React.FC<HomeRecommender> = ({ userId }) => {
   const [collaborativeMovies, setCollaborativeMovies] = useState<Movie[]>([]);
   const [contentBasedMovies, setContentBasedMovies] = useState<Movie[]>([]);
   const [genreMovies, setGenreMovies] = useState<Record<string, Movie[]>>({});
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // Get the navigate function
 
   // Format genre name for display
   const formatGenreName = (genreKey: string): string => {
@@ -405,6 +283,8 @@ const HomeRecommender: React.FC<HomeRecommenderProps> = ({ userId }) => {
     return formatted;
   };
 
+  // The backend now provides at least 20 recommendations per section
+
   useEffect(() => {
     const fetchRecommendations = async () => {
       if (!userId) {
@@ -413,21 +293,22 @@ const HomeRecommender: React.FC<HomeRecommenderProps> = ({ userId }) => {
       }
 
       setLoading(true);
-      setError(null);
+      setError(null); // Reset error state before fetching
 
       try {
         // Try to fetch from recommendation API first
         let recommendationsData: RecommendationData | null = null;
         
         try {
-          // Fetch from our recommendation API
+          // Fetch from our new recommendation API
           const apiResponse = await axios.get(`${RECOMMENDATION_API_URL}/recommendations/${userId}`);
           recommendationsData = apiResponse.data;
           console.log("Recommendation API response:", recommendationsData);
+          
         } catch (apiErr) {
           console.warn("Could not fetch from recommendation API, falling back to static file:", apiErr);
           
-          // Fallback to the static file
+          // Fallback to the static file if API is not available
           const fallbackResponse = await fetch("/homeRecommendations.json");
           if (!fallbackResponse.ok) {
             throw new Error("Failed to fetch recommendations JSON.");
@@ -450,36 +331,34 @@ const HomeRecommender: React.FC<HomeRecommenderProps> = ({ userId }) => {
           throw new Error("No recommendations data available.");
         }
 
-        // Process collaborative recommendations
+        // Process collaborative filtering recommendations
         if (recommendationsData.collaborative && recommendationsData.collaborative.length > 0) {
           const movieResponses = await Promise.all(
             recommendationsData.collaborative.map(async (id) => {
               try {
+                // Ensure we're using database-style IDs (s1, s2, etc.)
+                // If the ID is already in the correct format, use it directly
                 const dbStyleId = id.startsWith('s') ? id : `s${id.replace(/\D/g, '')}`;
-                const movieResponse = await movieApi.getById(dbStyleId);
                 
-                if (movieResponse.data && movieResponse.data.showId && movieResponse.data.title) {
-                  return movieResponse.data;
-                } else {
-                  console.warn(`Movie ${id} data is incomplete - skipping`);
-                  return null;
-                }
+                // Try to get from main API using database-style ID
+                const movieResponse = await movieApi.getById(dbStyleId);
+                return movieResponse.data;
               } catch (err) {
-                console.warn(`Failed to fetch movie ${id}:`, err);
-                return null;
+                console.warn(`Failed to fetch movie ${id} from main API - creating placeholder:`, err);
+                
+                // Create a placeholder movie object with the ID
+                // This ensures we at least display something for recommendations
+                return {
+                  showId: id,
+                  title: `Movie ${id}`,
+                  description: "Details for this recommendation aren't available in the database.",
+                  posterUrl: `https://image.tmdb.org/t/p/w500/placeholder.jpg`
+                };
               }
             })
           );
 
-          // Filter out invalid movies
-          const validMovies = movieResponses.filter(movie => 
-            movie !== null && 
-            movie !== undefined && 
-            movie.showId && 
-            movie.title
-          ) as Movie[];
-          
-          setCollaborativeMovies(validMovies);
+          setCollaborativeMovies(movieResponses.filter(movie => movie !== null) as Movie[]);
         }
 
         // Process content-based recommendations
@@ -487,31 +366,28 @@ const HomeRecommender: React.FC<HomeRecommenderProps> = ({ userId }) => {
           const movieResponses = await Promise.all(
             recommendationsData.contentBased.map(async (id) => {
               try {
+                // Ensure we're using database-style IDs (s1, s2, etc.)
+                // If the ID is already in the correct format, use it directly
                 const dbStyleId = id.startsWith('s') ? id : `s${id.replace(/\D/g, '')}`;
-                const movieResponse = await movieApi.getById(dbStyleId);
                 
-                if (movieResponse.data && movieResponse.data.showId && movieResponse.data.title) {
-                  return movieResponse.data;
-                } else {
-                  console.warn(`Movie ${id} data is incomplete - skipping`);
-                  return null;
-                }
+                // Try to get from main API using database-style ID
+                const movieResponse = await movieApi.getById(dbStyleId);
+                return movieResponse.data;
               } catch (err) {
-                console.warn(`Failed to fetch movie ${id}:`, err);
-                return null;
+                console.warn(`Failed to fetch movie ${id} from main API - creating placeholder:`, err);
+                
+                // Create a placeholder movie object with the ID
+                return {
+                  showId: id,
+                  title: `Movie ${id}`,
+                  description: "Details for this recommendation aren't available in the database.",
+                  posterUrl: `https://image.tmdb.org/t/p/w500/placeholder.jpg`
+                };
               }
             })
           );
 
-          // Filter out invalid movies
-          const validMovies = movieResponses.filter(movie => 
-            movie !== null && 
-            movie !== undefined && 
-            movie.showId && 
-            movie.title
-          ) as Movie[];
-          
-          setContentBasedMovies(validMovies);
+          setContentBasedMovies(movieResponses.filter(movie => movie !== null) as Movie[]);
         }
         
         // Process genre-based recommendations
@@ -523,33 +399,28 @@ const HomeRecommender: React.FC<HomeRecommenderProps> = ({ userId }) => {
               const movieResponses = await Promise.all(
                 movieIds.map(async (id) => {
                   try {
+                    // Ensure we're using database-style IDs (s1, s2, etc.)
+                    // If the ID is already in the correct format, use it directly
                     const dbStyleId = id.startsWith('s') ? id : `s${id.replace(/\D/g, '')}`;
-                    const movieResponse = await movieApi.getById(dbStyleId);
                     
-                    if (movieResponse.data && movieResponse.data.showId && movieResponse.data.title) {
-                      return movieResponse.data;
-                    } else {
-                      console.warn(`Movie ${id} data is incomplete - skipping`);
-                      return null;
-                    }
+                    // Try to get from main API using database-style ID
+                    const movieResponse = await movieApi.getById(dbStyleId);
+                    return movieResponse.data;
                   } catch (err) {
-                    console.warn(`Failed to fetch movie ${id}:`, err);
-                    return null;
+                    console.warn(`Failed to fetch movie ${id} from main API - creating placeholder:`, err);
+                    
+                    // Create a placeholder movie object with the ID
+                    return {
+                      showId: id,
+                      title: `Movie ${id}`,
+                      description: "Details for this recommendation aren't available in the database.",
+                      posterUrl: `https://image.tmdb.org/t/p/w500/placeholder.jpg`
+                    };
                   }
                 })
               );
 
-              // Filter out invalid movies
-              const validMovies = movieResponses.filter(movie => 
-                movie !== null && 
-                movie !== undefined && 
-                movie.showId && 
-                movie.title
-              ) as Movie[];
-              
-              if (validMovies.length > 0) {
-                genreResults[genre] = validMovies;
-              }
+              genreResults[genre] = movieResponses.filter(movie => movie !== null) as Movie[];
             }
           }
 
@@ -569,64 +440,6 @@ const HomeRecommender: React.FC<HomeRecommenderProps> = ({ userId }) => {
 
   const handleMovieClick = (movieId: string) => {
     navigate(`/movie/${movieId}`);
-  };
-
-  // Function to load more recommendations
-  const loadMoreRecommendations = async (section: string, page: number): Promise<Movie[]> => {
-    if (!userId) return [];
-    
-    try {
-      const limit = 10; // Number of new recommendations to fetch
-      
-      const response = await axios.get(
-        `${RECOMMENDATION_API_URL}/recommendations/${userId}/more`, 
-        { params: { section, page, limit } }
-      );
-      
-      // Extract the relevant section from the response
-      let movieIds: string[] = [];
-      if (section === 'collaborative' && response.data.collaborative) {
-        movieIds = response.data.collaborative;
-      } else if (section === 'contentBased' && response.data.contentBased) {
-        movieIds = response.data.contentBased;
-      } else if (response.data.genres && response.data.genres[section]) {
-        movieIds = response.data.genres[section];
-      }
-      
-      if (!movieIds.length) return [];
-      
-      // Fetch the movie details
-      const movies = await Promise.all(
-        movieIds.map(async (id) => {
-          try {
-            const dbStyleId = id.startsWith('s') ? id : `s${id.replace(/\D/g, '')}`;
-            const movieResponse = await movieApi.getById(dbStyleId);
-            
-            if (movieResponse.data && movieResponse.data.showId && movieResponse.data.title) {
-              return movieResponse.data;
-            } else {
-              return null;
-            }
-          } catch (err) {
-            console.warn(`Failed to fetch movie ${id}:`, err);
-            return null;
-          }
-        })
-      );
-      
-      // Filter for valid movies
-      const validMovies = movies.filter(movie => 
-        movie !== null && 
-        movie !== undefined && 
-        movie.showId && 
-        movie.title
-      ) as Movie[];
-      
-      return validMovies;
-    } catch (err) {
-      console.error(`Error loading more recommendations for ${section}:`, err);
-      return [];
-    }
   };
 
   if (loading) {
@@ -650,6 +463,67 @@ const HomeRecommender: React.FC<HomeRecommenderProps> = ({ userId }) => {
       </div>
     );
   }
+
+  // Function to load more recommendations
+  const loadMoreRecommendations = async (section: string, page: number): Promise<Movie[]> => {
+    if (!userId) return [];
+    
+    try {
+      // Calculate the correct API parameters
+      const limit = 10; // Number of new recommendations to fetch
+      
+      // Call the API to get more recommendations
+      console.log(`Loading more for section: ${section}, page: ${page}, limit: ${limit}`);
+      const response = await axios.get(
+        `${RECOMMENDATION_API_URL}/recommendations/${userId}/more`, 
+        { params: { section, page, limit } }
+      );
+      
+      // Log the full response for debugging
+      console.log(`API Response for ${section}:`, response.data);
+      
+      // Extract the relevant section from the response
+      let movieIds: string[] = [];
+      if (section === 'collaborative' && response.data.collaborative) {
+        console.log('Found collaborative data:', response.data.collaborative);
+        movieIds = response.data.collaborative;
+      } else if (section === 'contentBased' && response.data.contentBased) {
+        console.log('Found contentBased data:', response.data.contentBased);
+        movieIds = response.data.contentBased;
+      } else if (response.data.genres && response.data.genres[section]) {
+        console.log(`Found genre data for ${section}:`, response.data.genres[section]);
+        movieIds = response.data.genres[section];
+      } else {
+        console.warn(`No matching data found for section: ${section} in response:`, response.data);
+      }
+      
+      if (!movieIds.length) return [];
+      
+      // Fetch the movie details for each ID
+      const movies = await Promise.all(
+        movieIds.map(async (id) => {
+          try {
+            const dbStyleId = id.startsWith('s') ? id : `s${id.replace(/\D/g, '')}`;
+            const movieResponse = await movieApi.getById(dbStyleId);
+            return movieResponse.data;
+          } catch (err) {
+            console.warn(`Failed to fetch movie ${id} from main API:`, err);
+            return {
+              showId: id,
+              title: `Movie ${id}`,
+              description: "Details for this recommendation aren't available in the database.",
+              posterUrl: `https://image.tmdb.org/t/p/w500/placeholder.jpg`
+            };
+          }
+        })
+      );
+      
+      return movies.filter(movie => movie !== null) as Movie[];
+    } catch (err) {
+      console.error(`Error loading more recommendations for section ${section}:`, err);
+      return [];
+    }
+  };
 
   return (
     <div style={{ marginTop: "2rem" }}>
