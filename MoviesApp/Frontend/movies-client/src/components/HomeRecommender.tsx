@@ -82,101 +82,156 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
   onLoadMore
 }) => {
   const [currentPage, setCurrentPage] = useState(0);
+  const [nextPage, setNextPage] = useState<number | null>(null);
   const [loadedPages, setLoadedPages] = useState<number[]>([0]);
   const [allMovies, setAllMovies] = useState<Movie[]>(movies);
   const [isLoading, setIsLoading] = useState(false);
-  const [nextPagePreloaded, setNextPagePreloaded] = useState(false);
   const [transitionActive, setTransitionActive] = useState(false);
+  const [imagesLoaded, setImagesLoaded] = useState<Record<string, boolean>>({});
+  const [transitionDirection, setTransitionDirection] = useState<'left' | 'right' | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  
+  // Transition duration in ms
+  const TRANSITION_DURATION = 300;
+  const moviesPerPage = 5;
   
   // Update allMovies when movies prop changes
   useEffect(() => {
     setAllMovies(movies);
+    
+    // Preload the initial images
+    if (movies.length > 0) {
+      movies.forEach(movie => {
+        if (movie.posterUrl) {
+          const img = new Image();
+          img.onload = () => {
+            setImagesLoaded(prev => ({...prev, [movie.showId]: true}));
+          };
+          img.src = movie.posterUrl;
+        }
+      });
+    }
   }, [movies]);
   
   // Calculate the total number of pages
-  const moviesPerPage = 5;
   const totalPages = Math.max(Math.ceil(allMovies.length / moviesPerPage), loadedPages.length + 1);
   
-  // Preload the next page of movies
+  // Preload the adjacent pages
   useEffect(() => {
-    const preloadNextPage = async () => {
-      const nextPage = currentPage + 1;
-      // If we haven't loaded the next page yet and it's within bounds
-      if (
-        !loadedPages.includes(nextPage) && 
-        nextPage < totalPages + 1 && 
-        onLoadMore && 
-        userId && 
-        !nextPagePreloaded &&
-        !isLoading
-      ) {
-        setNextPagePreloaded(true);
-        try {
-          // Preload next page data
-          const newMovies = await onLoadMore(sectionType, nextPage);
-          
-          // Add the new movies to our collection
-          if (newMovies && newMovies.length > 0) {
-            setAllMovies(prevMovies => [...prevMovies, ...newMovies]);
+    const preloadAdjacentPages = async () => {
+      // Try to preload both next and previous pages
+      const pagesToPreload = [currentPage + 1, currentPage - 1].filter(
+        page => page >= 0 && page < totalPages + 1 && !loadedPages.includes(page)
+      );
+      
+      for (const pageToPreload of pagesToPreload) {
+        if (onLoadMore && userId && !isLoading) {
+          try {
+            // Preload page data
+            const newMovies = await onLoadMore(sectionType, pageToPreload);
             
-            // Preload the images
-            newMovies.forEach(movie => {
-              if (movie.posterUrl) {
-                const img = new Image();
-                img.src = movie.posterUrl;
-              }
-            });
+            // Add the new movies to our collection
+            if (newMovies && newMovies.length > 0) {
+              setAllMovies(prevMovies => {
+                // Filter out any duplicates
+                const existingIds = new Set(prevMovies.map(m => m.showId));
+                const uniqueNewMovies = newMovies.filter(m => !existingIds.has(m.showId));
+                return [...prevMovies, ...uniqueNewMovies];
+              });
+              
+              // Preload the images
+              newMovies.forEach(movie => {
+                if (movie.posterUrl && !imagesLoaded[movie.showId]) {
+                  const img = new Image();
+                  img.onload = () => {
+                    setImagesLoaded(prev => ({...prev, [movie.showId]: true}));
+                  };
+                  img.src = movie.posterUrl;
+                }
+              });
+            }
+            
+            // Mark this page as loaded
+            setLoadedPages(prev => [...prev, pageToPreload]);
+          } catch (err) {
+            console.error(`Error preloading page ${pageToPreload} for ${sectionType}:`, err);
           }
-          
-          // Mark this page as loaded
-          setLoadedPages(prev => [...prev, nextPage]);
-        } catch (err) {
-          console.error(`Error preloading next page for ${sectionType}:`, err);
         }
       }
     };
     
-    preloadNextPage();
-  }, [currentPage, loadedPages, totalPages, onLoadMore, userId, sectionType, nextPagePreloaded, isLoading]);
+    preloadAdjacentPages();
+  }, [currentPage, loadedPages, totalPages, onLoadMore, userId, sectionType, isLoading, imagesLoaded]);
   
-  // Get the current visible movies
-  const visibleMovies = allMovies.slice(
-    currentPage * moviesPerPage, 
-    (currentPage + 1) * moviesPerPage
-  );
+  // Get the current and next visible movies
+  const getCurrentPageMovies = (page: number) => {
+    return allMovies.slice(
+      page * moviesPerPage, 
+      (page + 1) * moviesPerPage
+    );
+  };
+  
+  const visibleMovies = getCurrentPageMovies(currentPage);
+  const nextPageMovies = nextPage !== null ? getCurrentPageMovies(nextPage) : [];
   
   if (allMovies.length === 0) return null;
   
   const scrollPrev = () => {
     if (currentPage > 0 && !transitionActive) {
       setTransitionActive(true);
-      // Using setTimeout to allow the fade-out to complete
+      setTransitionDirection('left');
+      
+      // Set the target page
+      const targetPage = currentPage - 1;
+      setNextPage(targetPage);
+      
+      // Using setTimeout to allow the animation to play
       setTimeout(() => {
-        setCurrentPage(currentPage - 1);
+        setCurrentPage(targetPage);
+        setNextPage(null);
         setTransitionActive(false);
-      }, 150); // Match this with CSS transition time
+        setTransitionDirection(null);
+      }, TRANSITION_DURATION);
     }
   };
   
   const scrollNext = async () => {
-    if (currentPage < totalPages - 1 && !transitionActive) {
+    if (currentPage < totalPages - 1 && !transitionActive && !isLoading) {
       setTransitionActive(true);
+      setTransitionDirection('right');
       
       // Check if we need to load more data
-      const nextPage = currentPage + 1;
-      if (!loadedPages.includes(nextPage) && onLoadMore && userId) {
+      const targetPage = currentPage + 1;
+      setNextPage(targetPage);
+      
+      if (!loadedPages.includes(targetPage) && onLoadMore && userId) {
         setIsLoading(true);
         try {
-          const newMovies = await onLoadMore(sectionType, nextPage);
+          const newMovies = await onLoadMore(sectionType, targetPage);
           
           // Add the new movies to our collection
           if (newMovies && newMovies.length > 0) {
-            setAllMovies(prevMovies => [...prevMovies, ...newMovies]);
+            setAllMovies(prevMovies => {
+              // Filter out any duplicates
+              const existingIds = new Set(prevMovies.map(m => m.showId));
+              const uniqueNewMovies = newMovies.filter(m => !existingIds.has(m.showId));
+              return [...prevMovies, ...uniqueNewMovies];
+            });
+            
+            // Preload images
+            newMovies.forEach(movie => {
+              if (movie.posterUrl && !imagesLoaded[movie.showId]) {
+                const img = new Image();
+                img.onload = () => {
+                  setImagesLoaded(prev => ({...prev, [movie.showId]: true}));
+                };
+                img.src = movie.posterUrl;
+              }
+            });
           }
           
           // Mark this page as loaded
-          setLoadedPages(prev => [...prev, nextPage]);
+          setLoadedPages(prev => [...prev, targetPage]);
         } catch (err) {
           console.error(`Error loading more ${sectionType} recommendations:`, err);
         } finally {
@@ -184,12 +239,34 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
         }
       }
       
-      // Using setTimeout to allow the fade-out to complete
+      // Using setTimeout to allow the animation to complete
       setTimeout(() => {
-        setCurrentPage(nextPage);
+        setCurrentPage(targetPage);
+        setNextPage(null);
         setTransitionActive(false);
-        setNextPagePreloaded(false); // Reset so we can preload the next page
-      }, 150); // Match this with CSS transition time
+        setTransitionDirection(null);
+      }, TRANSITION_DURATION);
+    }
+  };
+
+  // Get transform values for animation
+  const getTransform = (isNextPage: boolean) => {
+    if (!transitionActive || transitionDirection === null) {
+      return 'translateX(0)';
+    }
+    
+    const distance = '100%';
+    
+    if (isNextPage) {
+      // Next page starts offscreen and moves in
+      return transitionDirection === 'right' 
+        ? `translateX(${distance})` 
+        : `translateX(-${distance})`;
+    } else {
+      // Current page starts centered and moves out
+      return transitionDirection === 'right' 
+        ? `translateX(-${distance})` 
+        : `translateX(${distance})`;
     }
   };
 
@@ -213,28 +290,30 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
         <div
           ref={containerRef}
           style={{
-            display: "flex",
-            gap: "1.5rem",
+            position: "relative",
             paddingBottom: "1rem",
             paddingLeft: "40px",
             paddingRight: "40px",
             overflow: "hidden",
-            justifyContent: "center",
-            minHeight: "370px", // Set minimum height to prevent layout shifts
-            position: "relative"
+            height: "395px", // Fixed height to prevent layout shifts
+            backgroundColor: "transparent" // Ensure no background color
           }}
         >
+          {/* Current page content */}
           <div 
             style={{
               display: "flex",
               gap: "1.5rem",
-              opacity: transitionActive ? 0 : 1,
-              transition: "opacity 150ms ease-in-out",
               position: "absolute",
               top: 0,
-              left: "40px",
-              right: "40px",
-              width: "calc(100% - 80px)"
+              left: 0,
+              right: 0,
+              width: "100%",
+              justifyContent: "center",
+              opacity: transitionActive ? 0 : 1,
+              transform: transitionActive ? getTransform(false) : 'translateX(0)',
+              transition: `opacity ${TRANSITION_DURATION}ms ease-in-out, transform ${TRANSITION_DURATION}ms ease-in-out`,
+              willChange: "opacity, transform" // Performance optimization
             }}
           >
             {visibleMovies.map((movie) => (
@@ -246,6 +325,35 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
               </div>
             ))}
           </div>
+          
+          {/* Next/previous page content - shown during transition */}
+          {nextPage !== null && nextPageMovies.length > 0 && (
+            <div 
+              style={{
+                display: "flex",
+                gap: "1.5rem",
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                width: "100%",
+                justifyContent: "center",
+                opacity: transitionActive ? 1 : 0,
+                transform: !transitionActive ? getTransform(true) : 'translateX(0)',
+                transition: `opacity ${TRANSITION_DURATION}ms ease-in-out, transform ${TRANSITION_DURATION}ms ease-in-out`,
+                willChange: "opacity, transform" // Performance optimization
+              }}
+            >
+              {nextPageMovies.map((movie) => (
+                <div key={movie.showId} style={{ flexShrink: 0, width: "200px" }}>
+                  <MovieCard
+                    movie={movie}
+                    onClick={() => onMovieClick(movie.showId)}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
         
         <NavigationArrow 
