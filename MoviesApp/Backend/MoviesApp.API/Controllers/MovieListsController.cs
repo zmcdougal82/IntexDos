@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using MoviesApp.API.Data;
 using MoviesApp.API.Models;
 using System.Security.Claims;
+using System.Linq;
 
 namespace MoviesApp.API.Controllers
 {
@@ -26,6 +27,23 @@ namespace MoviesApp.API.Controllers
             int userId = GetCurrentUserId();
             var lists = await _context.MovieLists
                 .Where(l => l.UserId == userId)
+                .Include(l => l.Items)
+                .ThenInclude(i => i.Movie)
+                .ToListAsync();
+                
+            return Ok(lists);
+        }
+
+        // GET: api/MovieLists/byuser/{email}
+        [HttpGet("byuser/{email}")]
+        public async Task<ActionResult<IEnumerable<MovieList>>> GetListsByUserEmail(string email)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            if (user == null)
+                return NotFound("User not found");
+
+            var lists = await _context.MovieLists
+                .Where(l => l.UserId == user.UserId && l.IsPublic)
                 .Include(l => l.Items)
                 .ThenInclude(i => i.Movie)
                 .ToListAsync();

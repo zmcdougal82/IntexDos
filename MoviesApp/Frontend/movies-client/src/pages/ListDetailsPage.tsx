@@ -40,7 +40,7 @@ const ListDetailsPage: React.FC = () => {
         setError(null);
       } catch (err) {
         console.error('Error fetching list details:', err);
-        setError('Failed to load list details. Please try again later.');
+        setError('Failed to load collection details. Please try again later.');
       } finally {
         setLoading(false);
       }
@@ -66,7 +66,7 @@ const ListDetailsPage: React.FC = () => {
     if (!listId || !list) return;
     
     if (!editName.trim()) {
-      setUpdateError('List name is required');
+      setUpdateError('Collection name is required');
       return;
     }
     
@@ -92,8 +92,8 @@ const ListDetailsPage: React.FC = () => {
       setShowEditModal(false);
       setUpdateError(null);
     } catch (err) {
-      console.error('Error updating list:', err);
-      setUpdateError('Failed to update list. Please try again.');
+      console.error('Error updating collection:', err);
+      setUpdateError('Failed to update collection. Please try again.');
     }
   };
 
@@ -108,15 +108,15 @@ const ListDetailsPage: React.FC = () => {
         items: list.items?.filter(item => item.showId !== showId) || []
       });
     } catch (err) {
-      console.error('Error removing movie from list:', err);
-      setError('Failed to remove movie from list. Please try again.');
+      console.error('Error removing movie from collection:', err);
+      setError('Failed to remove movie from collection. Please try again.');
     }
   };
 
   if (loading) {
     return (
       <Container className="py-5">
-        <h1>Loading list...</h1>
+        <h1>Loading collection...</h1>
       </Container>
     );
   }
@@ -124,9 +124,9 @@ const ListDetailsPage: React.FC = () => {
   if (error || !list) {
     return (
       <Container className="py-5">
-        <Alert variant="danger">{error || 'List not found'}</Alert>
+        <Alert variant="danger">{error || 'Collection not found'}</Alert>
         <Button onClick={() => navigate('/lists')}>
-          Back to My Lists
+          Back to My Collections
         </Button>
       </Container>
     );
@@ -136,7 +136,7 @@ const ListDetailsPage: React.FC = () => {
     <Container className="py-5">
       <Breadcrumb className="mb-3">
         <Breadcrumb.Item href="/lists" onClick={(e) => { e.preventDefault(); navigate('/lists'); }}>
-          My Lists
+          My Collections
         </Breadcrumb.Item>
         <Breadcrumb.Item active>{list.name}</Breadcrumb.Item>
       </Breadcrumb>
@@ -154,7 +154,7 @@ const ListDetailsPage: React.FC = () => {
             variant="outline-secondary" 
             onClick={openEditModal}
           >
-            Edit List
+            Edit Collection
           </Button>
           <Button 
             variant="outline-primary" 
@@ -208,7 +208,7 @@ const ListDetailsPage: React.FC = () => {
         </Row>
       ) : (
         <div className="text-center py-5">
-          <h3>This list is empty</h3>
+          <h3>This collection is empty</h3>
           <p>Start adding movies to build your collection!</p>
           <Button onClick={() => navigate('/movies')}>
             Browse Movies
@@ -216,14 +216,14 @@ const ListDetailsPage: React.FC = () => {
         </div>
       )}
 
-      {/* Edit List Modal */}
+      {/* Edit Collection Modal */}
       <Modal 
         show={showEditModal} 
         onHide={() => setShowEditModal(false)}
         centered
       >
         <Modal.Header closeButton>
-          <Modal.Title>Edit List</Modal.Title>
+          <Modal.Title>Edit Collection</Modal.Title>
         </Modal.Header>
         <Form onSubmit={handleUpdateList}>
           <Modal.Body>
@@ -231,7 +231,7 @@ const ListDetailsPage: React.FC = () => {
               <Alert variant="danger">{updateError}</Alert>
             )}
             <Form.Group className="mb-3">
-              <Form.Label>List Name</Form.Label>
+              <Form.Label>Collection Name</Form.Label>
               <Form.Control
                 type="text"
                 value={editName}
@@ -251,7 +251,7 @@ const ListDetailsPage: React.FC = () => {
             <Form.Group className="mb-3">
               <Form.Check
                 type="checkbox"
-                label="Make this list public"
+                label="Make this collection public"
                 checked={editIsPublic}
                 onChange={(e) => setEditIsPublic(e.target.checked)}
               />

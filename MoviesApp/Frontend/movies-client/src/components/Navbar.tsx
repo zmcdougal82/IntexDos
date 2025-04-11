@@ -110,7 +110,7 @@ const Navbar = () => {
                 to="/lists" 
                 style={{ color: 'white', textDecoration: 'none' }}
               >
-                My Lists
+                My Collections
               </Link>
               {isAdmin(user) && (
                 <Link 

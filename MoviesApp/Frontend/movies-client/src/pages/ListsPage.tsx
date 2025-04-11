@@ -13,9 +13,8 @@ import '../components/ListCard.css';
 
 const ListsPage: React.FC = () => {
   // State hooks
-  const [lists, setLists] = useState<MovieList[]>([]);
-  const [recentLists, setRecentLists] = useState<MovieList[]>([]);
-  const [popularLists, setPopularLists] = useState<MovieList[]>([]);
+  const [myCollections, setMyCollections] = useState<MovieList[]>([]);
+  const [curatedCollections, setCuratedCollections] = useState<MovieList[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -28,40 +27,30 @@ const ListsPage: React.FC = () => {
   const [newListDescription, setNewListDescription] = useState('');
   const [newListIsPublic, setNewListIsPublic] = useState(false);
 
-  // Fetch lists data
-  const fetchLists = async () => {
+  // Fetch collections data
+  const fetchCollections = async () => {
     try {
       setLoading(true);
-      const response = await movieListApi.getMyLists();
-      const allLists = response.data;
       
-      // Sort lists by creation date (newest first)
-      const sortedLists = [...allLists].sort((a, b) => 
-        new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime()
-      );
+      // Fetch user's collections
+      const myResponse = await movieListApi.getMyLists();
+      setMyCollections(myResponse.data);
       
-      setLists(allLists);
-      
-      // Get recent lists (5 most recent)
-      setRecentLists(sortedLists.slice(0, 5));
-      
-      // For demo purposes, use the same lists but sorted differently for "popular"
-      // In a real app, you would sort by view count or likes
-      setPopularLists(
-        [...allLists].sort((a, b) => (b.items?.length || 0) - (a.items?.length || 0)).slice(0, 5)
-      );
+      // Fetch curated collections from Big@buddah.com
+      const curatedResponse = await movieListApi.getListsByUserEmail('Big@buddah.com');
+      setCuratedCollections(curatedResponse.data);
       
       setError(null);
     } catch (err) {
-      console.error('Error fetching lists:', err);
-      setError('Failed to load your lists. Please try again later.');
+      console.error('Error fetching collections:', err);
+      setError('Failed to load collections. Please try again later.');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchLists();
+    fetchCollections();
   }, []);
 
   // Handle create list form submission
@@ -86,8 +75,8 @@ const ListsPage: React.FC = () => {
       setShowCreateModal(false);
       setCreateError(null);
       
-      // Refresh lists
-      fetchLists();
+      // Refresh collections
+      fetchCollections();
     } catch (err) {
       console.error('Error creating list:', err);
       setCreateError('Failed to create list. Please try again.');
@@ -100,9 +89,7 @@ const ListsPage: React.FC = () => {
     
     try {
       await movieListApi.deleteList(listToDelete.listId);
-      setLists(lists.filter(list => list.listId !== listToDelete.listId));
-      setRecentLists(recentLists.filter(list => list.listId !== listToDelete.listId));
-      setPopularLists(popularLists.filter(list => list.listId !== listToDelete.listId));
+      setMyCollections(myCollections.filter(list => list.listId !== listToDelete.listId));
       setShowDeleteModal(false);
       setListToDelete(null);
     } catch (err) {
@@ -119,7 +106,7 @@ const ListsPage: React.FC = () => {
         <Container>
           <div className="d-flex justify-content-center align-items-center" style={{ height: '60vh' }}>
             <div className="text-center">
-              <h2>Loading your lists...</h2>
+              <h2>Loading your collections...</h2>
               <div className="spinner-border text-light mt-3" role="status">
                 <span className="visually-hidden">Loading...</span>
               </div>
@@ -135,59 +122,29 @@ const ListsPage: React.FC = () => {
       {/* Header Section */}
       <div className="lists-header">
         <Container>
-          <h1>Movie Lists</h1>
-          <p>Collect, curate, and share. Lists are the perfect way to group films.</p>
+          <h1>Collections</h1>
+          <p>Collect, curate, and share. Collections are the perfect way to group films.</p>
         </Container>
       </div>
 
       <Container>
         {error && <Alert variant="danger">{error}</Alert>}
 
-        {lists.length === 0 ? (
+        {myCollections.length === 0 ? (
           <div className="empty-list-container">
-            <h3>You don't have any movie lists yet</h3>
-            <p>Create your first list to start organizing your favorite movies!</p>
+            <h3>You don't have any collections yet</h3>
+            <p>Create your first collection to start organizing your favorite movies!</p>
             <button onClick={() => setShowCreateModal(true)}>
-              Create a List
+              Create a Collection
             </button>
           </div>
         ) : (
           <>
-            {/* Recent Lists Section */}
-            {recentLists.length > 0 && (
-              <div className="lists-section">
-                <h2 className="section-title">Recent Lists</h2>
-                <div className="lists-grid">
-                  {recentLists.map(list => (
-                    <ListCard 
-                      key={list.listId} 
-                      list={list}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Popular Lists Section */}
-            {popularLists.length > 0 && (
-              <div className="lists-section">
-                <h2 className="section-title">Popular Lists</h2>
-                <div className="lists-grid">
-                  {popularLists.map(list => (
-                    <ListCard 
-                      key={list.listId} 
-                      list={list}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* All Lists Section */}
+            {/* My Collections Section */}
             <div className="lists-section">
-              <h2 className="section-title">All Lists</h2>
+              <h2 className="section-title">My Collections</h2>
               <div className="lists-grid">
-                {lists.map(list => (
+                {myCollections.map(list => (
                   <ListCard 
                     key={list.listId} 
                     list={list}
@@ -195,6 +152,21 @@ const ListsPage: React.FC = () => {
                 ))}
               </div>
             </div>
+
+            {/* Curated Collections Section */}
+            {curatedCollections.length > 0 && (
+              <div className="lists-section">
+                <h2 className="section-title">Curated Collections</h2>
+                <div className="lists-grid">
+                  {curatedCollections.map(list => (
+                    <ListCard 
+                      key={list.listId} 
+                      list={list}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
           </>
         )}
 
@@ -202,7 +174,7 @@ const ListsPage: React.FC = () => {
         <button 
           className="create-list-btn" 
           onClick={() => setShowCreateModal(true)}
-          aria-label="Create new list"
+          aria-label="Create new collection"
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
             <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
@@ -218,16 +190,16 @@ const ListsPage: React.FC = () => {
         contentClassName="custom-modal"
       >
         <Modal.Header closeButton>
-          <Modal.Title>Create New List</Modal.Title>
+          <Modal.Title>Create New Collection</Modal.Title>
         </Modal.Header>
         <Form onSubmit={(e: React.FormEvent) => handleCreateList(e)}>
           <Modal.Body>
             {createError && <Alert variant="danger">{createError}</Alert>}
             <div className="mb-3">
-              <Form.Label>List Name</Form.Label>
+              <Form.Label>Collection Name</Form.Label>
               <Form.Control
                 type="text"
-                placeholder="E.g., Best Science Fiction Films"
+                placeholder="E.g., Best Science Fiction Movies"
                 value={newListName}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewListName(e.target.value)}
                 required
@@ -238,7 +210,7 @@ const ListsPage: React.FC = () => {
               <Form.Control
                 as="textarea"
                 rows={3}
-                placeholder="Add a description for your list"
+                placeholder="Add a description for your collection"
                 value={newListDescription}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNewListDescription(e.target.value)}
               />
@@ -246,7 +218,7 @@ const ListsPage: React.FC = () => {
             <div className="mb-3">
               <Form.Check
                 type="checkbox"
-                label="Make this list public"
+                label="Make this collection public"
                 checked={newListIsPublic}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewListIsPublic(e.target.checked)}
               />
@@ -264,7 +236,7 @@ const ListsPage: React.FC = () => {
               type="submit"
               className="btn-letterboxd-green"
             >
-              Create List
+              Create Collection
             </Button>
           </Modal.Footer>
         </Form>
@@ -281,7 +253,7 @@ const ListsPage: React.FC = () => {
           <Modal.Title>Confirm Delete</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          Are you sure you want to delete the list "{listToDelete?.name}"? This action cannot be undone.
+          Are you sure you want to delete the collection "{listToDelete?.name}"? This action cannot be undone.
         </Modal.Body>
         <Modal.Footer>
           <Button 
@@ -296,7 +268,7 @@ const ListsPage: React.FC = () => {
             onClick={handleDeleteList}
             className="btn-letterboxd-danger"
           >
-            Delete List
+            Delete Collection
           </Button>
         </Modal.Footer>
       </Modal>

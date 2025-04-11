@@ -284,6 +284,9 @@ export const movieListApi = {
   // Get all lists for the current user
   getMyLists: () => api.get<MovieList[]>("/MovieLists"),
 
+  // Get lists by user email (for curated collections)
+  getListsByUserEmail: (email: string) => api.get<MovieList[]>(`/MovieLists/byuser/${encodeURIComponent(email)}`),
+
   // Get a specific list with its movies
   getListById: (listId: number) => api.get<MovieList>(`/MovieLists/${listId}`),
 
