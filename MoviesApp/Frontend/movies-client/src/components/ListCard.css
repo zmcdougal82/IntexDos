@@ -1,0 +1,174 @@
+/* ListCard styling with app's color scheme */
+.list-card {
+  position: relative;
+  width: 100%;
+  background-color: var(--color-card);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  margin-bottom: 20px;
+  border: 1px solid var(--color-border);
+}
+
+.list-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.list-card-posters {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  height: 300px;
+  overflow: hidden;
+}
+
+.poster {
+  position: relative;
+  overflow: hidden;
+}
+
+.poster img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: all 0.5s ease;
+}
+
+.list-card:hover .poster img {
+  filter: brightness(1.05);
+}
+
+.list-card-content {
+  padding: 16px;
+  color: var(--color-text);
+}
+
+.list-title {
+  margin: 0 0 8px 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.list-description {
+  font-size: 0.9rem;
+  margin: 0 0 12px 0;
+  color: var(--color-text-light);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.list-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--color-text-light);
+}
+
+.list-date, .list-count {
+  display: inline-block;
+}
+
+.list-count {
+  font-weight: 500;
+  color: var(--color-secondary);
+}
+
+.list-delete-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.7);
+  border: none;
+  color: var(--color-error);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.2s ease;
+  z-index: 2;
+}
+
+.list-card:hover .list-delete-btn {
+  opacity: 1;
+}
+
+.list-delete-btn:hover {
+  background-color: var(--color-error);
+  color: white;
+}
+
+/* For empty list state */
+.empty-list-container {
+  padding: 60px 0;
+  text-align: center;
+  background-color: var(--color-card);
+  border-radius: var(--radius-md);
+  color: var(--color-text-light);
+  border: 1px solid var(--color-border);
+}
+
+.empty-list-container h3 {
+  margin-bottom: 16px;
+  color: var(--color-text);
+}
+
+.empty-list-container button {
+  margin-top: 16px;
+  padding: 10px 20px;
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.empty-list-container button:hover {
+  background-color: var(--color-primary-light);
+}
+
+/* Create list button */
+.create-list-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.create-list-btn:hover {
+  background-color: var(--color-primary-light);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.create-list-btn svg {
+  width: 24px;
+  height: 24px;
+}

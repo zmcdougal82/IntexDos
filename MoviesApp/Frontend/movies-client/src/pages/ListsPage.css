@@ -1,0 +1,162 @@
+/* ListsPage styling with app's color scheme */
+.lists-page {
+  min-height: 100vh;
+  background-color: var(--color-background);
+  color: var(--color-text);
+  padding-bottom: 80px; /* Space for FAB */
+}
+
+.lists-header {
+  padding: 60px 20px;
+  text-align: center;
+  margin-bottom: 40px;
+  background-color: var(--color-primary);
+  color: white;
+}
+
+.lists-header h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: white;
+}
+
+.lists-header p {
+  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.9);
+  max-width: 700px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.lists-section {
+  margin-bottom: 50px;
+}
+
+.section-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: var(--color-primary);
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 10px;
+}
+
+.lists-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 20px;
+}
+
+@media (min-width: 576px) {
+  .lists-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 992px) {
+  .lists-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1200px) {
+  .lists-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Modal styling */
+.custom-modal .modal-content {
+  background-color: var(--color-card);
+  color: var(--color-text);
+  border: none;
+  border-radius: var(--radius-md);
+}
+
+.custom-modal .modal-header {
+  border-bottom: 1px solid var(--color-border);
+  padding: 20px;
+}
+
+.custom-modal .modal-title {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.custom-modal .close {
+  color: var(--color-text);
+  opacity: 0.8;
+}
+
+.custom-modal .modal-body {
+  padding: 20px;
+}
+
+.custom-modal .modal-footer {
+  border-top: 1px solid var(--color-border);
+  padding: 20px;
+}
+
+.custom-modal .form-control {
+  background-color: white;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  padding: 12px;
+}
+
+.custom-modal .form-control::placeholder {
+  color: var(--color-text-light);
+}
+
+.custom-modal .form-control:focus {
+  box-shadow: 0 0 0 2px var(--color-primary-light);
+}
+
+.custom-modal .form-check-input {
+  margin-top: 0.3rem;
+}
+
+.custom-modal .form-label {
+  color: var(--color-text);
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+/* Custom button styling */
+.btn-letterboxd-green {
+  background-color: var(--color-primary);
+  border: none;
+  color: white;
+  font-weight: 500;
+  padding: 8px 16px;
+  transition: all 0.2s ease;
+}
+
+.btn-letterboxd-green:hover {
+  background-color: var(--color-primary-light);
+  color: white;
+}
+
+.btn-letterboxd-outline {
+  background-color: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  transition: all 0.2s ease;
+}
+
+.btn-letterboxd-outline:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.btn-letterboxd-danger {
+  background-color: var(--color-error);
+  border: none;
+  color: white;
+}
+
+.btn-letterboxd-danger:hover {
+  opacity: 0.9;
+  color: white;
+}
