@@ -272,7 +272,10 @@ const AdminMoviesPage: React.FC = () => {
           if (selectedGenre) {
             filteredMovies = filteredMovies.filter((movie) => {
               // Need to cast to 'any' to access dynamic property
-              return (movie as any)[selectedGenre] === 1;
+              // Use != null to check for both undefined and null 
+              return (movie as any)[selectedGenre] === 1 || 
+                     // Check for string '1' as some API responses might serialize numbers as strings
+                     (movie as any)[selectedGenre] === '1';
             });
           }
 
@@ -1189,12 +1192,15 @@ const AdminMoviesPage: React.FC = () => {
                     }
 
                     // Apply genre filter if selected
-                    if (selectedGenre) {
-                      limitedResults = limitedResults.filter((movie) => {
-                        // Need to cast to 'any' to access dynamic property
-                        return (movie as any)[selectedGenre] === 1;
-                      });
-                    }
+      if (selectedGenre) {
+        limitedResults = limitedResults.filter((movie) => {
+          // Need to cast to 'any' to access dynamic property
+          // More robust check that handles both number and string values,
+          // as well as checking for properties that might be missing
+          const genreValue = (movie as any)[selectedGenre];
+          return genreValue === 1 || genreValue === '1' || genreValue === true;
+        });
+      }
 
                     // Apply year range filters if specified
                     if (yearFrom !== undefined) {
@@ -1437,7 +1443,13 @@ const AdminMoviesPage: React.FC = () => {
                     <select
                       id="genreFilter"
                       value={selectedGenre}
-                      onChange={(e) => setSelectedGenre(e.target.value)}
+                      onChange={(e) => {
+                        const newGenre = e.target.value;
+                        setSelectedGenre(newGenre);
+                        console.log(`Genre filter changed to: ${newGenre}`);
+                        // Reset to page 1 when changing filters
+                        setCurrentPage(1);
+                      }}
                       style={{ width: "100%", padding: "var(--spacing-sm)" }}
                     >
                       <option value="">All Genres</option>
