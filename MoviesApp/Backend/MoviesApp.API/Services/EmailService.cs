@@ -110,7 +110,25 @@ namespace MoviesApp.API.Services
                 };
                 transmission.Recipients.Add(recipient);
 
-                await Task.FromResult(client.Transmissions.Send(transmission));
+                // Send the email
+                client.Transmissions.Send(transmission);
+                
+                // Output detailed information about the transmission
+                Console.WriteLine("==== EMAIL TRANSMISSION DETAILS ====");
+                Console.WriteLine($"Email sent via SparkPost");
+                Console.WriteLine("==================================");
+                
+                // Even if SparkPost accepted the email, it might not be delivered
+                // So provide the reset link in the console as a fallback
+                Console.WriteLine();
+                Console.WriteLine("==== EMAIL PREVIEW (FOR TESTING) ====");
+                Console.WriteLine($"To: {user.Email}");
+                Console.WriteLine($"From: {senderEmail}");
+                Console.WriteLine($"Subject: CineNiche Password Reset");
+                Console.WriteLine();
+                Console.WriteLine("Password Reset Link (copy to browser if email not received):");
+                Console.WriteLine($"{resetLink}");
+                Console.WriteLine("====================================");
             }
             catch (Exception ex)
             {
