@@ -180,6 +180,14 @@ const AdminMoviesPage: React.FC = () => {
   // }, []); // Empty dependency array to run only once when the component mounts
 
   // Fetch movies with search and filters
+  // Store the current search query in a separate state
+  const [searchQueryInput, setSearchQueryInput] = useState("");
+  
+  useEffect(() => {
+    // Initial load of searchQueryInput from searchQuery
+    setSearchQueryInput(searchQuery);
+  }, []);
+
   useEffect(() => {
     const fetchMovies = async () => {
       if (!user) return;
@@ -286,7 +294,7 @@ const AdminMoviesPage: React.FC = () => {
     currentPage,
     pageSize,
     user,
-    searchQuery,
+    searchQuery, // Keep this here so changing searchQuery via the Search button still works
     selectedType,
     selectedGenre,
     yearFrom,
