@@ -91,7 +91,6 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
   const [allImagesLoaded, setAllImagesLoaded] = useState<boolean>(false);
   const [transitionDirection, setTransitionDirection] = useState<'left' | 'right' | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [nextPageReady, setNextPageReady] = useState(false);
   const [preloadQueue, setPreloadQueue] = useState<string[]>([]);
   
   // Transition duration in ms
@@ -236,13 +235,21 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
       setAllImagesLoaded(true);
     }
     
-    // Check if next page is ready (for smoother transitions)
+    // Check next page loading status (but don't track it as a state to avoid build errors)
     const nextPageIndex = currentPage + 1;
     const nextPageMovies = getCurrentPageMovies(nextPageIndex);
-    const nextPageLoaded = nextPageMovies.length > 0 && 
-      nextPageMovies.every(movie => !movie.posterUrl || imagesLoaded[movie.showId]);
     
-    setNextPageReady(nextPageLoaded);
+    // This check is still useful for debugging even if we're not storing the state
+    if (nextPageMovies.length > 0) {
+      const nextPageLoaded = nextPageMovies.every(
+        movie => !movie.posterUrl || imagesLoaded[movie.showId]
+      );
+      
+      // Instead of storing in state, we can use it here to preload if needed
+      if (!nextPageLoaded) {
+        nextPageMovies.forEach(movie => preloadImage(movie, 'high'));
+      }
+    }
   }, [imagesLoaded, currentPage, allImagesLoaded]);
   
   // Calculate the total number of pages
