@@ -2292,27 +2292,247 @@ const AdminMoviesPage: React.FC = () => {
                 />
               </div>
 
+              {/* Genre Management Section */}
               <div style={formGroupStyle}>
-                <label htmlFor="genre">Primary Genre</label>
-                <select
-                  id="genre"
-                  name="genre"
-                  value={getSelectedGenre(formData)}
-                  onChange={handleGenreChange}
-                  style={inputStyle}
+                <h3
+                  style={{
+                    marginBottom: "15px",
+                    borderBottom: "1px solid #eee",
+                    paddingBottom: "5px",
+                  }}
                 >
-                  <option value="">Select a genre</option>
-                  <option value="Action">Action</option>
-                  <option value="Adventure">Adventure</option>
-                  <option value="Comedies">Comedy</option>
-                  <option value="Dramas">Drama</option>
-                  <option value="HorrorMovies">Horror</option>
-                  <option value="Thrillers">Thriller</option>
-                  <option value="Documentaries">Documentary</option>
-                  <option value="FamilyMovies">Family</option>
-                  <option value="Fantasy">Fantasy</option>
-                  <option value="Musicals">Musical</option>
-                </select>
+                  Genre Management
+                </h3>
+
+                {/* Current genres with separate fields */}
+                <div style={{ marginBottom: "20px" }}>
+                  <p style={{ fontWeight: "bold", marginBottom: "10px" }}>
+                    Current Genres:
+                  </p>
+
+                  {/* Show all active genres for the movie */}
+                  {getAllGenres(formData).length > 0 ? (
+                    <div>
+                      {getAllGenres(formData).map((genre, index) => {
+                        // Find the key in genreMapping that matches this genre
+                        const genreKey = Object.keys(genreMapping).find(
+                          (key) => genreMapping[key] === genre
+                        );
+
+                        return (
+                          <div
+                            key={index}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              marginBottom: "8px",
+                              backgroundColor: "#f9f9f9",
+                              padding: "8px",
+                              borderRadius: "4px",
+                            }}
+                          >
+                            <div style={{ flex: 1 }}>
+                              <label
+                                htmlFor={`add-genre-${index + 1}`}
+                                style={{
+                                  display: "block",
+                                  marginBottom: "3px",
+                                  fontSize: "0.9rem",
+                                }}
+                              >
+                                Genre {index + 1}
+                              </label>
+                              <input
+                                type="text"
+                                id={`add-genre-${index + 1}`}
+                                value={genre}
+                                readOnly
+                                style={{
+                                  ...inputStyle,
+                                  backgroundColor: "#f2f2f2",
+                                }}
+                              />
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                // Create a copy of the current form data
+                                const updatedFormData = { ...formData };
+
+                                // Set the specified genre to 0
+                                if (genreKey) {
+                                  (updatedFormData as any)[genreKey] = 0;
+                                }
+
+                                // Update the form data state
+                                setFormData(updatedFormData);
+                              }}
+                              style={{
+                                backgroundColor: "#f44336",
+                                color: "white",
+                                border: "none",
+                                borderRadius: "4px",
+                                padding: "8px 12px",
+                                marginLeft: "10px",
+                                cursor: "pointer",
+                              }}
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p
+                      style={{
+                        fontStyle: "italic",
+                        color: "#888",
+                        marginBottom: "15px",
+                      }}
+                    >
+                      No genres assigned
+                    </p>
+                  )}
+                </div>
+
+                {/* Add new genre section */}
+                <div style={{ marginBottom: "10px" }}>
+                  <p style={{ fontWeight: "bold", marginBottom: "10px" }}>
+                    Add New Genre:
+                  </p>
+
+                  {/* Movie genres - only show if type is Movie or not specified */}
+                  {(!formData.type || formData.type === "Movie") && (
+                    <div style={formGroupStyle}>
+                      <label htmlFor="add-movie-genre">Add Movie Genre</label>
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: "10px",
+                          alignItems: "center",
+                        }}
+                      >
+                        <select
+                          id="add-movie-genre"
+                          value=""
+                          onChange={(e) => {
+                            if (!e.target.value) return;
+                            
+                            // Create a copy of the current form data
+                            const updatedFormData = { ...formData };
+                            
+                            // Set the selected genre to 1
+                            (updatedFormData as any)[e.target.value] = 1;
+                            
+                            // Update the form data state
+                            setFormData(updatedFormData);
+                            
+                            // Reset the select to empty
+                            e.target.value = "";
+                          }}
+                          style={{ ...inputStyle, flex: 1 }}
+                        >
+                          <option value="">Select a genre to add</option>
+                          {/* Movie genres */}
+                          <option value="Action">Action</option>
+                          <option value="Adventure">Adventure</option>
+                          <option value="Comedies">Comedy</option>
+                          <option value="Dramas">Drama</option>
+                          <option value="HorrorMovies">Horror</option>
+                          <option value="Thrillers">Thriller</option>
+                          <option value="Documentaries">Documentary</option>
+                          <option value="FamilyMovies">Family</option>
+                          <option value="Fantasy">Fantasy</option>
+                          <option value="Musicals">Musical</option>
+
+                          {/* Combination genres */}
+                          <option value="DramasRomanticMovies">
+                            Romantic Drama
+                          </option>
+                          <option value="ComediesRomanticMovies">
+                            Romantic Comedy
+                          </option>
+                          <option value="DocumentariesInternationalMovies">
+                            International Documentary
+                          </option>
+                          <option value="DramasInternationalMovies">
+                            International Drama
+                          </option>
+                          <option value="ComediesInternationalMovies">
+                            International Comedy
+                          </option>
+                          <option value="InternationalMoviesThrillers">
+                            International Thriller
+                          </option>
+                          <option value="ComediesDramasInternationalMovies">
+                            International Comedy-Drama
+                          </option>
+
+                          {/* Add Spirituality as it can be for both movies and TV shows */}
+                          <option value="Spirituality">Spirituality</option>
+                        </select>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* TV Show genres - only show if type is TV Show */}
+                  {formData.type === "TV Show" && (
+                    <div style={formGroupStyle}>
+                      <label htmlFor="add-tv-genre">Add TV Show Genre</label>
+                      <div style={{ display: "flex", gap: "10px" }}>
+                        <select
+                          id="add-tv-genre"
+                          value=""
+                          onChange={(e) => {
+                            if (!e.target.value) return;
+                            
+                            // Create a copy of the current form data
+                            const updatedFormData = { ...formData };
+                            
+                            // Set the selected genre to 1
+                            (updatedFormData as any)[e.target.value] = 1;
+                            
+                            // Update the form data state
+                            setFormData(updatedFormData);
+                            
+                            // Reset the select to empty
+                            e.target.value = "";
+                          }}
+                          style={{ ...inputStyle, flex: 1 }}
+                        >
+                          <option value="">Select a genre to add</option>
+                          {/* TV Show genres */}
+                          <option value="TVAction">Action</option>
+                          <option value="TVComedies">Comedy</option>
+                          <option value="TVDramas">Drama</option>
+                          <option value="Docuseries">Docuseries</option>
+                          <option value="KidsTV">Kids</option>
+                          <option value="RealityTV">Reality</option>
+                          <option value="TalkShowsTVComedies">
+                            Talk Shows
+                          </option>
+                          <option value="AnimeSeriesInternationalTVShows">
+                            Anime
+                          </option>
+                          <option value="BritishTVShowsDocuseriesInternationalTVShows">
+                            British
+                          </option>
+                          <option value="InternationalTVShowsRomanticTVShowsTVDramas">
+                            International Drama
+                          </option>
+                          <option value="CrimeTVShowsDocuseries">Crime</option>
+                          <option value="LanguageTVShows">Language</option>
+                          <option value="NatureTV">Nature</option>
+                          <option value="Children">Children</option>
+
+                          {/* Add Spirituality as it can be for both movies and TV shows */}
+                          <option value="Spirituality">Spirituality</option>
+                        </select>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div
