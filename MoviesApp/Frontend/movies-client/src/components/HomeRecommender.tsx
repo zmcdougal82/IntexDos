@@ -386,71 +386,8 @@ const HomeRecommender: React.FC<HomeRecommenderProps> = ({ userId }) => {
   const [genreMovies, setGenreMovies] = useState<Record<string, Movie[]>>({});
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  
-  // Track which movie IDs are valid (exist in the database)
-  const [validatedMovieIds, setValidatedMovieIds] = useState<Set<string>>(new Set());
 
   const navigate = useNavigate();
-  
-  // Helper function to validate a movie ID with the database
-  const validateMovieId = async (id: string): Promise<boolean> => {
-    try {
-      const dbStyleId = id.startsWith('s') ? id : `s${id.replace(/\D/g, '')}`;
-      const response = await movieApi.getById(dbStyleId);
-      return !!(response?.data?.showId && response?.data?.title);
-    } catch (err) {
-      console.warn(`Movie ID ${id} not found in database`);
-      return false;
-    }
-  };
-  
-  // Function to pre-validate movie IDs from recommendation data
-  const preValidateMovieIds = async (recommendationData: RecommendationData): Promise<Set<string>> => {
-    const allIds = new Set<string>();
-    const validIds = new Set<string>();
-    
-    // Collect all IDs from all recommendation types
-    if (recommendationData.collaborative) {
-      recommendationData.collaborative.forEach(id => {
-        const dbStyleId = id.startsWith('s') ? id : `s${id.replace(/\D/g, '')}`;
-        allIds.add(dbStyleId);
-      });
-    }
-    
-    if (recommendationData.contentBased) {
-      recommendationData.contentBased.forEach(id => {
-        const dbStyleId = id.startsWith('s') ? id : `s${id.replace(/\D/g, '')}`;
-        allIds.add(dbStyleId);
-      });
-    }
-    
-    if (recommendationData.genres) {
-      Object.values(recommendationData.genres).forEach(genreIds => {
-        genreIds.forEach(id => {
-          const dbStyleId = id.startsWith('s') ? id : `s${id.replace(/\D/g, '')}`;
-          allIds.add(dbStyleId);
-        });
-      });
-    }
-    
-    // Validate IDs in batches for better performance
-    const batchSize = 10;
-    const idArray = Array.from(allIds);
-    
-    for (let i = 0; i < idArray.length; i += batchSize) {
-      const batch = idArray.slice(i, i + batchSize);
-      const results = await Promise.all(batch.map(id => validateMovieId(id)));
-      
-      results.forEach((isValid, index) => {
-        if (isValid) {
-          validIds.add(batch[index]);
-        }
-      });
-    }
-    
-    setValidatedMovieIds(validIds);
-    return validIds;
-  };
 
   // Format genre name for display
   const formatGenreName = (genreKey: string): string => {
@@ -487,11 +424,6 @@ const HomeRecommender: React.FC<HomeRecommenderProps> = ({ userId }) => {
           const apiResponse = await axios.get(`${RECOMMENDATION_API_URL}/recommendations/${userId}`);
           recommendationsData = apiResponse.data;
           console.log("Recommendation API response:", recommendationsData);
-          
-          // Pre-validate all movie IDs to filter out those not in the database
-          if (recommendationsData) {
-            await preValidateMovieIds(recommendationsData);
-          }
         } catch (apiErr) {
           console.error("Could not fetch from recommendation API:", apiErr);
           throw new Error("Failed to fetch recommendations. Please try again later.");
@@ -510,12 +442,6 @@ const HomeRecommender: React.FC<HomeRecommenderProps> = ({ userId }) => {
             recommendationsData.collaborative.map(async (id) => {
               try {
                 const dbStyleId = id.startsWith('s') ? id : `s${id.replace(/\D/g, '')}`;
-                
-                // Skip if the movie ID is not in our validated set
-                if (!validatedMovieIds.has(dbStyleId)) {
-                  console.warn(`Movie ID ${dbStyleId} skipped - not validated in database`);
-                  return null;
-                }
                 
                 const movieResponse = await movieApi.getById(dbStyleId);
                 
@@ -554,12 +480,6 @@ const HomeRecommender: React.FC<HomeRecommenderProps> = ({ userId }) => {
                 
                 // Skip if we've already processed this movie ID
                 if (processedMovieIds.has(dbStyleId)) {
-                  return null;
-                }
-                
-                // Skip if the movie ID is not in our validated set
-                if (!validatedMovieIds.has(dbStyleId)) {
-                  console.warn(`Movie ID ${dbStyleId} skipped - not validated in database`);
                   return null;
                 }
                 
@@ -604,12 +524,6 @@ const HomeRecommender: React.FC<HomeRecommenderProps> = ({ userId }) => {
                     
                     // Skip if we've already processed this movie ID
                     if (processedMovieIds.has(dbStyleId)) {
-                      return null;
-                    }
-                    
-                    // Skip if the movie ID is not in our validated set
-                    if (!validatedMovieIds.has(dbStyleId)) {
-                      console.warn(`Movie ID ${dbStyleId} skipped - not validated in database`);
                       return null;
                     }
                     
@@ -708,12 +622,6 @@ const HomeRecommender: React.FC<HomeRecommenderProps> = ({ userId }) => {
             
             // Skip if this movie ID is already displayed in any section
             if (allDisplayedMovieIds.has(dbStyleId)) {
-              return null;
-            }
-            
-            // Skip if the movie ID is not in our validated set
-            if (!validatedMovieIds.has(dbStyleId)) {
-              console.warn(`Movie ID ${dbStyleId} skipped - not validated in database`);
               return null;
             }
             
