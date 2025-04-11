@@ -88,6 +88,7 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [transitionActive, setTransitionActive] = useState(false);
   const [imagesLoaded, setImagesLoaded] = useState<Record<string, boolean>>({});
+  const [allImagesLoaded, setAllImagesLoaded] = useState<boolean>(false);
   const [transitionDirection, setTransitionDirection] = useState<'left' | 'right' | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   
@@ -95,23 +96,50 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
   const TRANSITION_DURATION = 300;
   const moviesPerPage = 5;
   
+  // Track image loading for each movie
+  const preloadImage = (movie: Movie) => {
+    if (movie.posterUrl && !imagesLoaded[movie.showId]) {
+      const img = new Image();
+      img.onload = () => {
+        setImagesLoaded(prev => ({...prev, [movie.showId]: true}));
+      };
+      img.onerror = () => {
+        // Even on error, mark as loaded to avoid retrying indefinitely
+        setImagesLoaded(prev => ({...prev, [movie.showId]: true}));
+      };
+      img.src = movie.posterUrl;
+      return false;
+    }
+    return true;
+  };
+  
   // Update allMovies when movies prop changes
   useEffect(() => {
     setAllMovies(movies);
     
-    // Preload the initial images
+    // Preload the initial images and mark loading state
     if (movies.length > 0) {
-      movies.forEach(movie => {
-        if (movie.posterUrl) {
-          const img = new Image();
-          img.onload = () => {
-            setImagesLoaded(prev => ({...prev, [movie.showId]: true}));
-          };
-          img.src = movie.posterUrl;
-        }
-      });
+      setAllImagesLoaded(false);
+      const preloadPromises = movies.map(movie => preloadImage(movie));
+      
+      // Check if all images are already loaded
+      if (preloadPromises.every(loaded => loaded)) {
+        setAllImagesLoaded(true);
+      }
     }
   }, [movies]);
+  
+  // Check if all currently visible movies' images are loaded
+  useEffect(() => {
+    const currentMovies = getCurrentPageMovies(currentPage);
+    const allLoaded = currentMovies.every(movie => 
+      !movie.posterUrl || imagesLoaded[movie.showId]
+    );
+    
+    if (allLoaded && !allImagesLoaded) {
+      setAllImagesLoaded(true);
+    }
+  }, [imagesLoaded, currentPage]);
   
   // Calculate the total number of pages
   const totalPages = Math.max(Math.ceil(allMovies.length / moviesPerPage), loadedPages.length + 1);
@@ -139,16 +167,8 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
                 return [...prevMovies, ...uniqueNewMovies];
               });
               
-              // Preload the images
-              newMovies.forEach(movie => {
-                if (movie.posterUrl && !imagesLoaded[movie.showId]) {
-                  const img = new Image();
-                  img.onload = () => {
-                    setImagesLoaded(prev => ({...prev, [movie.showId]: true}));
-                  };
-                  img.src = movie.posterUrl;
-                }
-              });
+              // Preload the images immediately
+              newMovies.forEach(movie => preloadImage(movie));
             }
             
             // Mark this page as loaded
@@ -217,16 +237,8 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
               return [...prevMovies, ...uniqueNewMovies];
             });
             
-            // Preload images
-            newMovies.forEach(movie => {
-              if (movie.posterUrl && !imagesLoaded[movie.showId]) {
-                const img = new Image();
-                img.onload = () => {
-                  setImagesLoaded(prev => ({...prev, [movie.showId]: true}));
-                };
-                img.src = movie.posterUrl;
-              }
-            });
+            // Preload images with the enhanced preloader
+            newMovies.forEach(movie => preloadImage(movie));
           }
           
           // Mark this page as loaded
@@ -319,10 +331,33 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
           ref={containerRef}
           style={containerStyles}
         >
+          {/* Loading overlay that shows until all images are loaded */}
+          {!allImagesLoaded && (
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              backgroundColor: 'rgba(255, 255, 255, 0.7)',
+              zIndex: 10
+            }}>
+              <div>Loading movies...</div>
+            </div>
+          )}
+          
           {/* Current page content - always rendered */}
           <div style={pageStyles(!transitionActive, getCurrentPageTransform())}>
             {visibleMovies.map((movie) => (
-              <div key={movie.showId} style={{ flexShrink: 0, width: "200px" }}>
+              <div key={movie.showId} style={{ 
+                flexShrink: 0, 
+                width: "200px",
+                opacity: imagesLoaded[movie.showId] ? 1 : 0,
+                transition: 'opacity 0.3s ease-in'
+              }}>
                 <MovieCard
                   movie={movie}
                   onClick={() => onMovieClick(movie.showId)}
@@ -334,7 +369,12 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
           {/* Target page content - shown during transition */}
           <div style={pageStyles(transitionActive, getNextPageTransform())}>
             {targetPageMovies.map((movie) => (
-              <div key={movie.showId} style={{ flexShrink: 0, width: "200px" }}>
+              <div key={movie.showId} style={{ 
+                flexShrink: 0, 
+                width: "200px",
+                opacity: imagesLoaded[movie.showId] ? 1 : 0,
+                transition: 'opacity 0.3s ease-in'
+              }}>
                 <MovieCard
                   movie={movie}
                   onClick={() => onMovieClick(movie.showId)}
@@ -440,16 +480,8 @@ const HomeRecommender: React.FC<HomeRecommender> = ({ userId }) => {
                 const movieResponse = await movieApi.getById(dbStyleId);
                 return movieResponse.data;
               } catch (err) {
-                console.warn(`Failed to fetch movie ${id} from main API - creating placeholder:`, err);
-                
-                // Create a placeholder movie object with the ID
-                // This ensures we at least display something for recommendations
-                return {
-                  showId: id,
-                  title: `Movie ${id}`,
-                  description: "Details for this recommendation aren't available in the database.",
-                  posterUrl: `https://image.tmdb.org/t/p/w500/placeholder.jpg`
-                };
+                console.warn(`Failed to fetch movie ${id} from main API - skipping this recommendation`);
+                return null; // Return null to filter it out later
               }
             })
           );
@@ -470,15 +502,8 @@ const HomeRecommender: React.FC<HomeRecommender> = ({ userId }) => {
                 const movieResponse = await movieApi.getById(dbStyleId);
                 return movieResponse.data;
               } catch (err) {
-                console.warn(`Failed to fetch movie ${id} from main API - creating placeholder:`, err);
-                
-                // Create a placeholder movie object with the ID
-                return {
-                  showId: id,
-                  title: `Movie ${id}`,
-                  description: "Details for this recommendation aren't available in the database.",
-                  posterUrl: `https://image.tmdb.org/t/p/w500/placeholder.jpg`
-                };
+                console.warn(`Failed to fetch movie ${id} from main API - skipping this recommendation`);
+                return null; // Return null to filter it out later
               }
             })
           );
@@ -503,15 +528,9 @@ const HomeRecommender: React.FC<HomeRecommender> = ({ userId }) => {
                     const movieResponse = await movieApi.getById(dbStyleId);
                     return movieResponse.data;
                   } catch (err) {
-                    console.warn(`Failed to fetch movie ${id} from main API - creating placeholder:`, err);
-                    
-                    // Create a placeholder movie object with the ID
-                    return {
-                      showId: id,
-                      title: `Movie ${id}`,
-                      description: "Details for this recommendation aren't available in the database.",
-                      posterUrl: `https://image.tmdb.org/t/p/w500/placeholder.jpg`
-                    };
+                    console.warn(`Failed to fetch movie ${id} from main API - skipping this recommendation`);
+                    // Skip this movie if it's not in the database
+                    return null;
                   }
                 })
               );
@@ -604,12 +623,8 @@ const HomeRecommender: React.FC<HomeRecommender> = ({ userId }) => {
             return movieResponse.data;
           } catch (err) {
             console.warn(`Failed to fetch movie ${id} from main API:`, err);
-            return {
-              showId: id,
-              title: `Movie ${id}`,
-              description: "Details for this recommendation aren't available in the database.",
-              posterUrl: `https://image.tmdb.org/t/p/w500/placeholder.jpg`
-            };
+            // Skip this movie since it's not in the database
+            return null;
           }
         })
       );
