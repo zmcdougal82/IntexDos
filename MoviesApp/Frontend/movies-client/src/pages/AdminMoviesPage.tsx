@@ -1222,15 +1222,19 @@ const AdminMoviesPage: React.FC = () => {
                       type="button"
                       onClick={() => {
                         setSearchQuery("");
+                        setSearchQueryInput("");
                         setCurrentPage(1);
                       }}
                       style={{
-                        background: "none",
+                        background: "#e0e0e0",
                         border: "none",
                         cursor: "pointer",
-                        padding: "0 12px",
+                        padding: "8px 12px",
                         display: "flex",
                         alignItems: "center",
+                        borderRadius: "50%",
+                        margin: "0 8px",
+                        boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
                       }}
                       aria-label="Clear search"
                     >
@@ -1798,9 +1802,7 @@ const AdminMoviesPage: React.FC = () => {
 
             </div>
 
-            <div className="text-center" style={{ color: 'var(--color-text-light)', fontSize: '0.875rem' }}>
-              Showing page {currentPage} of {totalMovies > 0 ? Math.ceil(totalMovies / pageSize) : 1}  {/* Calculate total pages */}
-            </div>
+            {/* Page counter removed as requested */}
 
           {/*  */}
         </div>
