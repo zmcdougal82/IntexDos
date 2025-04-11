@@ -581,12 +581,16 @@ const HomeRecommender: React.FC<HomeRecommenderProps> = ({ userId }) => {
     if (!userId) return [];
     
     try {
+      console.log(`Loading more for section "${section}", page ${page}`);
       const limit = 10; // Number of new recommendations to fetch
       
-      const response = await axios.get(
-        `${RECOMMENDATION_API_URL}/recommendations/${userId}/more`, 
-        { params: { section, page, limit } }
-      );
+      // Construct the API endpoint for more recommendations
+      const endpoint = `${RECOMMENDATION_API_URL}/recommendations/${userId}/more`;
+      
+      // Handle different section types (collaborative, contentBased, or genre)
+      const params = { section, page, limit };
+      
+      const response = await axios.get(endpoint, { params });
       
       // Extract the relevant section from the response
       let movieIds: string[] = [];
