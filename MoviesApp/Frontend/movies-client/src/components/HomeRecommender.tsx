@@ -89,18 +89,21 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
   const [transitionActive, setTransitionActive] = useState(false);
   const [imagesLoaded, setImagesLoaded] = useState<Record<string, boolean>>({});
   const [allImagesLoaded, setAllImagesLoaded] = useState<boolean>(false);
+  const [targetPageLoaded, setTargetPageLoaded] = useState<boolean>(false);
   const [transitionDirection, setTransitionDirection] = useState<'left' | 'right' | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [preloadQueue, setPreloadQueue] = useState<string[]>([]);
+  const [loadingTimers, setLoadingTimers] = useState<Record<string, NodeJS.Timeout>>({});
   
   // Transition duration in ms
   const TRANSITION_DURATION = 300;
   const moviesPerPage = 5;
   
-  // Enhanced image preloading with cache
+  // Enhanced image preloading with cache and loading timeout
   const imageCache = useRef<Set<string>>(new Set());
+  const IMAGE_LOAD_TIMEOUT = 10000; // 10 seconds timeout for image loading
   
-  // Track image loading for each movie with enhanced priority queuing
+  // Track image loading for each movie with enhanced priority queuing and timeout handling
   const preloadImage = (movie: Movie, priority: 'high' | 'medium' | 'low' = 'medium') => {
     if (!movie || !movie.posterUrl) return true;
     
@@ -117,6 +120,16 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
     
     // Set up load handlers
     img.onload = () => {
+      // Clear any timeout that might be running
+      if (loadingTimers[movie.showId]) {
+        clearTimeout(loadingTimers[movie.showId]);
+        setLoadingTimers(prev => {
+          const newTimers = {...prev};
+          delete newTimers[movie.showId];
+          return newTimers;
+        });
+      }
+      
       // Mark as successfully loaded
       setImagesLoaded(prev => ({...prev, [movie.showId]: true}));
       
@@ -129,6 +142,16 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
     };
     
     img.onerror = () => {
+      // Clear any timeout
+      if (loadingTimers[movie.showId]) {
+        clearTimeout(loadingTimers[movie.showId]);
+        setLoadingTimers(prev => {
+          const newTimers = {...prev};
+          delete newTimers[movie.showId];
+          return newTimers;
+        });
+      }
+      
       // Even on error, mark as loaded to avoid retrying indefinitely
       console.warn(`Failed to load image for movie: ${movie.showId}`);
       setImagesLoaded(prev => ({...prev, [movie.showId]: true}));
@@ -140,6 +163,35 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
         return newQueue;
       });
     };
+    
+    // Set a timeout to prevent waiting indefinitely for an image
+    const timer = setTimeout(() => {
+      console.warn(`Image load timeout for movie: ${movie.showId}`);
+      // Mark as loaded even though it timed out
+      setImagesLoaded(prev => ({...prev, [movie.showId]: true}));
+      
+      // Continue with the queue
+      setPreloadQueue(prevQueue => {
+        const newQueue = [...prevQueue];
+        if (newQueue[0] === movie.showId) {
+          newQueue.shift();
+        }
+        return newQueue;
+      });
+      
+      // Remove this timer from the timers object
+      setLoadingTimers(prev => {
+        const newTimers = {...prev};
+        delete newTimers[movie.showId];
+        return newTimers;
+      });
+    }, IMAGE_LOAD_TIMEOUT);
+    
+    // Save the timer reference
+    setLoadingTimers(prev => ({
+      ...prev,
+      [movie.showId]: timer
+    }));
     
     // Add to preload queue with appropriate priority
     setPreloadQueue(prevQueue => {
@@ -163,7 +215,15 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
     return false;
   };
   
-  // Process the preload queue
+  // Clean up any timers when component unmounts
+  useEffect(() => {
+    return () => {
+      // Clear all timers
+      Object.values(loadingTimers).forEach(timer => clearTimeout(timer));
+    };
+  }, [loadingTimers]);
+  
+  // Process the preload queue with improved error handling
   useEffect(() => {
     if (preloadQueue.length > 0) {
       const currentMovieId = preloadQueue[0];
@@ -178,6 +238,16 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
             newQueue.shift();
             return newQueue;
           });
+          
+          // Clear any timeout
+          if (loadingTimers[currentMovieId]) {
+            clearTimeout(loadingTimers[currentMovieId]);
+            setLoadingTimers(prev => {
+              const newTimers = {...prev};
+              delete newTimers[currentMovieId];
+              return newTimers;
+            });
+          }
         };
         img.onerror = () => {
           setImagesLoaded(prev => ({...prev, [currentMovieId]: true}));
@@ -186,7 +256,38 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
             newQueue.shift();
             return newQueue;
           });
+          
+          // Clear any timeout
+          if (loadingTimers[currentMovieId]) {
+            clearTimeout(loadingTimers[currentMovieId]);
+            setLoadingTimers(prev => {
+              const newTimers = {...prev};
+              delete newTimers[currentMovieId];
+              return newTimers;
+            });
+          }
         };
+        
+        // Set a timeout to prevent waiting indefinitely
+        const timer = setTimeout(() => {
+          console.warn(`Queue image load timeout for movie: ${currentMovieId}`);
+          // Mark as loaded after timeout
+          setImagesLoaded(prev => ({...prev, [currentMovieId]: true}));
+          setPreloadQueue(prevQueue => {
+            const newQueue = [...prevQueue];
+            if (newQueue[0] === currentMovieId) {
+              newQueue.shift();
+            }
+            return newQueue;
+          });
+        }, IMAGE_LOAD_TIMEOUT);
+        
+        // Save the timer reference
+        setLoadingTimers(prev => ({
+          ...prev,
+          [currentMovieId]: timer
+        }));
+        
         img.src = currentMovie.posterUrl;
       } else {
         // Skip this item if movie not found or already loaded
@@ -197,7 +298,7 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
         });
       }
     }
-  }, [preloadQueue, allMovies, imagesLoaded]);
+  }, [preloadQueue, allMovies, imagesLoaded, loadingTimers, IMAGE_LOAD_TIMEOUT]);
   
   // Update allMovies when movies prop changes
   useEffect(() => {
@@ -223,35 +324,6 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
     }
   }, [movies]);
   
-  // Check if all currently visible movies' images are loaded
-  useEffect(() => {
-    const currentMovies = getCurrentPageMovies(currentPage);
-    const allCurrentLoaded = currentMovies.every(movie => 
-      !movie.posterUrl || imagesLoaded[movie.showId]
-    );
-    
-    // Update the allImagesLoaded state for current page
-    if (allCurrentLoaded && !allImagesLoaded) {
-      setAllImagesLoaded(true);
-    }
-    
-    // Check next page loading status (but don't track it as a state to avoid build errors)
-    const nextPageIndex = currentPage + 1;
-    const nextPageMovies = getCurrentPageMovies(nextPageIndex);
-    
-    // This check is still useful for debugging even if we're not storing the state
-    if (nextPageMovies.length > 0) {
-      const nextPageLoaded = nextPageMovies.every(
-        movie => !movie.posterUrl || imagesLoaded[movie.showId]
-      );
-      
-      // Instead of storing in state, we can use it here to preload if needed
-      if (!nextPageLoaded) {
-        nextPageMovies.forEach(movie => preloadImage(movie, 'high'));
-      }
-    }
-  }, [imagesLoaded, currentPage, allImagesLoaded]);
-  
   // Calculate the total number of pages
   // Set a reasonably high limit to prevent running out prematurely, especially for genres
   const initialMaxPages = 10;
@@ -261,6 +333,65 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
     // Make sure we have at least 10 pages available initially
     initialMaxPages 
   );
+  
+  // Check if all currently visible movies' images are loaded and also track target page loading status
+  useEffect(() => {
+    // Check current page loading status
+    const currentMovies = getCurrentPageMovies(currentPage);
+    const allCurrentLoaded = currentMovies.every(movie => 
+      !movie.posterUrl || imagesLoaded[movie.showId]
+    );
+    
+    // Update the allImagesLoaded state for current page
+    setAllImagesLoaded(allCurrentLoaded);
+    
+    // Check target page loading status if we have one set
+    if (nextPage !== null) {
+      const targetPageMovies = getCurrentPageMovies(nextPage);
+      const targetLoaded = targetPageMovies.every(
+        movie => !movie.posterUrl || imagesLoaded[movie.showId]
+      );
+      
+      setTargetPageLoaded(targetLoaded);
+      
+      // If target page isn't loaded, ensure we're aggressively preloading
+      if (!targetLoaded) {
+        targetPageMovies.forEach(movie => {
+          if (!imagesLoaded[movie.showId]) {
+            preloadImage(movie, 'high');
+          }
+        });
+      }
+    }
+    
+    // Also check and preload the next potential pages
+    const nextPageIndex = currentPage + 1;
+    const prevPageIndex = currentPage - 1;
+    
+    // Next page
+    if (nextPageIndex < totalPages) {
+      const nextPageMovies = getCurrentPageMovies(nextPageIndex);
+      
+      // Preload regardless of current status to ensure we're ready
+      nextPageMovies.forEach(movie => {
+        if (!imagesLoaded[movie.showId]) {
+          preloadImage(movie, nextPage === nextPageIndex ? 'high' : 'medium');
+        }
+      });
+    }
+    
+    // Previous page
+    if (prevPageIndex >= 0) {
+      const prevPageMovies = getCurrentPageMovies(prevPageIndex);
+      
+      // Preload with appropriate priority
+      prevPageMovies.forEach(movie => {
+        if (!imagesLoaded[movie.showId]) {
+          preloadImage(movie, nextPage === prevPageIndex ? 'high' : 'medium');
+        }
+      });
+    }
+  }, [imagesLoaded, currentPage, nextPage, totalPages]);
   
   // Enhanced preloading of adjacent pages
   useEffect(() => {
@@ -348,29 +479,42 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
   if (allMovies.length === 0) return null;
   
   const scrollPrev = () => {
-    // Only allow scrolling if we're not already in transition
-    if (currentPage > 0 && !transitionActive) {
+    // Only allow scrolling if we're not already in transition or loading
+    if (currentPage > 0 && !transitionActive && !isLoading) {
       // Check if previous page images are loaded
       const prevPageMovies = getCurrentPageMovies(currentPage - 1);
       const prevPageReady = prevPageMovies.every(
         movie => !movie.posterUrl || imagesLoaded[movie.showId]
       );
       
-      // Start transition animation
+      // If previous page images aren't ready, start preloading them but don't transition yet
+      if (!prevPageReady) {
+        // Show loading state
+        setAllImagesLoaded(false);
+        
+        // Set the target page so we can track loading progress
+        const targetPage = currentPage - 1;
+        setNextPage(targetPage);
+        
+        // Aggressively preload the images we need with high priority
+        prevPageMovies.forEach(movie => {
+          if (!imagesLoaded[movie.showId]) {
+            preloadImage(movie, 'high');
+          }
+        });
+        
+        // Wait for the images to load via the targetPageLoaded effect
+        return;
+      }
+      
+      // Start transition animation once images are ready
       setTransitionActive(true);
       setTransitionDirection('left');
       
       // Set the target page
       const targetPage = currentPage - 1;
       setNextPage(targetPage);
-      
-      // If not all images are loaded, we'll show loading state during transition
-      if (!prevPageReady) {
-        setAllImagesLoaded(false);
-        
-        // Aggressively preload the images we need
-        prevPageMovies.forEach(movie => preloadImage(movie, 'high'));
-      }
+      setTargetPageLoaded(true); // Images are already confirmed loaded
       
       // Using setTimeout to allow the animation to complete
       setTimeout(() => {
@@ -393,11 +537,7 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
     // Only scroll if not at the end, not in transition, not loading
     if (currentPage < totalPages - 1 && !transitionActive && !isLoading) {
       const targetPage = currentPage + 1;
-      
-      // Start transition animation
-      setTransitionActive(true);
-      setTransitionDirection('right');
-      setNextPage(targetPage);
+      setNextPage(targetPage); // Set this early to trigger target page loading checks
       
       // Check if we need to load more data
       if (!loadedPages.includes(targetPage) && onLoadMore && userId) {
@@ -437,11 +577,33 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
         } finally {
           setIsLoading(false);
         }
-      } else {
-        // If we already have the data, make sure the images are being loaded
-        const nextPageMovies = getCurrentPageMovies(targetPage);
-        nextPageMovies.forEach(movie => preloadImage(movie, 'high'));
       }
+      
+      // Check if next page images are loaded
+      const nextPageMovies = getCurrentPageMovies(targetPage);
+      const nextPageReady = nextPageMovies.length > 0 && nextPageMovies.every(
+        movie => !movie.posterUrl || imagesLoaded[movie.showId]
+      );
+      
+      // If next page images aren't ready, start preloading without transitioning yet
+      if (!nextPageReady) {
+        setAllImagesLoaded(false);
+        
+        // Aggressively preload the images we need
+        nextPageMovies.forEach(movie => {
+          if (!imagesLoaded[movie.showId]) {
+            preloadImage(movie, 'high');
+          }
+        });
+        
+        // Wait for targetPageLoaded to become true via the useEffect hook
+        return;
+      }
+      
+      // Only proceed with transition animation once images are loaded
+      setTransitionActive(true);
+      setTransitionDirection('right');
+      setTargetPageLoaded(true); // We've confirmed images are loaded
       
       // Using setTimeout to allow the animation to complete
       setTimeout(() => {
@@ -522,7 +684,7 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
     ? getCurrentPageMovies(nextPage) 
     : (transitionDirection === 'right' ? nextForwardMovies : prevPageMovies);
 
-  // Create a movie card with placeholder handling  
+  // Create a movie card with enhanced placeholder handling  
   const renderMovieCard = (movie: Movie, isLoaded: boolean) => {
     return (
       <div 
@@ -530,42 +692,55 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
         style={{ 
           flexShrink: 0, 
           width: "200px",
-          // Use opacity transition for smoother rendering
-          opacity: isLoaded ? 1 : 0.7,
-          transition: 'opacity 0.3s ease-in',
-          position: 'relative'
+          position: 'relative',
+          // No opacity transition on the container to prevent flashing
+          height: '300px', // Fixed height to prevent layout shifts
         }}
       >
-        {/* Show a shimmer placeholder if not loaded */}
-        {!isLoaded && (
+        {/* Always show the shimmer placeholder, but control its opacity */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: '#f0f0f0',
+          borderRadius: '8px',
+          overflow: 'hidden',
+          // Keep placeholder visible until image is loaded
+          opacity: isLoaded ? 0 : 1,
+          transition: 'opacity 0.5s ease-in',
+          // Higher z-index to ensure it covers any white flashes
+          zIndex: 2
+        }}>
           <div style={{
             position: 'absolute',
             top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: '#f0f0f0',
-            borderRadius: '8px',
-            overflow: 'hidden',
-            zIndex: 0
-          }}>
-            <div style={{
-              position: 'absolute',
-              top: 0,
-              left: '-100%',
-              width: '200%',
-              height: '100%',
-              background: 'linear-gradient(to right, #f0f0f0 0%, #e0e0e0 50%, #f0f0f0 100%)',
-              animation: 'shimmer 2s infinite',
-            }} />
-          </div>
-        )}
+            left: '-100%',
+            width: '200%',
+            height: '100%',
+            background: 'linear-gradient(to right, #f0f0f0 0%, #e0e0e0 50%, #f0f0f0 100%)',
+            animation: 'shimmer 2s infinite',
+          }} />
+        </div>
         
-        {/* The actual movie card */}
-        <MovieCard
-          movie={movie}
-          onClick={() => onMovieClick(movie.showId)}
-        />
+        {/* The actual movie card with a wrapper to control visibility */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          // Fade in the actual content once loaded
+          opacity: isLoaded ? 1 : 0,
+          transition: 'opacity 0.5s ease-in',
+          zIndex: 1
+        }}>
+          <MovieCard
+            movie={movie}
+            onClick={() => onMovieClick(movie.showId)}
+          />
+        </div>
       </div>
     );
   };
@@ -584,15 +759,15 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
         <NavigationArrow 
           direction="left" 
           onClick={scrollPrev} 
-          disabled={currentPage === 0 || transitionActive || isLoading} 
+          disabled={currentPage === 0 || transitionActive || isLoading || (nextPage !== null && !targetPageLoaded)} 
         />
         
         <div
           ref={containerRef}
           style={containerStyles}
         >
-          {/* Improved loading overlay with shimmer effect */}
-          {(!allImagesLoaded || isLoading) && (
+          {/* Enhanced loading overlay with clearer status messages */}
+          {(!allImagesLoaded || isLoading || (nextPage !== null && !targetPageLoaded)) && (
             <div style={{
               position: 'absolute',
               top: 0,
@@ -602,7 +777,7 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',
-              backgroundColor: 'rgba(255, 255, 255, 0.7)',
+              backgroundColor: 'rgba(255, 255, 255, 0.8)',
               zIndex: 10
             }}>
               <div style={{
@@ -620,7 +795,11 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
                   animation: 'spin 1s linear infinite',
                 }}>
                 </div>
-                <div>Loading movies...</div>
+                <div style={{fontWeight: 500}}>
+                  {isLoading ? 'Loading more recommendations...' : 
+                   nextPage !== null && !targetPageLoaded ? 'Loading posters...' : 
+                   'Preparing content...'}
+                </div>
               </div>
             </div>
           )}
@@ -643,7 +822,7 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
         <NavigationArrow 
           direction="right" 
           onClick={scrollNext} 
-          disabled={currentPage >= totalPages - 1 || transitionActive || isLoading} 
+          disabled={currentPage >= totalPages - 1 || transitionActive || isLoading || (nextPage !== null && !targetPageLoaded)} 
         />
       </div>
     </div>
