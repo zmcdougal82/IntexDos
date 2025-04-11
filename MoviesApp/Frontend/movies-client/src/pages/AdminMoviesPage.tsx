@@ -815,57 +815,6 @@ const AdminMoviesPage: React.FC = () => {
     return uniqueGenres;
   };
 
-  // Function to get the selected genre from form data (for backward compatibility)
-  const getSelectedGenre = (data: MovieFormData): string => {
-    const genres = getAllGenres(data);
-    return genres.length > 0 ? genres[0] : "Not specified";
-  };
-
-  // Function to handle genre dropdown change for adding movies
-  const handleGenreChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedGenre = e.target.value;
-
-    // Reset all genre fields
-    const updatedFormData: MovieFormData = {
-      ...formData,
-      Action: 0,
-      Adventure: 0,
-      Comedies: 0,
-      Dramas: 0,
-      HorrorMovies: 0,
-      Thrillers: 0,
-      Documentaries: 0,
-      FamilyMovies: 0,
-      Fantasy: 0,
-      Musicals: 0,
-    };
-
-    // Set the selected genre to 1
-    if (selectedGenre) {
-      // Define the genres we support for the dropdown
-      const validGenres = [
-        "Action",
-        "Adventure",
-        "Comedies",
-        "Dramas",
-        "HorrorMovies",
-        "Thrillers",
-        "Documentaries",
-        "FamilyMovies",
-        "Fantasy",
-        "Musicals",
-      ];
-
-      // Only set if it's a valid genre field
-      if (validGenres.includes(selectedGenre)) {
-        // Explicitly use type assertion
-        (updatedFormData as any)[selectedGenre] = 1;
-      }
-    }
-
-    setFormData(updatedFormData);
-  };
-
   // Function to add a new genre
   const handleAddGenre = (genreKey: string, contentType: "movie" | "tv") => {
     if (!editingMovie || !genreKey) return;
