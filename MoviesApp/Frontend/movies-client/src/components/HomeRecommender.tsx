@@ -87,28 +87,58 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
   
   const moviesPerPage = 5;
   
-  // Enhanced image preloading with manual Image object
-  const preloadImage = (movie: Movie) => {
-    if (!movie || !movie.posterUrl) return true;
+  // Image preload state
+  const [imageLoadPromises, setImageLoadPromises] = useState<Record<string, Promise<boolean>>>({});
+  
+  // Improved robust image preloading function
+  const preloadImage = (movie: Movie): Promise<boolean> => {
+    if (!movie || !movie.posterUrl) {
+      // If no movie or no poster URL, mark as loaded
+      return Promise.resolve(true);
+    }
     
     // Skip if already loaded
     if (imagesLoaded[movie.showId]) {
-      return true;
+      return Promise.resolve(true);
     }
     
-    // Create a new image object to preload
-    const img = new Image();
-    img.onload = () => {
-      setImagesLoaded(prev => ({...prev, [movie.showId]: true}));
-    };
-    img.onerror = () => {
-      console.warn(`Failed to load image for movie: ${movie.showId}`);
-      setImagesLoaded(prev => ({...prev, [movie.showId]: true}));
-    };
+    // If we already have a promise for this image, return it
+    if (movie.showId in imageLoadPromises) {
+      return imageLoadPromises[movie.showId];
+    }
     
-    // Start loading
-    img.src = movie.posterUrl;
-    return false;
+    // Create a new promise for this image
+    const loadPromise = new Promise<boolean>((resolve) => {
+      // Create a new image object to preload
+      const img = new Image();
+      
+      // Set up handlers
+      img.onload = () => {
+        // Mark as loaded in the state
+        setImagesLoaded(prev => ({...prev, [movie.showId]: true}));
+        resolve(true);
+      };
+      
+      img.onerror = () => {
+        console.warn(`Failed to load image for movie: ${movie.showId}`);
+        // Even on error, we'll mark it as "loaded" to avoid blocking navigation
+        setImagesLoaded(prev => ({...prev, [movie.showId]: true}));
+        resolve(false);
+      };
+      
+      // Start loading (after handlers are set up)
+      if (movie.posterUrl) {
+        img.src = movie.posterUrl;
+      }
+    });
+    
+    // Save this promise
+    setImageLoadPromises(prev => ({
+      ...prev,
+      [movie.showId]: loadPromise
+    }));
+    
+    return loadPromise;
   };
   
   // Update allMovies when movies prop changes
@@ -315,21 +345,22 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
                   </div>
                 )}
                 
-                {/* Movie card with display control based on loaded state */}
-                <div style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  opacity: imagesLoaded[movie.showId] ? 1 : 0,
-                  zIndex: 1
-                }}>
-                  <MovieCard
-                    movie={movie}
-                    onClick={() => onMovieClick(movie.showId)}
-                  />
-                </div>
+                {/* Only render MovieCard when image is loaded */}
+                {imagesLoaded[movie.showId] && (
+                  <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    zIndex: 1
+                  }}>
+                    <MovieCard
+                      movie={movie}
+                      onClick={() => onMovieClick(movie.showId)}
+                    />
+                  </div>
+                )}
               </div>
             ))}
           </div>
