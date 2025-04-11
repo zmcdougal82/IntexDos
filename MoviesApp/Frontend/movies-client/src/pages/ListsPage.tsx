@@ -111,11 +111,7 @@ const ListsPage: React.FC = () => {
     }
   };
 
-  // Confirm delete modal
-  const confirmDelete = (list: MovieList) => {
-    setListToDelete(list);
-    setShowDeleteModal(true);
-  };
+  // Delete functionality has been removed from the UI
 
   if (loading) {
     return (
