@@ -139,24 +139,44 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
   
   if (allMovies.length === 0) return null;
   
-  // Simplified scrollPrev function - direct page change with no animations
+  // Enhanced scrollPrev function - ensures all images are loaded before page change
   const scrollPrev = () => {
     if (currentPage > 0 && !isLoading) {
       const targetPage = currentPage - 1;
       
-      // Load the previous page directly without animations
-      setCurrentPage(targetPage);
+      // Check if the previous page's images are all loaded
+      const prevPageMovies = getCurrentPageMovies(targetPage);
+      const allPrevPageImagesLoaded = prevPageMovies.every(
+        movie => !movie.posterUrl || imagesLoaded[movie.showId]
+      );
       
-      // Preload the previous page's images if needed
-      getCurrentPageMovies(targetPage).forEach(movie => {
-        if (!imagesLoaded[movie.showId]) {
-          preloadImage(movie);
-        }
-      });
+      // If not all images are loaded yet, start preloading them but don't change page
+      if (!allPrevPageImagesLoaded) {
+        console.log("Waiting for all images to load before changing page...");
+        
+        // Aggressively preload the images needed
+        prevPageMovies.forEach(movie => {
+          if (!imagesLoaded[movie.showId]) {
+            preloadImage(movie);
+          }
+        });
+        
+        // Don't proceed with the page change until all images are loaded
+        return;
+      }
+      
+      // Only go to the previous page when all images are loaded
+      setCurrentPage(targetPage);
     }
   };
   
-  // Simplified scrollNext function - direct page change with no animations
+  // Check if all images for a given page are loaded
+  const areAllImagesLoadedForPage = (page: number): boolean => {
+    const pageMovies = getCurrentPageMovies(page);
+    return pageMovies.every(movie => !movie.posterUrl || imagesLoaded[movie.showId]);
+  };
+
+  // Enhanced scrollNext function - ensures all images are loaded before page change
   const scrollNext = async () => {
     if (currentPage < totalPages - 1 && !isLoading) {
       const targetPage = currentPage + 1;
@@ -191,15 +211,29 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
         }
       }
       
-      // Go to the next page directly without animations
-      setCurrentPage(targetPage);
+      // Check if the next page's images are all loaded
+      const nextPageMovies = getCurrentPageMovies(targetPage);
+      const allNextPageImagesLoaded = nextPageMovies.every(
+        movie => !movie.posterUrl || imagesLoaded[movie.showId]
+      );
       
-      // Preload the next page's images if needed
-      getCurrentPageMovies(targetPage).forEach(movie => {
-        if (!imagesLoaded[movie.showId]) {
-          preloadImage(movie);
-        }
-      });
+      // If not all images are loaded yet, start preloading them but don't change page
+      if (!allNextPageImagesLoaded) {
+        console.log("Waiting for all images to load before changing page...");
+        
+        // Aggressively preload the images needed
+        nextPageMovies.forEach(movie => {
+          if (!imagesLoaded[movie.showId]) {
+            preloadImage(movie);
+          }
+        });
+        
+        // Don't proceed with the page change until all images are loaded
+        return;
+      }
+      
+      // Only go to the next page when all images are loaded
+      setCurrentPage(targetPage);
     }
   };
 
@@ -217,7 +251,11 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
         <NavigationArrow 
           direction="left" 
           onClick={scrollPrev} 
-          disabled={currentPage === 0 || isLoading} 
+          disabled={
+            currentPage === 0 || 
+            isLoading || 
+            (currentPage > 0 && !areAllImagesLoadedForPage(currentPage - 1))
+          } 
         />
         
         <div
@@ -300,7 +338,11 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
         <NavigationArrow 
           direction="right" 
           onClick={scrollNext} 
-          disabled={currentPage >= totalPages - 1 || isLoading} 
+          disabled={
+            currentPage >= totalPages - 1 || 
+            isLoading || 
+            (currentPage < totalPages - 1 && !areAllImagesLoadedForPage(currentPage + 1))
+          } 
         />
       </div>
     </div>
