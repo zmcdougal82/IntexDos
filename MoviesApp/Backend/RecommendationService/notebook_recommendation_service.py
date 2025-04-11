@@ -234,17 +234,46 @@ class NotebookRecommendationService:
             return random.sample(self.sample_movies, min(limit, len(self.sample_movies)))
             
         try:
-            cursor = self.conn.cursor()
-            # Find users who rated the same movies similarly
-            # This is a simplified collaborative filtering approach that now filters for positive ratings (>=3.5)
+            # Calculate the tier based on offset to progressively relax constraints
+            # This allows us to generate more recommendations as the user scrolls
+            tier = min(4, offset // 40)  # Tier increases every 40 movies (8 pages of 5)
             
             # Print debug info
-            logger.info(f"Getting collaborative recommendations for user {user_id} with limit={limit}, offset={offset}")
+            logger.info(f"Getting collaborative recommendations for user {user_id} with limit={limit}, offset={offset}, tier={tier}")
             
-            # First get a list of all potential collaborative recommendations without pagination
-            # to allow for more consistent results
-            all_query = """
-            WITH potential_recs AS (
+            # First try with strict collaborative filtering
+            if tier == 0:
+                recommendations = self.get_strict_collaborative_recommendations(user_id, limit, offset)
+                if recommendations and len(recommendations) > 0:
+                    logger.info(f"Retrieved {len(recommendations)} strict collaborative recommendations")
+                    return recommendations
+            
+            # If we've already gone through initial tiers or strict recommendations returned nothing
+            if tier >= 1 or not recommendations or len(recommendations) == 0:
+                recommendations = self.get_extended_collaborative_recommendations(user_id, limit, offset, tier)
+                if recommendations and len(recommendations) > 0:
+                    logger.info(f"Retrieved {len(recommendations)} extended recommendations (tier {tier})")
+                    return recommendations
+            
+            # Final fallback to popular and genre-based recommendations
+            logger.info(f"No suitable collaborative recommendations found for user {user_id}, using fallbacks")
+            return self.get_recommendation_fallbacks(user_id, limit)
+            
+        except Exception as e:
+            logger.error(f"Error retrieving collaborative recommendations: {e}")
+            return random.sample(self.sample_movies, min(limit, len(self.sample_movies)))
+    
+    def get_strict_collaborative_recommendations(self, user_id, limit=20, offset=0):
+        """Get strict collaborative filtering recommendations (users with very similar ratings)"""
+        if not self.conn:
+            return []
+            
+        try:
+            cursor = self.conn.cursor()
+            # Rewritten strict collaborative filtering query to avoid ORDER BY in CTE
+            strict_query = """
+            SELECT show_id
+            FROM (
                 SELECT r2.show_id, COUNT(*) as similarity_count
                 FROM movies_ratings r1
                 JOIN movies_ratings r2 ON r1.user_id != r2.user_id 
@@ -256,42 +285,221 @@ class NotebookRecommendationService:
                         SELECT show_id FROM movies_ratings WHERE user_id = ?
                     )
                 GROUP BY r2.show_id
-                ORDER BY similarity_count DESC
-            )
-            SELECT show_id
-            FROM potential_recs
+            ) as recs
             ORDER BY similarity_count DESC
             OFFSET ? ROWS
             FETCH NEXT ? ROWS ONLY
             """
-            cursor.execute(all_query, (user_id, user_id, offset, limit))
+            cursor.execute(strict_query, (user_id, user_id, offset, limit))
             
             # Ensure all IDs are in the 's' prefix format
             collaborative = []
             for row in cursor.fetchall():
-                # Get the ID and ensure it's in the correct format (starting with 's')
                 show_id = row.show_id
                 if not show_id.startswith('s'):
-                    # If it's a TMDB ID (starts with 'tt'), extract the numeric part
                     if show_id.startswith('tt'):
                         show_id = f"s{show_id[2:]}"
                     else:
-                        # For any other format, just ensure it has 's' prefix
                         show_id = f"s{show_id}"
                 collaborative.append(show_id)
             
             cursor.close()
-            
-            if not collaborative:
-                # Fallback if no collaborative recommendations found
-                logger.info(f"No collaborative recommendations found for user {user_id}, using popular movies")
-                return self.get_popular_movies(limit)
-                
-            logger.info(f"Retrieved {len(collaborative)} collaborative recommendations for user {user_id}")
             return collaborative
         except Exception as e:
-            logger.error(f"Error retrieving collaborative recommendations: {e}")
-            return random.sample(self.sample_movies, min(limit, len(self.sample_movies)))
+            logger.error(f"Error retrieving strict collaborative recommendations: {e}")
+            return []
+    
+    def get_extended_collaborative_recommendations(self, user_id, limit=20, offset=0, tier=1):
+        """Get extended collaborative recommendations using progressively relaxed criteria"""
+        if not self.conn:
+            return []
+            
+        try:
+            cursor = self.conn.cursor()
+            
+            # Calculate offset within the relaxed tier (resetting for each tier)
+            tier_offset = max(0, offset - (tier * 40))
+            
+            # Get the user's rated genres to find similar movies
+            user_genres = self.get_user_preferred_genres(user_id)
+            
+            # Generate the genre conditions dynamically based on user preferences
+            genre_conditions = ""
+            if user_genres and len(user_genres) > 0:
+                genre_clauses = []
+                for genre in user_genres:
+                    genre_clauses.append(f"m2.[{genre}] > 0")
+                genre_conditions = "AND (" + " OR ".join(genre_clauses) + ")"
+            else:
+                # Fallback if no user genres found
+                genre_conditions = "AND (m2.[Action] > 0 OR m2.[Comedies] > 0 OR m2.[Dramas] > 0)"
+            
+            # Relaxed parameters for different tiers
+            rating_difference = 1 + (tier * 0.5)  # 1, 1.5, 2, 2.5
+            min_rating = max(2.5, 4 - (tier * 0.5))  # 4, 3.5, 3, 2.5
+            
+            # Completely rewritten query to avoid nested subqueries and ORDER BY issues
+            # First get the user's rated movies and their details in a temporary table
+            user_rated_query = f"""
+            -- First, get a subset of movies rated by the user
+            SELECT TOP 50 m1.show_id, r1.rating, m1.Action, m1.Comedies, m1.Dramas, m1.Thrillers, m1.HorrorMovies
+            INTO #user_rated_movies
+            FROM movies_ratings r1
+            JOIN movies_titles m1 ON r1.show_id = m1.show_id
+            WHERE r1.user_id = ? AND r1.rating >= {min_rating}
+            ORDER BY r1.rating DESC;
+
+            -- Get the movies that match the user's preferred genres
+            SELECT TOP {limit + offset} m2.show_id,
+                AVG(CAST(m2.Action + m2.Comedies + m2.Dramas + m2.Thrillers + m2.HorrorMovies AS FLOAT) *
+                    (1 - ABS(ur.rating - {min_rating})/5)) as genre_similarity_score
+            FROM #user_rated_movies ur
+            JOIN movies_titles m2 ON m2.show_id != ur.show_id
+                {genre_conditions}
+            WHERE m2.show_id NOT IN (
+                SELECT show_id FROM movies_ratings WHERE user_id = ?
+            )
+            GROUP BY m2.show_id
+            ORDER BY genre_similarity_score DESC
+            OFFSET ? ROWS FETCH NEXT ? ROWS ONLY;
+            
+            -- Drop the temporary table
+            DROP TABLE #user_rated_movies;
+            """
+            
+            cursor.execute(user_rated_query, (user_id, user_id, tier_offset, limit))
+            
+            # Ensure all IDs are in the 's' prefix format
+            extended = []
+            for row in cursor.fetchall():
+                show_id = row.show_id
+                if not show_id.startswith('s'):
+                    if show_id.startswith('tt'):
+                        show_id = f"s{show_id[2:]}"
+                    else:
+                        show_id = f"s{show_id}"
+                extended.append(show_id)
+            
+            cursor.close()
+            return extended
+        except Exception as e:
+            logger.error(f"Error retrieving extended collaborative recommendations: {e}")
+            return []
+    
+    def get_user_preferred_genres(self, user_id):
+        """Get a user's preferred genres based on their highly-rated movies"""
+        if not self.conn:
+            return self.genres[:3]
+            
+        try:
+            cursor = self.conn.cursor()
+            
+            # Find genres for movies the user has rated highly
+            query = """
+            SELECT 
+                SUM(m.Action) as Action, 
+                SUM(m.Adventure) as Adventure,
+                SUM(m.Comedies) as Comedies, 
+                SUM(m.Dramas) as Dramas,
+                SUM(m.HorrorMovies) as HorrorMovies, 
+                SUM(m.Thrillers) as Thrillers,
+                SUM(m.Documentaries) as Documentaries
+            FROM movies_ratings r
+            JOIN movies_titles m ON r.show_id = m.show_id
+            WHERE r.user_id = ? AND r.rating >= 3.5
+            """
+            
+            cursor.execute(query, (user_id,))
+            row = cursor.fetchone()
+            cursor.close()
+            
+            if not row:
+                return []
+            
+            # Get the top 3 genres with non-zero values
+            genre_scores = [
+                ("Action", row.Action or 0),
+                ("Adventure", row.Adventure or 0),
+                ("Comedies", row.Comedies or 0),
+                ("Dramas", row.Dramas or 0),
+                ("HorrorMovies", row.HorrorMovies or 0),
+                ("Thrillers", row.Thrillers or 0),
+                ("Documentaries", row.Documentaries or 0)
+            ]
+            
+            # Sort by score (descending) and filter out zero scores
+            sorted_genres = [genre for genre, score in sorted(genre_scores, key=lambda x: x[1], reverse=True) if score > 0]
+            
+            # Return top 3 or all if less than 3
+            return sorted_genres[:3] if len(sorted_genres) > 3 else sorted_genres
+            
+        except Exception as e:
+            logger.error(f"Error getting user preferred genres: {e}")
+            return []
+            
+    def get_recommendation_fallbacks(self, user_id, limit=20):
+        """Get fallback recommendations when collaborative filtering runs out"""
+        fallbacks = []
+        
+        # First try: Get popular movies
+        try:
+            popular = self.get_popular_movies(limit)
+            if popular and len(popular) > 0:
+                fallbacks.extend(popular)
+        except Exception as e:
+            logger.error(f"Error getting popular movie fallbacks: {e}")
+        
+        # Second try: Get top-rated movies
+        try:
+            if len(fallbacks) < limit:
+                top_rated = self.get_top_rated_movies(limit)
+                
+                # Filter out duplicates
+                for movie_id in top_rated:
+                    if movie_id not in fallbacks and len(fallbacks) < limit:
+                        fallbacks.append(movie_id)
+        except Exception as e:
+            logger.error(f"Error getting top-rated movie fallbacks: {e}")
+        
+        # Third try: Get genre recommendations
+        try:
+            if len(fallbacks) < limit:
+                # Get user's preferred genres
+                preferred_genres = self.get_user_preferred_genres(user_id)
+                
+                # If no preferred genres, use default set
+                if not preferred_genres or len(preferred_genres) == 0:
+                    preferred_genres = ["Action", "Comedies", "Dramas"]
+                
+                # Get recommendations for each genre until we have enough
+                for genre in preferred_genres:
+                    if len(fallbacks) >= limit:
+                        break
+                    
+                    genre_movies = self.get_genre_movies(genre, limit)
+                    
+                    # Filter out duplicates
+                    for movie_id in genre_movies:
+                        if movie_id not in fallbacks and len(fallbacks) < limit:
+                            fallbacks.append(movie_id)
+        except Exception as e:
+            logger.error(f"Error getting genre movie fallbacks: {e}")
+        
+        # Last resort: Random sampling from available movies
+        if len(fallbacks) < limit:
+            try:
+                all_movies = self.get_movie_ids(limit * 2)
+                random.shuffle(all_movies)
+                
+                # Filter out duplicates
+                for movie_id in all_movies:
+                    if movie_id not in fallbacks and len(fallbacks) < limit:
+                        fallbacks.append(movie_id)
+            except Exception as e:
+                logger.error(f"Error getting random movie fallbacks: {e}")
+        
+        logger.info(f"Generated {len(fallbacks)} fallback recommendations for user {user_id}")
+        return fallbacks[:limit]  # Limit to requested number
     
     def get_content_based_recommendations(self, user_id, limit=20, offset=0):
         """Get content-based recommendations for a user with pagination"""
@@ -550,16 +758,38 @@ class NotebookRecommendationService:
         # Calculate the offset based on page and limit
         offset = page * limit
         
+        # For tracking already returned recommendations to avoid duplicates
+        already_recommended = set()
+        
         # Generate the appropriate recommendations based on section
         if section == 'collaborative':
             # Get collaborative filtering recommendations with offset
             if self.conn:
                 # Request more recommendations than needed to ensure we have enough after validation
-                expanded_limit = limit * 2
-                recommendations = self.get_collaborative_recommendations(user_id, limit=expanded_limit, offset=offset)
+                expanded_limit = limit * 3  # Increased to get more potential recommendations
+                
+                # Get both strict and extended recommendations
+                recommendations = []
+                
+                # Try strict collaborative first
+                strict_recs = self.get_collaborative_recommendations(user_id, limit=expanded_limit, offset=offset)
+                if strict_recs:
+                    recommendations.extend(strict_recs)
+                
+                # If we don't have enough, try some additional fallbacks
+                if len(recommendations) < limit:
+                    remaining = limit - len(recommendations)
+                    fallbacks = self.get_recommendation_fallbacks(user_id, remaining * 2)
+                    
+                    # Add fallbacks that aren't already in recommendations
+                    for movie_id in fallbacks:
+                        if movie_id not in recommendations and len(recommendations) < expanded_limit:
+                            recommendations.append(movie_id)
+                
                 # Validate the recommendations
                 recommendations = self.validate_movie_ids(recommendations)
                 logger.info(f"Returning {len(recommendations)} validated collaborative recommendations (requested {expanded_limit})")
+                
                 # Limit to the requested number after validation
                 recommendations = recommendations[:limit]
             else:
