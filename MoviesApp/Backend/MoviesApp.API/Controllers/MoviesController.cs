@@ -61,8 +61,7 @@ namespace MoviesApp.API.Controllers
             }
 
             return await _context.Movies
-                .Where(m => m.Title.Contains(query) || 
-                       (m.Description != null && m.Description.Contains(query)))
+                .Where(m => m.Title.Contains(query))
                 .OrderBy(m => m.ShowId) // Add ordering for consistent results
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
