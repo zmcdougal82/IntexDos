@@ -37,5 +37,5 @@ jobs:
       uses: azure/webapps-deploy@v2
       with:
         app-name: 'moviesapp-recommendation-service'
-        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_API }}
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
         package: MoviesApp/Backend/RecommendationService/deployment.zip
