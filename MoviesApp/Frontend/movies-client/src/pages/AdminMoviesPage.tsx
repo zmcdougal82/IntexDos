@@ -163,19 +163,20 @@ const AdminMoviesPage: React.FC = () => {
     }
   }, [navigate]);
 
-  //Total Movies/Shows in Db
+  // Fetch total movie count
   useEffect(() => {
     const fetchTotalCount = async () => {
       try {
         const response = await movieApi.getTotalMoviesCount();
-        setTotalContent(response.data.totalMovies);
+        console.log(response); // Check the structure of the response
+        setTotalContent(response.data.totalMovies); // Update the state with the total movie count
       } catch (error) {
         console.error("Error fetching total movie count:", error);
       }
     };
-  
+
     fetchTotalCount();
-  }, []);
+  }, []); // Empty dependency array to run only once when the component mounts
 
   // Fetch movies with search and filters
   useEffect(() => {
