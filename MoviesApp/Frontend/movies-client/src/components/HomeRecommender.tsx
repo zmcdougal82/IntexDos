@@ -214,8 +214,20 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
       // Check if we need to load more data
       if (!loadedPages.includes(targetPage) && onLoadMore && userId) {
         setIsLoading(true);
+        
+        // Set a timeout to release loading state if it takes too long
+        const loadingTimeout = setTimeout(() => {
+          console.log("Loading timeout reached, resetting loading state");
+          setIsLoading(false);
+          // Mark this page as loaded to prevent infinite loading attempts
+          setLoadedPages(prev => [...prev, targetPage]);
+        }, 5000); // 5 second timeout
+        
         try {
           const newMovies = await onLoadMore(sectionType, targetPage);
+          
+          // Clear the timeout since we got a response
+          clearTimeout(loadingTimeout);
           
           // Add the new movies to our collection
           if (newMovies && newMovies.length > 0) {
@@ -229,11 +241,18 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
               
               return [...prevMovies, ...uniqueNewMovies];
             });
+          } else {
+            // If we got no new movies, there's nothing more to load
+            // This prevents the UI from showing the loading indicator indefinitely
+            console.log(`No more movies available for ${sectionType} at page ${targetPage}`);
           }
           
           // Mark this page as loaded
           setLoadedPages(prev => [...prev, targetPage]);
         } catch (err) {
+          // Clear the timeout since we got a response (even if it's an error)
+          clearTimeout(loadingTimeout);
+          
           console.error(`Error loading more ${sectionType} recommendations:`, err);
           setLoadedPages(prev => [...prev, targetPage]);
         } finally {
@@ -602,13 +621,15 @@ const HomeRecommender: React.FC<HomeRecommenderProps> = ({ userId }) => {
         movieIds = response.data.genres[section];
       }
       
-      // If we get no results for collaborative section, fall back to popular movies
+      // If we get no results for collaborative section, fall back to popular movies or movies by genre
       if (!movieIds.length && section === 'collaborative') {
-        console.log("Ran out of collaborative recommendations, fetching popular movies as fallback");
+        console.log("Ran out of collaborative recommendations, fetching fallback content");
+        
         try {
-          // Fetch popular movies as fallback using getAll API
-          const popularResponse = await movieApi.getAll(page + 1, limit);
+          // First try popular movies
+          const popularResponse = await movieApi.getAll(page + 1, limit * 2);
           if (popularResponse.data && popularResponse.data.length > 0) {
+            console.log(`Found ${popularResponse.data.length} popular movies as fallback`);
             // Return the popular movies directly
             return popularResponse.data.filter((movie: Movie) => 
               movie !== null && 
@@ -618,6 +639,26 @@ const HomeRecommender: React.FC<HomeRecommenderProps> = ({ userId }) => {
           }
         } catch (popularErr) {
           console.error("Error fetching popular movies fallback:", popularErr);
+        }
+        
+        try {
+          // If popular movies don't work, try movies by genre as a second fallback
+          const genres = ["Action", "Comedy", "Drama"];
+          const randomGenre = genres[Math.floor(Math.random() * genres.length)];
+          
+          console.log(`Trying genre fallback: ${randomGenre}`);
+          const genreResponse = await movieApi.getByGenre(randomGenre, page + 1, limit * 2);
+          
+          if (genreResponse.data && genreResponse.data.length > 0) {
+            console.log(`Found ${genreResponse.data.length} ${randomGenre} movies as fallback`);
+            return genreResponse.data.filter((movie: Movie) => 
+              movie !== null && 
+              movie.showId && 
+              movie.title
+            );
+          }
+        } catch (genreErr) {
+          console.error("Error fetching genre fallback:", genreErr);
         }
       }
       
