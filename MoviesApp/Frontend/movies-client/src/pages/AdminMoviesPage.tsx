@@ -129,6 +129,7 @@ const AdminMoviesPage: React.FC = () => {
 
   // Search and filter states
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchField, setSearchField] = useState<string>("title");
   const [selectedType, setSelectedType] = useState<string>("");
   const [selectedGenre, setSelectedGenre] = useState<string>("");
   const [yearFrom, setYearFrom] = useState<number | undefined>(undefined);
@@ -188,23 +189,23 @@ const AdminMoviesPage: React.FC = () => {
 
         let response;
 
-        // If search query exists, use search endpoint with pagination
-        if (searchQuery) {
-          // Pass pageSize as the limit to ensure we only get the correct number of items
-          response = await movieApi.searchMovies(
-            searchQuery,
-            "title", // Default to searching by title
-            currentPage,
-            pageSize
-          );
+          // If search query exists, use search endpoint with pagination
+          if (searchQuery) {
+            // Pass pageSize as the limit to ensure we only get the correct number of items
+            response = await movieApi.searchMovies(
+              searchQuery,
+              searchField,
+              currentPage,
+              pageSize
+            );
 
-          // CRITICAL: Force limit the displayed items to pageSize regardless of API response
-          const limitedResults = response.data.slice(0, pageSize);
-          setMovies(limitedResults);
+            // CRITICAL: Force limit the displayed items to pageSize regardless of API response
+            const limitedResults = response.data.slice(0, pageSize);
+            setMovies(limitedResults);
 
-          // Store the total count from response for pagination
-          setTotalMovies(response.data.length);
-        }
+            // Store the total count from response for pagination
+            setTotalMovies(response.data.length);
+          }
         // Separate handling for filters without search query
         else if (
           selectedType ||
@@ -551,7 +552,7 @@ const AdminMoviesPage: React.FC = () => {
           if (searchQuery) {
             response = await movieApi.searchMovies(
               searchQuery,
-              "title", // Default to searching by title
+              searchField, // Use the selected search field
               currentPage,
               pageSize
             );
@@ -1102,83 +1103,71 @@ const AdminMoviesPage: React.FC = () => {
 
           {/* Search Bar */}
           <div style={{ marginBottom: "var(--spacing-md)" }}>
-            <div
-              style={{
-                display: "flex",
-                gap: "var(--spacing-sm)",
-                marginBottom: "var(--spacing-sm)",
-                position: "relative",
+            <form 
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setCurrentPage(1);
+                
+                // Trigger an immediate search with the current parameters
+                try {
+                  setLoading(true);
+                  
+                  const response = await movieApi.searchMovies(
+                    searchQuery,
+                    searchField,
+                    1, // Start at page 1 for new searches
+                    pageSize
+                  );
+                  
+                  // Update movies with the search results
+                  const limitedResults = response.data.slice(0, pageSize);
+                  setMovies(limitedResults);
+                  setTotalMovies(response.data.length);
+                  setError(null);
+                } catch (err) {
+                  console.error("Error searching movies:", err);
+                  setError("Failed to search movies. Please try again later.");
+                } finally {
+                  setLoading(false);
+                }
               }}
+              style={{ marginBottom: "var(--spacing-sm)" }}
             >
               <div
                 style={{
-                  flex: 1,
-                  position: "relative",
                   display: "flex",
-                  alignItems: "center",
-                  boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
-                  borderRadius: "4px",
-                  border: "3px solid #95a5a6",
-                  backgroundColor: "white",
-                  transition: "all 0.2s ease",
-                }}
-                onFocus={(e) => {
-                  e.currentTarget.style.boxShadow =
-                    "0 5px 12px rgba(0,0,0,0.25)";
-                  e.currentTarget.style.borderColor = "#3498db";
-                  e.currentTarget.style.borderWidth = "3px";
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.boxShadow =
-                    "0 4px 10px rgba(0,0,0,0.2)";
-                  e.currentTarget.style.borderColor = "#95a5a6";
-                  e.currentTarget.style.borderWidth = "3px";
+                  gap: "var(--spacing-sm)",
+                  marginBottom: "var(--spacing-sm)",
+                  position: "relative",
                 }}
               >
-                {/* Search icon */}
-                <div style={{ padding: "0 12px" }}>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    fill="#95a5a6"
-                    viewBox="0 0 16 16"
-                  >
-                    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />
-                  </svg>
-                </div>
-                <input
-                  type="text"
-                  placeholder="Search titles, directors, or actors..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                <div
                   style={{
                     flex: 1,
-                    padding: "12px 0",
-                    border: "none",
-                    outline: "none",
-                    fontSize: "0.95rem",
-                    color: "#34495e",
-                    backgroundColor: "transparent",
+                    position: "relative",
+                    display: "flex",
+                    alignItems: "center",
+                    boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
+                    borderRadius: "4px",
+                    border: "3px solid #95a5a6",
+                    backgroundColor: "white",
+                    transition: "all 0.2s ease",
                   }}
-                />
-                {/* Clear button (X) - only shows when there's text */}
-                {searchQuery && (
-                  <button
-                    onClick={() => {
-                      setSearchQuery("");
-                      setCurrentPage(1);
-                    }}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      padding: "0 12px",
-                      display: "flex",
-                      alignItems: "center",
-                    }}
-                    aria-label="Clear search"
-                  >
+                  onFocus={(e) => {
+                    e.currentTarget.style.boxShadow =
+                      "0 5px 12px rgba(0,0,0,0.25)";
+                    e.currentTarget.style.borderColor = "#3498db";
+                    e.currentTarget.style.borderWidth = "3px";
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.boxShadow =
+                      "0 4px 10px rgba(0,0,0,0.2)";
+                    e.currentTarget.style.borderColor = "#95a5a6";
+                    e.currentTarget.style.borderWidth = "3px";
+                  }}
+                >
+                  {/* Search icon */}
+                  <div style={{ padding: "0 12px" }}>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="16"
@@ -1186,56 +1175,118 @@ const AdminMoviesPage: React.FC = () => {
                       fill="#95a5a6"
                       viewBox="0 0 16 16"
                     >
-                      <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" />
+                      <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />
                     </svg>
-                  </button>
-                )}
+                  </div>
+                  <input
+                    type="text"
+                    placeholder={`Search by ${searchField}...`}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    style={{
+                      flex: 1,
+                      padding: "12px 0",
+                      border: "none",
+                      outline: "none",
+                      fontSize: "0.95rem",
+                      color: "#34495e",
+                      backgroundColor: "transparent",
+                    }}
+                  />
+                  {/* Clear button (X) - only shows when there's text */}
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchQuery("");
+                        setCurrentPage(1);
+                      }}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        padding: "0 12px",
+                        display: "flex",
+                        alignItems: "center",
+                      }}
+                      aria-label="Clear search"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        fill="#95a5a6"
+                        viewBox="0 0 16 16"
+                      >
+                        <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+                <select
+                  value={searchField}
+                  onChange={(e) => setSearchField(e.target.value)}
+                  style={{
+                    padding: "0 10px",
+                    width: "120px",
+                    backgroundColor: "white",
+                    border: "3px solid #95a5a6",
+                    borderRadius: "4px",
+                    color: "#34495e",
+                    fontSize: "0.95rem",
+                    boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                    cursor: "pointer",
+                  }}
+                >
+                  <option value="title">Title</option>
+                  <option value="director">Director</option>
+                  <option value="cast">Cast</option>
+                  <option value="year">Year</option>
+                </select>
+                <button
+                  type="submit"
+                  style={{
+                    backgroundColor: "#3498db",
+                    color: "white",
+                    border: "none",
+                    padding: "0 20px",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    fontWeight: "500",
+                    boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                    transition: "all 0.2s ease",
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.backgroundColor = "#2980b9";
+                    e.currentTarget.style.boxShadow =
+                      "0 4px 8px rgba(0,0,0,0.15)";
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.backgroundColor = "#3498db";
+                    e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
+                  }}
+                >
+                  Search
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowFilters(!showFilters)}
+                  style={{
+                    backgroundColor: "var(--color-secondary)",
+                    color: "white",
+                    border: "none",
+                    padding: "var(--spacing-sm) var(--spacing-md)",
+                    borderRadius: "var(--radius-md)",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "var(--spacing-xs)",
+                  }}
+                >
+                  <span>{showFilters ? "Hide Filters" : "Show Filters"}</span>
+                </button>
               </div>
-              <button
-                onClick={() => {
-                  // Reset page when searching
-                  setCurrentPage(1);
-                }}
-                style={{
-                  backgroundColor: "#3498db",
-                  color: "white",
-                  border: "none",
-                  padding: "0 20px",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                  fontWeight: "500",
-                  boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-                  transition: "all 0.2s ease",
-                }}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.backgroundColor = "#2980b9";
-                  e.currentTarget.style.boxShadow =
-                    "0 4px 8px rgba(0,0,0,0.15)";
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.backgroundColor = "#3498db";
-                  e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
-                }}
-              >
-                Search
-              </button>
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                style={{
-                  backgroundColor: "var(--color-secondary)",
-                  color: "white",
-                  border: "none",
-                  padding: "var(--spacing-sm) var(--spacing-md)",
-                  borderRadius: "var(--radius-md)",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "var(--spacing-xs)",
-                }}
-              >
-                <span>{showFilters ? "Hide Filters" : "Show Filters"}</span>
-              </button>
-            </div>
+            </form>
 
             {/* Additional Filters */}
             {showFilters && (
