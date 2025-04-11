@@ -1,8 +1,9 @@
 using Microsoft.Extensions.Configuration;
 using MoviesApp.API.Models;
-using SparkPost;
+using RestSharp;
+using RestSharp.Authenticators;
 using System;
-using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace MoviesApp.API.Services
@@ -25,20 +26,21 @@ namespace MoviesApp.API.Services
 
         public async Task SendPasswordResetEmailAsync(User user, string token)
         {
-            var apiKey = _configuration["SparkPost:ApiKey"];
-            var apiUrl = _configuration["SparkPost:ApiUrl"];
-            var senderEmail = _configuration["SparkPost:SenderEmail"];
-            var senderName = _configuration["SparkPost:SenderName"];
+            var apiKey = _configuration["Mailgun:ApiKey"];
+            var domain = _configuration["Mailgun:Domain"];
+            var senderEmail = _configuration["Mailgun:SenderEmail"];
+            var senderName = _configuration["Mailgun:SenderName"];
+            var region = _configuration["Mailgun:Region"] ?? "US"; // Default to US region
 
-            if (string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(senderEmail))
+            if (string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(domain) || string.IsNullOrEmpty(senderEmail))
             {
-                throw new InvalidOperationException("SparkPost API key or sender email is not configured.");
+                throw new InvalidOperationException("Mailgun API key, domain or sender email is not configured.");
             }
 
             // Print some debug information
             Console.WriteLine("========= EMAIL SERVICE DEBUG =========");
             Console.WriteLine($"Base URL: {_baseUrl}");
-            Console.WriteLine($"API URL: {apiUrl}");
+            Console.WriteLine($"Mailgun Domain: {domain}");
             Console.WriteLine($"Sender Email: {senderEmail}");
             Console.WriteLine($"Sender Name: {senderName}");
             Console.WriteLine($"Recipient: {user.Email}");
@@ -96,9 +98,8 @@ namespace MoviesApp.API.Services
                     Console.WriteLine("█                                                            █");
                     Console.WriteLine("█  MOCK EMAIL SERVICE - FOR TESTING PASSWORD RESET           █");
                     Console.WriteLine("█                                                            █");
-                    Console.WriteLine("█  Since SparkPost integration requires domain verification, █");
-                    Console.WriteLine("█  we've implemented a mock email service for testing        █");
-                    Console.WriteLine("█  that provides the password reset link directly here.      █");
+                    Console.WriteLine("█  Since we're in development mode, the password reset       █");
+                    Console.WriteLine("█  link is provided directly here instead of sending email.  █");
                     Console.WriteLine("█                                                            █");
                     Console.WriteLine("█  COPY THIS LINK TO RESET YOUR PASSWORD:                    █");
                     Console.WriteLine($"█  {resetLink}");
@@ -114,40 +115,43 @@ namespace MoviesApp.API.Services
                     Console.WriteLine($"From: {senderEmail}");
                     Console.WriteLine($"Subject: CineNiche Password Reset");
                     Console.WriteLine("========================");
+                    
+                    // Return a completed task since we're not actually sending an email
+                    await Task.CompletedTask;
+                    return;
                 } 
-                // In production (Azure), use SparkPost to actually send the email
-                else 
+                
+                // In production (Azure), use Mailgun to actually send the email
+                Console.WriteLine($"Sending password reset email to {user.Email} via Mailgun...");
+                
+                // Determine the correct base URL for the Mailgun API based on region
+                string mailgunBaseUrl = region.Equals("EU", StringComparison.OrdinalIgnoreCase) 
+                    ? "https://api.eu.mailgun.net/v3"
+                    : "https://api.mailgun.net/v3";
+                
+                var client = new RestClient(new RestClientOptions
                 {
-                    // Create the SparkPost client
-                    var client = new Client(apiKey);
-                    
-                    // Set API host if provided in config
-                    if (!string.IsNullOrEmpty(apiUrl))
-                    {
-                        client.ApiHost = apiUrl;
-                    }
-
-                    // Create and send the transmission
-                    var transmission = new Transmission();
-                    transmission.Content.From.Email = senderEmail;
-                    if (!string.IsNullOrEmpty(senderName))
-                    {
-                        transmission.Content.From.Name = senderName;
-                    }
-                    transmission.Content.Subject = "CineNiche Password Reset";
-                    transmission.Content.Html = htmlContent;
-
-                    var recipient = new Recipient
-                    {
-                        Address = new Address { Email = user.Email, Name = user.Name }
-                    };
-                    transmission.Recipients.Add(recipient);
-
-                    // Send the email
-                    var response = client.Transmissions.Send(transmission);
-                    
-                    // Log the transmission ID for tracking
-                    Console.WriteLine($"Email sent via SparkPost with ID: {response?.Id}");
+                    BaseUrl = new Uri($"{mailgunBaseUrl}/{domain}"),
+                    Authenticator = new HttpBasicAuthenticator("api", apiKey)
+                });
+                
+                var request = new RestRequest("messages", Method.Post);
+                request.AddParameter("from", $"{senderName} <{senderEmail}>");
+                request.AddParameter("to", $"{user.Name} <{user.Email}>");
+                request.AddParameter("subject", "CineNiche Password Reset");
+                request.AddParameter("html", htmlContent);
+                
+                var response = await client.ExecuteAsync(request);
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    Console.WriteLine("Password reset email sent successfully via Mailgun.");
+                }
+                else
+                {
+                    // Log the error response from Mailgun
+                    Console.WriteLine($"Mailgun error: {response.StatusCode}, Response: {response.Content}");
+                    throw new Exception($"Failed to send email: {response.ErrorMessage ?? response.StatusCode.ToString()}");
                 }
             }
             catch (Exception ex)
@@ -155,19 +159,27 @@ namespace MoviesApp.API.Services
                 // Enhanced logging for debugging
                 Console.WriteLine("==== EMAIL SERVICE ERROR ====");
                 Console.WriteLine($"Error sending password reset email: {ex.Message}");
-                Console.WriteLine($"API Key: {apiKey.Substring(0, 4)}...{apiKey.Substring(apiKey.Length - 4)}");
+                
+                // Mask the API key in logs for security
+                var maskedApiKey = apiKey.Length > 8 
+                    ? $"{apiKey.Substring(0, 4)}...{apiKey.Substring(apiKey.Length - 4)}"
+                    : "****";
+                    
+                Console.WriteLine($"API Key: {maskedApiKey}");
+                Console.WriteLine($"Domain: {domain}");
                 Console.WriteLine($"From: {senderEmail}");
                 Console.WriteLine($"To: {user.Email}");
                 Console.WriteLine($"Reset Link: {resetLink}");
+                
                 if (ex.InnerException != null)
                 {
                     Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
                 }
                 Console.WriteLine("=============================");
+                
+                // Re-throw the exception to be handled by the caller
+                throw;
             }
-            
-            // We always return a completed task, whether the email was sent or not
-            await Task.CompletedTask;
         }
     }
 }

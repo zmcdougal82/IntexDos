@@ -1,62 +1,61 @@
 # Password Reset Functionality
 
-This document describes the password reset functionality implemented in the MoviesApp API, which uses SparkPost for email delivery.
+This document describes the password reset functionality implemented in the MoviesApp API, which uses Mailgun for email delivery.
 
 ## Configuration
 
-The SparkPost email service has been configured with the following credentials:
+The Mailgun email service has been configured with the following credentials:
 
-- API Key: `aecf07103eecf75d6ee809bb0e19a2f7de099dba`
-- Sending Domain: `mail.cineniche.co`
-- Sender Email: `noreply@mail.cineniche.co`
+- API Key: `7366e6734f1c23f0db1fee6d258575cd-2b77fbb2-d23dd854`
+- Sending Domain: `send.cineniche.co`
+- Sender Email: `noreply@send.cineniche.co`
 
-These settings are stored in the `appsettings.json` file under the `SparkPost` section.
+These settings are stored in the `appsettings.json` file under the `Mailgun` section.
 
 ## How Password Reset Works
 
 1. **Forgot Password Request**: User submits their email through the "Forgot Password" feature.
 2. **Token Generation**: The system generates a secure token and stores it in the database.
-3. **Email Delivery**: An email with a password reset link is sent to the user via SparkPost.
+3. **Email Delivery**: An email with a password reset link is sent to the user via Mailgun.
 4. **Reset Password**: User clicks the link in the email and is directed to a page where they can enter a new password.
 5. **Password Update**: The system verifies the token and updates the user's password.
 
 ## Testing the Password Reset Flow
 
-Three scripts have been created to help test the password reset functionality:
+We've created several scripts to help test the Mailgun password reset functionality:
 
-### 1. `test-forgot-password.js`
+### 1. `test-mailgun-forgot-password.js`
 
 This script initiates the password reset process by sending a "forgot password" request to the API.
 
 Usage:
 ```
-node MoviesApp/Backend/test-forgot-password.js
+node MoviesApp/Backend/test-mailgun-forgot-password.js [email]
 ```
 
-### 2. `test-reset-password.js`
+### 2. `test-mailgun-reset-password.js`
 
 This script completes the password reset process by submitting a new password along with the token received in the email.
 
 Usage:
-1. Edit the script to include your email, the token received, and the new password
-2. Run:
 ```
-node MoviesApp/Backend/test-reset-password.js
+node MoviesApp/Backend/test-mailgun-reset-password.js [email] [token] [newPassword]
 ```
 
-### 3. `start-api-and-test-reset.sh`
+If you don't provide the parameters, the script will prompt you for them interactively.
 
-This is a convenience script that starts the API in development mode and runs the forgot password test.
+### 3. `test-mailgun-reset-flow.sh`
+
+This is a convenience script that automates the entire testing process:
 
 Usage:
 ```
-./MoviesApp/Backend/start-api-and-test-reset.sh
+./MoviesApp/Backend/test-mailgun-reset-flow.sh
 ```
 
 The script will:
-- Install required npm packages
+- Start the API in development mode in a new terminal window
 - Prompt for the email to test
-- Start the API in development mode
 - Run the forgot password test
 - Display instructions for completing the reset process
 
@@ -70,8 +69,8 @@ When running in development mode:
 - You can copy this link to test the password reset flow
 
 In production (Azure):
-- The system uses SparkPost to send real emails to users
-- The domain (mail.cineniche.co) has been verified in SparkPost
+- The system uses Mailgun to send real emails to users
+- The domain (send.cineniche.co) has been verified in Mailgun
 - Emails will be delivered to users' inboxes, including the password reset link
 
 ## Database Table
