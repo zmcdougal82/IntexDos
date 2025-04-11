@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import Container from 'react-bootstrap/Container';
-import Row from 'react-bootstrap/Row';
-import Col from 'react-bootstrap/Col';
 import Modal from 'react-bootstrap/Modal';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import Alert from 'react-bootstrap/Alert';
-import { useNavigate } from 'react-router-dom';
 import { MovieList, movieListApi } from '../services/api';
 import ListCard from '../components/ListCard';
 
@@ -25,7 +22,6 @@ const ListsPage: React.FC = () => {
   const [createError, setCreateError] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [listToDelete, setListToDelete] = useState<MovieList | null>(null);
-  const navigate = useNavigate();
 
   // Form state
   const [newListName, setNewListName] = useState('');
