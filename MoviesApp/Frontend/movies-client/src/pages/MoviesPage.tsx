@@ -157,35 +157,27 @@ const MoviesPage = () => {
             style={{ marginBottom: "var(--spacing-lg)" }}
           >
             <div style={{ display: "flex", gap: "var(--spacing-sm)" }}>
-              <div style={{ display: "flex", minWidth: "200px" }}>
-                <select
-                  value={searchField}
-                  onChange={(e) => setSearchField(e.target.value)}
-                  style={{
-                    borderTopRightRadius: 0,
-                    borderBottomRightRadius: 0,
-                    borderRight: 'none',
-                    backgroundColor: "var(--color-card)",
-                    color: "var(--color-text)"
-                  }}
-                >
-                  <option value="title">Title</option>
-                  <option value="director">Director</option>
-                  <option value="cast">Cast</option>
-                  <option value="year">Year</option>
-                </select>
-                <input
-                  type="text"
-                  placeholder={`Search by ${searchField}...`}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  style={{
-                    flex: 1,
-                    borderTopLeftRadius: 0,
-                    borderBottomLeftRadius: 0
-                  }}
-                />
-              </div>
+              <input
+                type="text"
+                placeholder={`Search by ${searchField}...`}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{ flex: 1 }}
+              />
+              <select
+                value={searchField}
+                onChange={(e) => setSearchField(e.target.value)}
+                style={{
+                  width: "120px",
+                  backgroundColor: "var(--color-card)",
+                  color: "var(--color-text)"
+                }}
+              >
+                <option value="title">Title</option>
+                <option value="director">Director</option>
+                <option value="cast">Cast</option>
+                <option value="year">Year</option>
+              </select>
               <button
                 type="submit"
                 style={{
