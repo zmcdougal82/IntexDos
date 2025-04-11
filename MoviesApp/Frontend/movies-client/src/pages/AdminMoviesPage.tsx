@@ -1116,8 +1116,20 @@ const AdminMoviesPage: React.FC = () => {
                 e.preventDefault();
                 setCurrentPage(1);
                 
+                // Validate year search - if searchField is "year", make sure the input is a number
+                if (searchField === "year") {
+                  if (!/^\d+$/.test(searchQueryInput.trim())) {
+                    setError("When searching by year, please enter a valid number (e.g., 2023)");
+                    setLoading(false);
+                    return;
+                  }
+                }
+                
                 // Update the actual search query from the input field
                 setSearchQuery(searchQueryInput);
+                
+                // Clear any previous errors
+                setError(null);
                 
                 // Trigger an immediate search with the current parameters
                 try {
