@@ -19,6 +19,12 @@ Currently, the system will:
 1. First try to use the `AppSettings:BaseUrl` value from your Azure configuration
 2. Fall back to "https://cineniche.azurewebsites.net" if not configured
 
+## Domain Verification Status
+
+✅ **The domain `mail.cineniche.co` has been verified in SparkPost.**
+
+Password reset emails will now be delivered properly to users' inboxes.
+
 ## Ensuring Correct Configuration
 
 To ensure the password reset works correctly in Azure:
@@ -35,6 +41,8 @@ To ensure the password reset works correctly in Azure:
    The SparkPost settings are already in the `appsettings.json` file, but you can override them in Azure if needed:
    - API Key: `aecf07103eecf75d6ee809bb0e19a2f7de099dba`
    - Sender Email: `noreply@mail.cineniche.co`
+   
+   **Note**: Make sure the sender email matches the verified domain.
 
 ## Testing in Azure
 

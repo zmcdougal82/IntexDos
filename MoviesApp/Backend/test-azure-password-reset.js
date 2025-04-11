@@ -45,11 +45,12 @@ async function testAzurePasswordReset() {
     }
   } catch (error) {
     console.error('❌ Error during API call:', error.message);
-    console.log('\nTroubleshooting tips:');
-    console.log('1. Verify your Azure URL is correct');
-    console.log('2. Check that your Azure app is running');
-    console.log('3. Ensure your Azure app has the correct SparkPost configuration');
-    console.log('4. Check Azure logs for any errors');
+      console.log('\nTroubleshooting tips:');
+      console.log('1. Verify your Azure URL is correct');
+      console.log('2. Check that your Azure app is running');
+      console.log('3. Ensure your Azure app has the correct SparkPost configuration');
+      console.log('4. Check Azure logs for any errors');
+      console.log('5. Check your spam/junk folder as emails from new domains may be filtered');
   }
 }
 

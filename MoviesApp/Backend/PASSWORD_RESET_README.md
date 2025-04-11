@@ -62,7 +62,17 @@ The script will:
 
 ## Development vs Production
 
-In development mode, the password reset link will be printed to the console for easy testing. In production, the link will only be sent via email.
+For development and testing purposes, the system uses a mock email service that prints the password reset link directly to the console instead of sending a real email.
+
+When running in development mode:
+- No actual email is sent
+- The password reset link is printed directly to the console
+- You can copy this link to test the password reset flow
+
+In production (Azure):
+- The system uses SparkPost to send real emails to users
+- The domain (mail.cineniche.co) has been verified in SparkPost
+- Emails will be delivered to users' inboxes, including the password reset link
 
 ## Database Table
 
