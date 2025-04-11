@@ -208,11 +208,45 @@ const AdminMoviesPage: React.FC = () => {
             );
 
             // CRITICAL: Force limit the displayed items to pageSize regardless of API response
-            const limitedResults = response.data.slice(0, pageSize);
+            let limitedResults = response.data.slice(0, pageSize);
+            
+            // Apply filters to search results if they exist
+            if (selectedType || selectedGenre || yearFrom !== undefined || yearTo !== undefined) {
+              // Apply type filter if selected
+              if (selectedType) {
+                limitedResults = limitedResults.filter(
+                  (movie) => movie.type === selectedType
+                );
+              }
+
+              // Apply genre filter if selected
+              if (selectedGenre) {
+                limitedResults = limitedResults.filter((movie) => {
+                  // Need to cast to 'any' to access dynamic property
+                  return (movie as any)[selectedGenre] === 1;
+                });
+              }
+
+              // Apply year range filters if specified
+              if (yearFrom !== undefined) {
+                limitedResults = limitedResults.filter(
+                  (movie) =>
+                    movie.releaseYear !== undefined && movie.releaseYear >= yearFrom
+                );
+              }
+
+              if (yearTo !== undefined) {
+                limitedResults = limitedResults.filter(
+                  (movie) =>
+                    movie.releaseYear !== undefined && movie.releaseYear <= yearTo
+                );
+              }
+            }
+            
             setMovies(limitedResults);
 
-            // Store the total count from response for pagination
-            setTotalMovies(response.data.length);
+            // Store the total count from filtered results for pagination
+            setTotalMovies(limitedResults.length);
           }
         // Separate handling for filters without search query
         else if (
@@ -1142,10 +1176,45 @@ const AdminMoviesPage: React.FC = () => {
                     pageSize
                   );
                   
-                  // Update movies with the search results
-                  const limitedResults = response.data.slice(0, pageSize);
+                  // Get initial results
+                  let limitedResults = response.data.slice(0, pageSize);
+                  
+                  // Apply filters to search results if they exist
+                  if (selectedType || selectedGenre || yearFrom !== undefined || yearTo !== undefined) {
+                    // Apply type filter if selected
+                    if (selectedType) {
+                      limitedResults = limitedResults.filter(
+                        (movie) => movie.type === selectedType
+                      );
+                    }
+
+                    // Apply genre filter if selected
+                    if (selectedGenre) {
+                      limitedResults = limitedResults.filter((movie) => {
+                        // Need to cast to 'any' to access dynamic property
+                        return (movie as any)[selectedGenre] === 1;
+                      });
+                    }
+
+                    // Apply year range filters if specified
+                    if (yearFrom !== undefined) {
+                      limitedResults = limitedResults.filter(
+                        (movie) =>
+                          movie.releaseYear !== undefined && movie.releaseYear >= yearFrom
+                      );
+                    }
+
+                    if (yearTo !== undefined) {
+                      limitedResults = limitedResults.filter(
+                        (movie) =>
+                          movie.releaseYear !== undefined && movie.releaseYear <= yearTo
+                      );
+                    }
+                  }
+                  
+                  // Update movies with the filtered search results
                   setMovies(limitedResults);
-                  setTotalMovies(response.data.length);
+                  setTotalMovies(limitedResults.length);
                   setError(null);
                 } catch (err) {
                   console.error("Error searching movies:", err);
