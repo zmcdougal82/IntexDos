@@ -124,6 +124,8 @@ const ProfilePage = () => {
       const response = await userApi.delete(currentUserId);
       if (response.status === 200 || response.status === 204) {
         console.log("Profile successfully deleted");
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
         localStorage.removeItem('userId');
         setUser(null);
         window.location.href = '/login'; // Redirect to login page after successful deletion
