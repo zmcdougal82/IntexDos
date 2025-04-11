@@ -83,6 +83,7 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
   const [allMovies, setAllMovies] = useState<Movie[]>(movies);
   const [isLoading, setIsLoading] = useState(false);
   const [imagesLoaded, setImagesLoaded] = useState<Record<string, boolean>>({});
+  const [noMoreRecommendations, setNoMoreRecommendations] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   
   const moviesPerPage = 5;
@@ -244,12 +245,25 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
               // Preload these images
               uniqueNewMovies.forEach(movie => preloadImage(movie));
               
+              // For the collaborative section specifically, if we got fewer movies than requested,
+              // mark this as the end of available recommendations
+              if (sectionType === 'collaborative' && uniqueNewMovies.length < 5) {
+                console.log(`Limited collaborative recommendations returned (${uniqueNewMovies.length}/5), marking end`);
+                setNoMoreRecommendations(true);
+              }
+              
               return [...prevMovies, ...uniqueNewMovies];
             });
           } else {
             // If we got no new movies, there's nothing more to load
             // This prevents the UI from showing the loading indicator indefinitely
             console.log(`No more movies available for ${sectionType} at page ${targetPage}`);
+            
+            // For the collaborative section, disable further navigation
+            if (sectionType === 'collaborative') {
+              console.log(`No more collaborative recommendations available, disabling navigation`);
+              setNoMoreRecommendations(true);
+            }
           }
           
           // Mark this page as loaded
@@ -395,9 +409,9 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
           onClick={scrollNext} 
           disabled={
             isLoading || 
-            (currentPage < totalPages - 1 && !areAllImagesLoadedForPage(currentPage + 1))
-            // Never disable the right arrow if we have onLoadMore - this indicates endless scrolling
-            // currentPage >= totalPages - 1 || 
+            (currentPage < totalPages - 1 && !areAllImagesLoadedForPage(currentPage + 1)) ||
+            // For the collaborative section, disable right arrow when we've determined there are no more recommendations
+            (sectionType === 'collaborative' && noMoreRecommendations)
           } 
         />
       </div>
