@@ -117,7 +117,7 @@ const ListDetailsPage: React.FC = () => {
                     <Button
                       variant="outline-primary"
                       size="sm"
-                      onClick={() => navigate(`/movies/${item.showId}`)}
+                      onClick={() => navigate(`/movie/${item.showId}`)}
                     >
                       View Details
                     </Button>

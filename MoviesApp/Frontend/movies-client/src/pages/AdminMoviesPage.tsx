@@ -87,6 +87,7 @@ const AdminMoviesPage: React.FC = () => {
   const [totalMovies, setTotalMovies] = useState(0);
   const [editingMovie, setEditingMovie] = useState<MovieFormData | null>(null);
   const [isAdding, setIsAdding] = useState(false);
+  const [totalContent, setTotalContent] = useState(0);
 
   // Search results and modal state
   const [searchResults, setSearchResults] = useState<TMDBResult[]>([]);
@@ -161,6 +162,20 @@ const AdminMoviesPage: React.FC = () => {
       navigate("/login");
     }
   }, [navigate]);
+
+  //Total Movies/Shows in Db
+  useEffect(() => {
+    const fetchTotalCount = async () => {
+      try {
+        const response = await movieApi.getTotalMoviesCount();
+        setTotalContent(response.data.totalMovies);
+      } catch (error) {
+        console.error("Error fetching total movie count:", error);
+      }
+    };
+  
+    fetchTotalCount();
+  }, []);
 
   // Fetch movies with search and filters
   useEffect(() => {
@@ -1707,7 +1722,7 @@ const AdminMoviesPage: React.FC = () => {
             </div>
 
             <div className="text-center" style={{ color: 'var(--color-text-light)', fontSize: '0.875rem' }}>
-              Showing page {currentPage} of {totalMovies > 0 ? Math.ceil(totalMovies / pageSize) : 1}  {/* Calculate total pages */}
+              Showing page {currentPage} of {totalMovies > 0 ? Math.ceil(totalContent / pageSize) : 1}  {/* Calculate total pages */}
             </div>
 
           {/*  */}

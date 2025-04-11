@@ -116,7 +116,6 @@ const MoviesPage = () => {
       }
     });
     setPage(1);
-    setSearchQuery("");
   };
 
   const handleSearch = async (e: React.FormEvent) => {
