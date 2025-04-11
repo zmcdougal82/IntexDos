@@ -95,13 +95,13 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
   const [preloadQueue, setPreloadQueue] = useState<string[]>([]);
   const [loadingTimers, setLoadingTimers] = useState<Record<string, NodeJS.Timeout>>({});
   
-  // Transition duration in ms
-  const TRANSITION_DURATION = 300;
+  // Transition duration in ms - extended for smoother transitions
+  const TRANSITION_DURATION = 700;
+  const IMAGE_LOAD_TIMEOUT = 15000; // Extended from 10s to 15s for better loading experience
   const moviesPerPage = 5;
   
-  // Enhanced image preloading with cache and loading timeout
+  // Enhanced image preloading with cache
   const imageCache = useRef<Set<string>>(new Set());
-  const IMAGE_LOAD_TIMEOUT = 10000; // 10 seconds timeout for image loading
   
   // Track image loading for each movie with enhanced priority queuing and timeout handling
   const preloadImage = (movie: Movie, priority: 'high' | 'medium' | 'low' = 'medium') => {
@@ -644,6 +644,17 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
     backgroundColor: "transparent" // Ensure no background color
   };
 
+  // Peek preview style to show a glimpse of next/previous pages
+  const peekPreviewStyle = {
+    position: "absolute" as const,
+    top: "50%",
+    transform: "translateY(-50%)",
+    width: "60px",
+    height: "300px",
+    pointerEvents: "none" as const,
+    zIndex: 5
+  };
+
   // Enhanced styling approach with better placeholder support
   const pageStyles = (isVisible: boolean, direction: number) => ({
     display: "flex",
@@ -658,7 +669,7 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
     opacity: isVisible ? 1 : 0,
     transform: `translateX(${direction}%)`,
     transition: transitionActive 
-      ? `opacity ${TRANSITION_DURATION}ms ease-out, transform ${TRANSITION_DURATION}ms ease-out` 
+      ? `opacity ${TRANSITION_DURATION}ms cubic-bezier(0.33, 1, 0.68, 1), transform ${TRANSITION_DURATION}ms cubic-bezier(0.33, 1, 0.68, 1)` 
       : "none",
     willChange: "opacity, transform", // Performance optimization
     zIndex: isVisible ? 2 : 1
@@ -804,6 +815,29 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
             </div>
           )}
           
+          {/* Peek preview for previous page */}
+          {currentPage > 0 && prevPageMovies.length > 0 && !transitionActive && (
+            <div style={{
+              ...peekPreviewStyle,
+              left: 0,
+              background: 'linear-gradient(to right, transparent 0%, rgba(255,255,255,0.9) 100%)',
+              borderTopRightRadius: '8px',
+              borderBottomRightRadius: '8px',
+            }}>
+              {prevPageMovies.length > 0 && prevPageMovies.every(movie => imagesLoaded[movie.showId]) && (
+                <div style={{
+                  position: 'absolute',
+                  left: 0,
+                  opacity: 0.7,
+                  transform: 'translateX(-70%)',
+                  transition: 'transform 0.3s ease',
+                }}>
+                  {renderMovieCard(prevPageMovies[prevPageMovies.length - 1], true)}
+                </div>
+              )}
+            </div>
+          )}
+          
           {/* Current page content - always rendered */}
           <div style={pageStyles(!transitionActive, getCurrentPageTransform())}>
             {visibleMovies.map((movie) => 
@@ -817,6 +851,29 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
               renderMovieCard(movie, Boolean(imagesLoaded[movie.showId]))
             )}
           </div>
+          
+          {/* Peek preview for next page */}
+          {currentPage < totalPages - 1 && nextForwardMovies.length > 0 && !transitionActive && (
+            <div style={{
+              ...peekPreviewStyle,
+              right: 0,
+              background: 'linear-gradient(to left, transparent 0%, rgba(255,255,255,0.9) 100%)',
+              borderTopLeftRadius: '8px',
+              borderBottomLeftRadius: '8px',
+            }}>
+              {nextForwardMovies.length > 0 && nextForwardMovies.every(movie => imagesLoaded[movie.showId]) && (
+                <div style={{
+                  position: 'absolute',
+                  right: 0,
+                  opacity: 0.7,
+                  transform: 'translateX(70%)',
+                  transition: 'transform 0.3s ease',
+                }}>
+                  {renderMovieCard(nextForwardMovies[0], true)}
+                </div>
+              )}
+            </div>
+          )}
         </div>
         
         <NavigationArrow 
