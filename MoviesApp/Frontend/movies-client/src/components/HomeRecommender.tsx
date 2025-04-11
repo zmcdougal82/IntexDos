@@ -644,16 +644,7 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
     backgroundColor: "transparent" // Ensure no background color
   };
 
-  // Peek preview style to show a glimpse of next/previous pages
-  const peekPreviewStyle = {
-    position: "absolute" as const,
-    top: "50%",
-    transform: "translateY(-50%)",
-    width: "60px",
-    height: "300px",
-    pointerEvents: "none" as const,
-    zIndex: 5
-  };
+  // No longer using peek preview style
 
   // Enhanced styling approach with better placeholder support
   const pageStyles = (isVisible: boolean, direction: number) => ({
@@ -777,66 +768,7 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
           ref={containerRef}
           style={containerStyles}
         >
-          {/* Enhanced loading overlay with clearer status messages */}
-          {(!allImagesLoaded || isLoading || (nextPage !== null && !targetPageLoaded)) && (
-            <div style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              backgroundColor: 'rgba(255, 255, 255, 0.8)',
-              zIndex: 10
-            }}>
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center'
-              }}>
-                <div style={{
-                  width: '40px',
-                  height: '40px',
-                  border: '3px solid #f3f3f3',
-                  borderTop: '3px solid var(--color-primary)',
-                  borderRadius: '50%',
-                  marginBottom: '10px',
-                  animation: 'spin 1s linear infinite',
-                }}>
-                </div>
-                <div style={{fontWeight: 500}}>
-                  {isLoading ? 'Loading more recommendations...' : 
-                   nextPage !== null && !targetPageLoaded ? 'Loading posters...' : 
-                   'Preparing content...'}
-                </div>
-              </div>
-            </div>
-          )}
-          
-          {/* Peek preview for previous page */}
-          {currentPage > 0 && prevPageMovies.length > 0 && !transitionActive && (
-            <div style={{
-              ...peekPreviewStyle,
-              left: 0,
-              background: 'linear-gradient(to right, transparent 0%, rgba(255,255,255,0.9) 100%)',
-              borderTopRightRadius: '8px',
-              borderBottomRightRadius: '8px',
-            }}>
-              {prevPageMovies.length > 0 && prevPageMovies.every(movie => imagesLoaded[movie.showId]) && (
-                <div style={{
-                  position: 'absolute',
-                  left: 0,
-                  opacity: 0.7,
-                  transform: 'translateX(-70%)',
-                  transition: 'transform 0.3s ease',
-                }}>
-                  {renderMovieCard(prevPageMovies[prevPageMovies.length - 1], true)}
-                </div>
-              )}
-            </div>
-          )}
+          {/* Loading state handled by individual card shimmer effects instead of overlay */}
           
           {/* Current page content - always rendered */}
           <div style={pageStyles(!transitionActive, getCurrentPageTransform())}>
@@ -852,28 +784,7 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
             )}
           </div>
           
-          {/* Peek preview for next page */}
-          {currentPage < totalPages - 1 && nextForwardMovies.length > 0 && !transitionActive && (
-            <div style={{
-              ...peekPreviewStyle,
-              right: 0,
-              background: 'linear-gradient(to left, transparent 0%, rgba(255,255,255,0.9) 100%)',
-              borderTopLeftRadius: '8px',
-              borderBottomLeftRadius: '8px',
-            }}>
-              {nextForwardMovies.length > 0 && nextForwardMovies.every(movie => imagesLoaded[movie.showId]) && (
-                <div style={{
-                  position: 'absolute',
-                  right: 0,
-                  opacity: 0.7,
-                  transform: 'translateX(70%)',
-                  transition: 'transform 0.3s ease',
-                }}>
-                  {renderMovieCard(nextForwardMovies[0], true)}
-                </div>
-              )}
-            </div>
-          )}
+          {/* No peek previews as requested */}
         </div>
         
         <NavigationArrow 
