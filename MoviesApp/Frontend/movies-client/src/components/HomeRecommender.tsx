@@ -213,22 +213,7 @@ const HomeRecommender: React.FC<HomeRecommender> = ({ userId }) => {
     return formatted;
   };
 
-  // Function to ensure we have at least 20 recommendations per section
-  const ensureMinimumRecommendations = (ids: string[]): string[] => {
-    if (ids.length >= 20) {
-      return ids;
-    }
-    
-    // If we have fewer than 20 recommendations, duplicate the existing ones
-    // until we reach at least 20
-    const duplicatedIds: string[] = [...ids];
-    while (duplicatedIds.length < 20) {
-      // Add copies of the original recommendations
-      duplicatedIds.push(...ids.slice(0, Math.min(20 - duplicatedIds.length, ids.length)));
-    }
-    
-    return duplicatedIds;
-  };
+  // The backend now provides at least 20 recommendations per section
 
   useEffect(() => {
     const fetchRecommendations = async () => {
@@ -250,23 +235,6 @@ const HomeRecommender: React.FC<HomeRecommender> = ({ userId }) => {
           recommendationsData = apiResponse.data;
           console.log("Recommendation API response:", recommendationsData);
           
-          // Ensure we have at least 20 recommendations in each section
-          if (recommendationsData && recommendationsData.collaborative) {
-            recommendationsData.collaborative = ensureMinimumRecommendations(recommendationsData.collaborative);
-          }
-          
-          if (recommendationsData && recommendationsData.contentBased) {
-            recommendationsData.contentBased = ensureMinimumRecommendations(recommendationsData.contentBased);
-          }
-          
-          if (recommendationsData && recommendationsData.genres) {
-            Object.keys(recommendationsData.genres).forEach(genre => {
-              if (recommendationsData) {
-                recommendationsData.genres[genre] = ensureMinimumRecommendations(recommendationsData.genres[genre]);
-              }
-            });
-          }
-          
         } catch (apiErr) {
           console.warn("Could not fetch from recommendation API, falling back to static file:", apiErr);
           
@@ -281,10 +249,9 @@ const HomeRecommender: React.FC<HomeRecommender> = ({ userId }) => {
             throw new Error("No recommendations found for this user.");
           }
           
-          // Convert the old format to the new format and ensure minimum length
-          const userRecommendations = ensureMinimumRecommendations(staticData[userId]);
+          // Convert the old format to the new format
           recommendationsData = {
-            collaborative: userRecommendations,
+            collaborative: staticData[userId],
             contentBased: [],
             genres: {}
           };

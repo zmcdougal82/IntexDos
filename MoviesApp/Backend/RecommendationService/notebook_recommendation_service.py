@@ -134,8 +134,8 @@ class NotebookRecommendationService:
             logger.error(f"Error retrieving movie IDs: {e}")
             return self.sample_movies
     
-    def get_genre_movies(self, genre, limit=10):
-        """Get movies for a specific genre with good ratings"""
+    def get_genre_movies(self, genre, limit=20, offset=0):
+        """Get movies for a specific genre with good ratings with pagination support"""
         if not self.conn:
             # If no database connection, return sample movies
             return random.sample(self.sample_movies, min(limit, len(self.sample_movies)))
@@ -147,7 +147,7 @@ class NotebookRecommendationService:
             # We need to sanitize the genre name to ensure it's a valid column name
             sanitized_genre = ''.join(c for c in genre if c.isalnum())
             query = f"""
-            SELECT TOP (?) m.show_id 
+            SELECT m.show_id 
             FROM movies_titles m
             JOIN (
                 SELECT show_id, AVG(CAST(rating AS FLOAT)) as avg_rating
@@ -157,8 +157,10 @@ class NotebookRecommendationService:
             ) r ON m.show_id = r.show_id
             WHERE [{sanitized_genre}] > 0
             ORDER BY r.avg_rating DESC
+            OFFSET ? ROWS
+            FETCH NEXT ? ROWS ONLY
             """
-            cursor.execute(query, (limit,))
+            cursor.execute(query, (offset, limit))
             
             # Ensure all IDs are in the 's' prefix format
             genre_movies = []
@@ -186,8 +188,8 @@ class NotebookRecommendationService:
             logger.error(f"Error retrieving genre movies: {e}")
             return random.sample(self.sample_movies, min(limit, len(self.sample_movies)))
     
-    def get_collaborative_recommendations(self, user_id, limit=10):
-        """Get collaborative filtering recommendations for a user"""
+    def get_collaborative_recommendations(self, user_id, limit=20, offset=0):
+        """Get collaborative filtering recommendations for a user with pagination"""
         if not self.conn:
             # If no database connection, return sample movies
             return random.sample(self.sample_movies, min(limit, len(self.sample_movies)))
@@ -197,7 +199,7 @@ class NotebookRecommendationService:
             # Find users who rated the same movies similarly
             # This is a simplified collaborative filtering approach that now filters for positive ratings (>=3.5)
             query = """
-            SELECT TOP (?) r2.show_id
+            SELECT r2.show_id
             FROM movies_ratings r1
             JOIN movies_ratings r2 ON r1.user_id != r2.user_id 
                 AND r1.show_id = r2.show_id 
@@ -209,8 +211,10 @@ class NotebookRecommendationService:
                 )
             GROUP BY r2.show_id
             ORDER BY COUNT(*) DESC
+            OFFSET ? ROWS
+            FETCH NEXT ? ROWS ONLY
             """
-            cursor.execute(query, (limit, user_id, user_id))
+            cursor.execute(query, (user_id, user_id, offset, limit))
             
             # Ensure all IDs are in the 's' prefix format
             collaborative = []
@@ -239,8 +243,8 @@ class NotebookRecommendationService:
             logger.error(f"Error retrieving collaborative recommendations: {e}")
             return random.sample(self.sample_movies, min(limit, len(self.sample_movies)))
     
-    def get_content_based_recommendations(self, user_id, limit=10):
-        """Get content-based recommendations for a user"""
+    def get_content_based_recommendations(self, user_id, limit=20, offset=0):
+        """Get content-based recommendations for a user with pagination"""
         if not self.conn:
             # If no database connection, return sample movies
             return random.sample(self.sample_movies, min(limit, len(self.sample_movies)))
@@ -250,7 +254,7 @@ class NotebookRecommendationService:
             # Find movies similar to ones the user has rated highly
             # This is a simplified content-based approach
             query = """
-            SELECT TOP (?) m2.show_id
+            SELECT m2.show_id
             FROM movies_ratings r
             JOIN movies_titles m1 ON r.show_id = m1.show_id
             JOIN movies_titles m2 ON m1.show_id != m2.show_id
@@ -266,8 +270,10 @@ class NotebookRecommendationService:
                 )
             GROUP BY m2.show_id
             ORDER BY COUNT(*) DESC
+            OFFSET ? ROWS
+            FETCH NEXT ? ROWS ONLY
             """
-            cursor.execute(query, (limit, user_id, user_id))
+            cursor.execute(query, (user_id, user_id, offset, limit))
             
             # Ensure all IDs are in the 's' prefix format
             content_based = []
@@ -394,7 +400,7 @@ class NotebookRecommendationService:
             "HorrorMovies", "Thrillers", "Documentaries"
         ]
     
-    def generate_recommendations(self, user_id, page=0, limit=10):
+    def generate_recommendations(self, user_id, page=0, limit=20):
         """
         Generate recommendations for a specific user with pagination.
         
@@ -411,11 +417,11 @@ class NotebookRecommendationService:
         # Get recommendations from database if connection is available
         if self.conn:
             # Get collaborative filtering recommendations
-            collaborative = self.get_collaborative_recommendations(user_id)
+            collaborative = self.get_collaborative_recommendations(user_id, limit=20)
             logger.info(f"Found {len(collaborative)} collaborative recommendations")
             
             # Get content-based recommendations
-            content_based = self.get_content_based_recommendations(user_id)
+            content_based = self.get_content_based_recommendations(user_id, limit=20)
             logger.info(f"Found {len(content_based)} content-based recommendations")
             
             # Get genre-based recommendations
@@ -478,7 +484,7 @@ class NotebookRecommendationService:
         if section == 'collaborative':
             # Get collaborative filtering recommendations with offset
             if self.conn:
-                recommendations = self.get_collaborative_recommendations(user_id, limit=limit)
+                recommendations = self.get_collaborative_recommendations(user_id, limit=limit, offset=offset)
             else:
                 # Deterministic random sampling for consistent results
                 random.seed(int(user_id) if user_id.isdigit() else sum(ord(c) for c in user_id))
@@ -497,7 +503,7 @@ class NotebookRecommendationService:
         elif section == 'contentBased':
             # Get content-based recommendations with offset
             if self.conn:
-                recommendations = self.get_content_based_recommendations(user_id, limit=limit)
+                recommendations = self.get_content_based_recommendations(user_id, limit=limit, offset=offset)
             else:
                 # Deterministic random sampling with different seed
                 random.seed((int(user_id) if user_id.isdigit() else sum(ord(c) for c in user_id)) + 100)
@@ -515,7 +521,7 @@ class NotebookRecommendationService:
         else:
             # Assume it's a genre
             if self.conn:
-                recommendations = self.get_genre_movies(section, limit=limit)
+                recommendations = self.get_genre_movies(section, limit=limit, offset=offset)
             else:
                 # Deterministic random sampling with genre-specific seed
                 genre_seed = sum(ord(c) for c in section)
