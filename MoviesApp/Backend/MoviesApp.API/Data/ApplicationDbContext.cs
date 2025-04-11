@@ -15,6 +15,7 @@ namespace MoviesApp.API.Data
         public DbSet<Rating> Ratings { get; set; }
         public DbSet<MovieList> MovieLists { get; set; }
         public DbSet<MovieListItem> MovieListItems { get; set; }
+        public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -24,6 +25,7 @@ namespace MoviesApp.API.Data
             modelBuilder.Entity<User>().ToTable("movies_users");
             modelBuilder.Entity<Movie>().ToTable("movies_titles");
             modelBuilder.Entity<Rating>().ToTable("movies_ratings");
+            modelBuilder.Entity<PasswordResetToken>().ToTable("password_reset_tokens");
 
             // Configure composite primary key for Rating
             modelBuilder.Entity<Rating>()

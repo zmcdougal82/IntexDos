@@ -115,7 +115,41 @@ builder.Services.AddHttpClient(Microsoft.Extensions.Options.Options.DefaultName,
     client.Timeout = TimeSpan.FromSeconds(300); // 5-minute timeout for external API calls
 });
 
+// Register Email Service
+builder.Services.AddScoped<MoviesApp.API.Services.IEmailService>(sp => 
+{
+    var configuration = sp.GetRequiredService<IConfiguration>();
+    var httpContext = sp.GetRequiredService<IHttpContextAccessor>();
+    
+    // Determine the base URL for reset links
+    var request = httpContext.HttpContext?.Request;
+    string baseUrl = "https://moviesapp.com"; // Default fallback
+
+    if (request != null)
+    {
+        baseUrl = $"{request.Scheme}://{request.Host}";
+        // If app is behind a proxy, we might need to use X-Forwarded headers
+        if (request.Headers.ContainsKey("X-Forwarded-Proto") && request.Headers.ContainsKey("X-Forwarded-Host"))
+        {
+            baseUrl = $"{request.Headers["X-Forwarded-Proto"]}://{request.Headers["X-Forwarded-Host"]}";
+        }
+    }
+    
+    return new MoviesApp.API.Services.EmailService(configuration, baseUrl);
+});
+
+// Add HTTP Context Accessor
+builder.Services.AddHttpContextAccessor();
+
 var app = builder.Build();
+
+// Run database setup to create password_reset_tokens table if it doesn't exist
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var configuration = services.GetRequiredService<IConfiguration>();
+    await MoviesApp.API.Utilities.DatabaseSetup.EnsurePasswordResetTableExistsAsync(configuration);
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using MoviesApp.API.Data;
 using MoviesApp.API.Models;
+using MoviesApp.API.Services;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -20,13 +21,16 @@ namespace MoviesApp.API.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IConfiguration _configuration;
+        private readonly IEmailService _emailService;
 
         public AuthController(
             ApplicationDbContext context,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IEmailService emailService)
         {
             _context = context;
             _configuration = configuration;
+            _emailService = emailService;
         }
 
         [HttpPost("register")]
@@ -245,6 +249,129 @@ namespace MoviesApp.API.Controllers
             {
                 return pbkdf2.GetBytes(20);
             }
+        }
+
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            // Find user by email
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == model.Email);
+            if (user == null)
+            {
+                // For security reasons, we don't want to reveal whether a user exists or not
+                // So we'll return a success response even if the user doesn't exist
+                return Ok(new { Message = "If your email exists in our system, you will receive a password reset link shortly." });
+            }
+
+            try
+            {
+                // Generate a unique token
+                string token = GeneratePasswordResetToken();
+                
+                // Save token to database
+                var passwordResetToken = new PasswordResetToken
+                {
+                    UserId = user.UserId,
+                    Token = token,
+                    ExpiryDate = DateTime.UtcNow.AddHours(1), // Token valid for 1 hour
+                    IsUsed = false
+                };
+                
+                // Remove any existing tokens for this user that are not used
+                var existingTokens = await _context.PasswordResetTokens
+                    .Where(t => t.UserId == user.UserId && !t.IsUsed)
+                    .ToListAsync();
+                
+                if (existingTokens.Any())
+                {
+                    _context.PasswordResetTokens.RemoveRange(existingTokens);
+                }
+                
+                _context.PasswordResetTokens.Add(passwordResetToken);
+                await _context.SaveChangesAsync();
+                
+                // Send email with password reset link
+                await _emailService.SendPasswordResetEmailAsync(user, token);
+                
+                return Ok(new { Message = "If your email exists in our system, you will receive a password reset link shortly." });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Forgot password error: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                }
+                // For security reasons, we don't want to reveal detailed error information
+                return Ok(new { Message = "If your email exists in our system, you will receive a password reset link shortly." });
+            }
+        }
+        
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            
+            try
+            {
+                // Find user by email
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == model.Email);
+                if (user == null)
+                {
+                    return BadRequest(new { Message = "Invalid token or email" });
+                }
+                
+                // Find the token in the database
+                var resetToken = await _context.PasswordResetTokens
+                    .FirstOrDefaultAsync(t => 
+                        t.Token == model.Token && 
+                        t.UserId == user.UserId && 
+                        !t.IsUsed && 
+                        t.ExpiryDate > DateTime.UtcNow);
+                    
+                if (resetToken == null)
+                {
+                    return BadRequest(new { Message = "Invalid or expired token" });
+                }
+                
+                // Update user password
+                string newPasswordHash = HashPassword(model.NewPassword);
+                user.PasswordHash = newPasswordHash;
+                
+                // Mark token as used
+                resetToken.IsUsed = true;
+                
+                // Save changes
+                await _context.SaveChangesAsync();
+                
+                return Ok(new { Message = "Password has been reset successfully" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Reset password error: {ex.Message}");
+                return StatusCode(500, new { Message = "An error occurred while resetting your password" });
+            }
+        }
+        
+        private string GeneratePasswordResetToken()
+        {
+            var randomBytes = new byte[32];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(randomBytes);
+            }
+            return Convert.ToBase64String(randomBytes)
+                .Replace("+", "-")
+                .Replace("/", "_")
+                .Replace("=", "");
         }
     }
 }
