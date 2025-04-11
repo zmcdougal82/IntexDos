@@ -1116,12 +1116,15 @@ const AdminMoviesPage: React.FC = () => {
                 e.preventDefault();
                 setCurrentPage(1);
                 
+                // Update the actual search query from the input field
+                setSearchQuery(searchQueryInput);
+                
                 // Trigger an immediate search with the current parameters
                 try {
                   setLoading(true);
                   
                   const response = await movieApi.searchMovies(
-                    searchQuery,
+                    searchQueryInput, // Use the input value directly
                     searchField,
                     1, // Start at page 1 for new searches
                     pageSize
@@ -1189,8 +1192,8 @@ const AdminMoviesPage: React.FC = () => {
                   <input
                     type="text"
                     placeholder={`Search by ${searchField}...`}
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    value={searchQueryInput}
+                    onChange={(e) => setSearchQueryInput(e.target.value)}
                     style={{
                       flex: 1,
                       padding: "12px 0",
