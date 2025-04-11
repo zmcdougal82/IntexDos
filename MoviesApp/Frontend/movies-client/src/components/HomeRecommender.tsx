@@ -400,7 +400,6 @@ const HomeRecommender: React.FC<HomeRecommender> = ({ userId }) => {
   const [genreMovies, setGenreMovies] = useState<Record<string, Movie[]>>({});
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [initialDataLoaded, setInitialDataLoaded] = useState<boolean>(false);
 
   const navigate = useNavigate(); // Get the navigate function
 
@@ -433,7 +432,6 @@ const HomeRecommender: React.FC<HomeRecommender> = ({ userId }) => {
       setError(null); // Reset error state before fetching
 
       try {
-        setInitialDataLoaded(false);
         // Try to fetch from recommendation API first
         let recommendationsData: RecommendationData | null = null;
         
@@ -530,8 +528,7 @@ const HomeRecommender: React.FC<HomeRecommender> = ({ userId }) => {
                     const movieResponse = await movieApi.getById(dbStyleId);
                     return movieResponse.data;
                   } catch (err) {
-                    console.warn(`Failed to fetch movie ${id} from main API - creating placeholder:`, err);
-                    
+                    console.warn(`Failed to fetch movie ${id} from main API - skipping this recommendation`);
                     // Skip this movie if it's not in the database
                     return null;
                   }
@@ -546,7 +543,6 @@ const HomeRecommender: React.FC<HomeRecommender> = ({ userId }) => {
         }
 
         setLoading(false);
-        setInitialDataLoaded(true);
       } catch (err) {
         console.error("Error fetching recommendations:", err);
         setError("Failed to fetch recommendations.");
