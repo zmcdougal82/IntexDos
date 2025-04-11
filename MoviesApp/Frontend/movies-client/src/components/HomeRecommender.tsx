@@ -172,7 +172,6 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
   };
   
   const visibleMovies = getCurrentPageMovies(currentPage);
-  const nextPageMovies = nextPage !== null ? getCurrentPageMovies(nextPage) : [];
   
   if (allMovies.length === 0) return null;
   
