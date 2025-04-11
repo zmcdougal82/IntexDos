@@ -520,22 +520,24 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
         
         // Using setTimeout to allow the animation to complete
         setTimeout(() => {
-          // Update the current page and clean up transition states
+          // Update the current page
           setCurrentPage(targetPage);
           setNextPage(null);
           
-          // Small delay to prevent flashing when resetting transition states
+          // Increased delay (150ms) to prevent flashing when resetting transition states
           setTimeout(() => {
-            setTransitionActive(false);
-            setTransitionDirection(null);
-            
-            // Check again if all images are loaded for the new page
+            // Using a single state update for all transition-related states
+            // This ensures state changes happen in the same render cycle
             const newCurrentMovies = getCurrentPageMovies(targetPage);
             const allLoaded = newCurrentMovies.every(
               movie => !movie.posterUrl || imagesLoaded[movie.showId]
             );
+            
+            // Batch update all transition-related states together
             setAllImagesLoaded(allLoaded);
-          }, 50);
+            setTransitionActive(false);
+            setTransitionDirection(null);
+          }, 150);
         }, TRANSITION_DURATION);
       }, 50);
     }
@@ -621,18 +623,20 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
           setCurrentPage(targetPage);
           setNextPage(null);
           
-          // Small delay to prevent flashing when resetting transition states
+          // Increased delay (150ms) to prevent flashing when resetting transition states
           setTimeout(() => {
-            setTransitionActive(false);
-            setTransitionDirection(null);
-            
-            // Check if all images are loaded for new current page
+            // Using a single state update for all transition-related states
+            // This ensures state changes happen in the same render cycle
             const newCurrentMovies = getCurrentPageMovies(targetPage);
             const allLoaded = newCurrentMovies.every(
               movie => !movie.posterUrl || imagesLoaded[movie.showId]
             );
+            
+            // Batch update all transition-related states together
             setAllImagesLoaded(allLoaded);
-          }, 50);
+            setTransitionActive(false);
+            setTransitionDirection(null);
+          }, 150);
           
           // Proactively preload upcoming pages
           if (targetPage + 1 < totalPages) {
@@ -657,12 +661,17 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
     paddingRight: "40px",
     overflow: "hidden",
     height: "395px", // Fixed height to prevent layout shifts
-    backgroundColor: "transparent" // Ensure no background color
+    backgroundColor: "transparent", // Ensure no background color
+    transform: 'translateZ(0)', // Force GPU acceleration on container
+    backfaceVisibility: 'hidden' as const, // Prevent flashing in some browsers
+    willChange: 'transform', // Hint for browser optimization
+    perspective: 1000, // Improved 3D rendering
+    transformStyle: 'preserve-3d' as const, // Better 3D transforms
   };
 
   // No longer using peek preview style
 
-  // Enhanced styling approach with better placeholder support
+  // Enhanced styling approach with better placeholder support and smoother transitions
   const pageStyles = (isVisible: boolean, direction: number) => ({
     display: "flex",
     gap: "1.5rem",
@@ -675,12 +684,17 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
     // Always keep both pages visible during transitions to prevent flashing
     visibility: "visible" as const,
     opacity: isVisible ? 1 : 0,
-    transform: `translateX(${direction}%)`,
+    transform: `translate3d(${direction}%, 0, 0)`, // Using translate3d for hardware acceleration
     transition: transitionActive 
-      ? `transform ${TRANSITION_DURATION}ms cubic-bezier(0.33, 1, 0.68, 1), opacity ${TRANSITION_DURATION}ms cubic-bezier(0.33, 1, 0.68, 1)` 
+      ? `transform ${TRANSITION_DURATION}ms cubic-bezier(0.25, 0.1, 0.25, 1), opacity ${TRANSITION_DURATION}ms cubic-bezier(0.25, 0.1, 0.25, 1)` 
       : "none",
-    willChange: "transform, opacity", // Small change in order for smoother rendering
-    zIndex: isVisible ? 2 : 1
+    willChange: "transform, opacity", // Tell browser to optimize these properties
+    transformStyle: 'preserve-3d' as const, // Better handling of 3D transformations
+    backfaceVisibility: 'hidden' as const, // Prevent flashing in some browsers
+    zIndex: isVisible ? 2 : 1,
+    perspective: 1000, // Give depth to transformations
+    // Create a higher stacking context to prevent z-index issues with children
+    isolation: 'isolate' as const
   });
 
   // Calculate direction and offset for each page
@@ -703,7 +717,7 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
     ? getCurrentPageMovies(nextPage) 
     : (transitionDirection === 'right' ? nextForwardMovies : prevPageMovies);
 
-  // Create a movie card with improved transition handling
+  // Create a movie card with ultra-smooth transition handling
   const renderMovieCard = (movie: Movie, isLoaded: boolean) => {
     return (
       <div 
@@ -715,10 +729,13 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
           height: '300px', // Fixed height to prevent layout shifts
           transform: 'translateZ(0)', // Force GPU acceleration
           backfaceVisibility: 'hidden' as const, // Prevent flashing in some browsers
-          willChange: 'transform', // Hint for browser optimization
+          willChange: 'transform, opacity', // Hint for browser optimization
+          perspective: 1000, // Give depth to the card for better 3D rendering
+          transformStyle: 'preserve-3d' as const, // Better 3D transforms
+          isolation: 'isolate' as const, // Create stacking context
         }}
       >
-        {/* Always show the shimmer placeholder, but control its opacity */}
+        {/* Always show the shimmer placeholder, but control its opacity with longer fade */}
         <div style={{
           position: 'absolute',
           top: 0,
@@ -728,12 +745,13 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
           backgroundColor: '#f0f0f0',
           borderRadius: '8px',
           overflow: 'hidden',
-          // Longer, smoother transition for placeholder
+          // Longer, smoother transition for placeholder with a slight delay
           opacity: isLoaded ? 0 : 1,
-          transition: 'opacity 0.8s ease-out',
+          transition: 'opacity 1s ease-out',
           // Higher z-index to ensure it covers any white flashes
           zIndex: 2,
           transform: 'translateZ(0)', // Force GPU acceleration
+          pointerEvents: isLoaded ? 'none' : 'auto', // Ensure clicks pass through when loaded
         }}>
           <div style={{
             position: 'absolute',
@@ -742,7 +760,8 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
             width: '200%',
             height: '100%',
             background: 'linear-gradient(to right, #f0f0f0 0%, #e0e0e0 50%, #f0f0f0 100%)',
-            animation: 'shimmer 2s infinite',
+            animation: 'shimmer 2s infinite linear',
+            willChange: 'transform', // Tell browser to optimize animation
           }} />
         </div>
         
@@ -753,11 +772,12 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
           left: 0,
           right: 0,
           bottom: 0,
-          // Longer, smoother transition for content
+          // Longer, smoother transition for content with slight delay to ensure shimmer fades first
           opacity: isLoaded ? 1 : 0,
-          transition: 'opacity 0.8s ease-in',
+          transition: 'opacity 1s ease-in 0.1s', // Added slight delay to create smoother crossfade
           zIndex: 1,
           transform: 'translateZ(0)', // Force GPU acceleration
+          visibility: isLoaded ? 'visible' : 'hidden', // Only add to the DOM when loaded
         }}>
           <MovieCard
             movie={movie}
