@@ -68,15 +68,31 @@ const LoginPage = () => {
     try {
       setForgotPasswordLoading(true);
       setError(null);
+      setSuccess(null);
       
-      await authApi.forgotPassword({ email: forgotPasswordEmail });
+      const response = await authApi.forgotPassword({ email: forgotPasswordEmail });
+      const data = response.data as { message: string; status?: string };
       
-      setSuccess('If your email exists in our system, you will receive a password reset link shortly.');
-      setShowForgotPassword(false);
+      // Check if there was a warning status returned
+      if (data.status === 'warning') {
+        // Show a more detailed message about potential email delivery issues
+        setSuccess(
+          'Reset email sent. If you don\'t receive it within a few minutes, please check your spam folder or contact support. ' +
+          'Make sure your email address is correct and try again.'
+        );
+      } else {
+        // Standard success message
+        setSuccess('If your email exists in our system, you will receive a password reset link shortly.');
+      }
+      
+      // Don't hide the form if there's a warning
+      if (data.status !== 'warning') {
+        setShowForgotPassword(false);
+      }
     } catch (err: any) {
       console.error('Forgot password error:', err);
-      // We don't display specific error messages for security reasons
-      setSuccess('If your email exists in our system, you will receive a password reset link shortly.');
+      // Show a more user-friendly error message
+      setError('There was a problem sending the password reset email. Please try again later or contact support.');
     } finally {
       setForgotPasswordLoading(false);
     }

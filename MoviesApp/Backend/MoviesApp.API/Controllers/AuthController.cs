@@ -259,19 +259,25 @@ namespace MoviesApp.API.Controllers
                 return BadRequest(ModelState);
             }
 
+            Console.WriteLine($"Forgot password request received for email: {model.Email}");
+
             // Find user by email
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == model.Email);
             if (user == null)
             {
                 // For security reasons, we don't want to reveal whether a user exists or not
-                // So we'll return a success response even if the user doesn't exist
-                return Ok(new { Message = "If your email exists in our system, you will receive a password reset link shortly." });
+                Console.WriteLine($"User not found for email: {model.Email}");
+                return Ok(new { 
+                    Message = "If your email exists in our system, you will receive a password reset link shortly.",
+                    Status = "success" 
+                });
             }
 
             try
             {
                 // Generate a unique token
                 string token = GeneratePasswordResetToken();
+                Console.WriteLine($"Generated reset token for user {user.UserId}: {token.Substring(0, 8)}...");
                 
                 // Save token to database
                 var passwordResetToken = new PasswordResetToken
@@ -289,16 +295,23 @@ namespace MoviesApp.API.Controllers
                 
                 if (existingTokens.Any())
                 {
+                    Console.WriteLine($"Removing {existingTokens.Count} existing unused tokens for user {user.UserId}");
                     _context.PasswordResetTokens.RemoveRange(existingTokens);
                 }
                 
                 _context.PasswordResetTokens.Add(passwordResetToken);
                 await _context.SaveChangesAsync();
+                Console.WriteLine("Token saved to database successfully");
                 
                 // Send email with password reset link
+                Console.WriteLine($"Attempting to send password reset email to {user.Email}");
                 await _emailService.SendPasswordResetEmailAsync(user, token);
+                Console.WriteLine("Email sent successfully");
                 
-                return Ok(new { Message = "If your email exists in our system, you will receive a password reset link shortly." });
+                return Ok(new { 
+                    Message = "If your email exists in our system, you will receive a password reset link shortly.",
+                    Status = "success" 
+                });
             }
             catch (Exception ex)
             {
@@ -307,8 +320,14 @@ namespace MoviesApp.API.Controllers
                 {
                     Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
                 }
-                // For security reasons, we don't want to reveal detailed error information
-                return Ok(new { Message = "If your email exists in our system, you will receive a password reset link shortly." });
+                
+                // We'll return a specific status code for email sending issues
+                // The frontend can detect this and show a more helpful message
+                // while still not revealing if the account exists
+                return Ok(new { 
+                    Message = "If your email exists in our system, you will receive a password reset link shortly. If you don't receive an email, please check your spam folder or contact support.",
+                    Status = "warning" 
+                });
             }
         }
         

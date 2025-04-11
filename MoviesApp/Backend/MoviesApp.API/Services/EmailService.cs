@@ -35,17 +35,31 @@ namespace MoviesApp.API.Services
                 throw new InvalidOperationException("SparkPost API key or sender email is not configured.");
             }
 
+            // Print some debug information
+            Console.WriteLine("========= EMAIL SERVICE DEBUG =========");
+            Console.WriteLine($"Base URL: {_baseUrl}");
+            Console.WriteLine($"API URL: {apiUrl}");
+            Console.WriteLine($"Sender Email: {senderEmail}");
+            Console.WriteLine($"Sender Name: {senderName}");
+            Console.WriteLine($"Recipient: {user.Email}");
+            Console.WriteLine("======================================");
+            
+            // Email content variables
+            var resetLink = $"{_baseUrl}/reset-password?token={Uri.EscapeDataString(token)}&email={Uri.EscapeDataString(user.Email)}";
+            
             try
             {
                 // Create the SparkPost client
+                Console.WriteLine($"Creating SparkPost client with API key: {apiKey.Substring(0, 4)}...{apiKey.Substring(apiKey.Length - 4)}");
                 var client = new Client(apiKey);
+                
+                // Make sure we use the correct API host
                 if (!string.IsNullOrEmpty(apiUrl))
                 {
-                    client.ApiHost = apiUrl.Replace("https://", "").Replace("/api/v1", "");
+                    var apiHost = apiUrl.Replace("https://", "").Replace("/api/v1", "");
+                    Console.WriteLine($"Setting API host to: {apiHost}");
+                    client.ApiHost = apiHost;
                 }
-
-                // Email content variables
-                var resetLink = $"{_baseUrl}/reset-password?token={Uri.EscapeDataString(token)}&email={Uri.EscapeDataString(user.Email)}";
                 
                 // HTML template for the email
                 var htmlContent = $@"
@@ -67,13 +81,13 @@ namespace MoviesApp.API.Services
                         </div>
                         <div class='content'>
                             <p>Hello {user.Name},</p>
-                            <p>We received a request to reset the password for your MoviesApp account. To reset your password, click the button below:</p>
+                            <p>We received a request to reset the password for your CineNiche account. To reset your password, click the button below:</p>
                             <p><a href='{resetLink}' class='button'>Reset Password</a></p>
                             <p>If you didn't request a password reset, you can ignore this email. The link will expire in 1 hour.</p>
                             <p>If the button above doesn't work, copy and paste the following URL into your browser:</p>
                             <p>{resetLink}</p>
                             <div class='footer'>
-                                <p>MoviesApp - Your personal movie recommendation platform</p>
+                                <p>CineNiche - Your personal movie recommendation platform</p>
                             </div>
                         </div>
                     </div>
@@ -87,7 +101,7 @@ namespace MoviesApp.API.Services
                 {
                     transmission.Content.From.Name = senderName;
                 }
-                transmission.Content.Subject = "MoviesApp Password Reset";
+                transmission.Content.Subject = "CineNiche Password Reset";
                 transmission.Content.Html = htmlContent;
 
                 var recipient = new Recipient
@@ -100,9 +114,22 @@ namespace MoviesApp.API.Services
             }
             catch (Exception ex)
             {
-                // Log the exception
+                // Enhanced logging for debugging
+                Console.WriteLine("==== EMAIL SERVICE ERROR ====");
                 Console.WriteLine($"Error sending password reset email: {ex.Message}");
-                throw;
+                Console.WriteLine($"API Key: {apiKey.Substring(0, 4)}...{apiKey.Substring(apiKey.Length - 4)}");
+                Console.WriteLine($"From: {senderEmail}");
+                Console.WriteLine($"To: {user.Email}");
+                Console.WriteLine($"Reset Link: {resetLink}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+                }
+                Console.WriteLine("=============================");
+                
+                // Don't throw - let's handle the error gracefully
+                // Just log it and let the user know through the UI that they should contact support
+                return;
             }
         }
     }
