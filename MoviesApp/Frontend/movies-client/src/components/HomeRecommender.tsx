@@ -210,20 +210,23 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
 
   // Enhanced scrollNext function - ensures all images are loaded before page change
   const scrollNext = async () => {
-    if (currentPage < totalPages - 1 && !isLoading) {
+    if ((currentPage < totalPages - 1 || onLoadMore) && !isLoading) {
       const targetPage = currentPage + 1;
       
-      // Check if we need to load more data
-      if (!loadedPages.includes(targetPage) && onLoadMore && userId) {
+      // Always try to load more data when we approach the end
+      if (onLoadMore && userId && (targetPage >= loadedPages.length - 1)) {
         setIsLoading(true);
+        console.log(`Loading more content for page ${targetPage}`);
         
         // Set a timeout to release loading state if it takes too long
         const loadingTimeout = setTimeout(() => {
           console.log("Loading timeout reached, resetting loading state");
           setIsLoading(false);
           // Mark this page as loaded to prevent infinite loading attempts
-          setLoadedPages(prev => [...prev, targetPage]);
-        }, 8000); // 8 second timeout to account for API response delays
+          if (!loadedPages.includes(targetPage)) {
+            setLoadedPages(prev => [...prev, targetPage]);
+          }
+        }, 10000); // 10 second timeout to account for API response delays
         
         try {
           const newMovies = await onLoadMore(sectionType, targetPage);
@@ -391,9 +394,10 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
           direction="right" 
           onClick={scrollNext} 
           disabled={
-            currentPage >= totalPages - 1 || 
             isLoading || 
             (currentPage < totalPages - 1 && !areAllImagesLoadedForPage(currentPage + 1))
+            // Never disable the right arrow if we have onLoadMore - this indicates endless scrolling
+            // currentPage >= totalPages - 1 || 
           } 
         />
       </div>
