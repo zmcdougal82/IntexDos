@@ -130,10 +130,10 @@ const AdminMoviesPage: React.FC = () => {
   // Search and filter states
   const [searchQuery, setSearchQuery] = useState("");
   const [searchField, setSearchField] = useState<string>("title");
-  const [selectedType, setSelectedType] = useState<string>("");
-  const [selectedGenre, setSelectedGenre] = useState<string>("");
-  const [yearFrom, setYearFrom] = useState<number | undefined>(undefined);
-  const [yearTo, setYearTo] = useState<number | undefined>(undefined);
+  const [selectedType, _setSelectedType] = useState<string>("");
+  const [selectedGenre, _setSelectedGenre] = useState<string>("");
+  const [yearFrom, _setYearFrom] = useState<number | undefined>(undefined);
+  const [yearTo, _setYearTo] = useState<number | undefined>(undefined);
   const [formData, setFormData] = useState<MovieFormData>({
     showId: "",
     title: "",
