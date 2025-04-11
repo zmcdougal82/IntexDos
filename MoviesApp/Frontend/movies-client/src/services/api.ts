@@ -286,6 +286,12 @@ export const movieListApi = {
 
   // Get a specific list with its movies
   getListById: (listId: number) => api.get<MovieList>(`/MovieLists/${listId}`),
+  
+  // Get public lists from other users (community lists)
+  getPublicLists: () => api.get<MovieList[]>("/MovieLists/public"),
+  
+  // Get curated collections (system-generated recommendation lists)
+  getCuratedLists: () => api.get<MovieList[]>("/MovieLists/curated"),
 
   // Create a new list
   createList: (list: {

@@ -16,6 +16,8 @@ const ListsPage: React.FC = () => {
   const [lists, setLists] = useState<MovieList[]>([]);
   const [recentLists, setRecentLists] = useState<MovieList[]>([]);
   const [popularLists, setPopularLists] = useState<MovieList[]>([]);
+  const [communityLists, setCommunityLists] = useState<MovieList[]>([]);
+  const [curatedLists, setCuratedLists] = useState<MovieList[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -32,8 +34,10 @@ const ListsPage: React.FC = () => {
   const fetchLists = async () => {
     try {
       setLoading(true);
-      const response = await movieListApi.getMyLists();
-      const allLists = response.data;
+      
+      // Fetch my lists
+      const myListsResponse = await movieListApi.getMyLists();
+      const allLists = myListsResponse.data;
       
       // Sort lists by creation date (newest first)
       const sortedLists = [...allLists].sort((a, b) => 
@@ -50,6 +54,24 @@ const ListsPage: React.FC = () => {
       setPopularLists(
         [...allLists].sort((a, b) => (b.items?.length || 0) - (a.items?.length || 0)).slice(0, 5)
       );
+      
+      // Fetch community lists (public lists from other users)
+      try {
+        const communityResponse = await movieListApi.getPublicLists();
+        setCommunityLists(communityResponse.data);
+      } catch (communityErr) {
+        console.error('Error fetching community lists:', communityErr);
+        // Don't set the main error - just log this one
+      }
+      
+      // Fetch curated collections (recommendation-based lists)
+      try {
+        const curatedResponse = await movieListApi.getCuratedLists();
+        setCuratedLists(curatedResponse.data);
+      } catch (curatedErr) {
+        console.error('Error fetching curated collections:', curatedErr);
+        // Don't set the main error - just log this one
+      }
       
       setError(null);
     } catch (err) {
@@ -183,9 +205,39 @@ const ListsPage: React.FC = () => {
               </div>
             )}
 
+            {/* Community Lists Section */}
+            {communityLists.length > 0 && (
+              <div className="lists-section">
+                <h2 className="section-title">Community Lists</h2>
+                <div className="lists-grid">
+                  {communityLists.map(list => (
+                    <ListCard 
+                      key={list.listId} 
+                      list={list}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Curated Collections Section */}
+            {curatedLists.length > 0 && (
+              <div className="lists-section">
+                <h2 className="section-title">Curated Collections</h2>
+                <div className="lists-grid">
+                  {curatedLists.map(list => (
+                    <ListCard 
+                      key={list.listId} 
+                      list={list}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* All Lists Section */}
             <div className="lists-section">
-              <h2 className="section-title">All Lists</h2>
+              <h2 className="section-title">My Lists</h2>
               <div className="lists-grid">
                 {lists.map(list => (
                   <ListCard 

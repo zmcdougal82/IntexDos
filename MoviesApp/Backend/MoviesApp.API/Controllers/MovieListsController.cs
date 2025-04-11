@@ -164,6 +164,37 @@ namespace MoviesApp.API.Controllers
             
             return Ok(new { message = "Movie removed from list successfully" });
         }
+        
+        // GET: api/MovieLists/public
+        [HttpGet("public")]
+        [AllowAnonymous] // No authentication needed
+        public async Task<ActionResult<IEnumerable<MovieList>>> GetPublicLists()
+        {
+            var lists = await _context.MovieLists
+                .Where(l => l.IsPublic)
+                .Include(l => l.Items)
+                .ThenInclude(i => i.Movie)
+                .Include(l => l.User) // Include the user who created the list
+                .ToListAsync();
+                
+            return Ok(lists);
+        }
+        
+        // GET: api/MovieLists/curated
+        [HttpGet("curated")]
+        [AllowAnonymous] // No authentication needed
+        public async Task<ActionResult<IEnumerable<MovieList>>> GetCuratedLists()
+        {
+            const int SYSTEM_USER_ID = 1; // The ID of our system user that owns curated lists
+            
+            var lists = await _context.MovieLists
+                .Where(l => l.UserId == SYSTEM_USER_ID && l.IsPublic)
+                .Include(l => l.Items)
+                .ThenInclude(i => i.Movie)
+                .ToListAsync();
+                
+            return Ok(lists);
+        }
 
         private int GetCurrentUserId()
         {
