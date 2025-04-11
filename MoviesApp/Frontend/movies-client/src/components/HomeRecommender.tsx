@@ -478,81 +478,53 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
   
   if (allMovies.length === 0) return null;
   
+  // Simplified scrollPrev function using the same approach as scrollNext
   const scrollPrev = () => {
     // Only allow scrolling if we're not already in transition or loading
     if (currentPage > 0 && !transitionActive && !isLoading) {
+      const targetPage = currentPage - 1;
+      
       // Check if previous page images are loaded
-      const prevPageMovies = getCurrentPageMovies(currentPage - 1);
+      const prevPageMovies = getCurrentPageMovies(targetPage);
       const prevPageReady = prevPageMovies.every(
         movie => !movie.posterUrl || imagesLoaded[movie.showId]
       );
       
-      // If previous page images aren't ready, start preloading them but don't transition yet
+      // If previous page images aren't ready, start preloading without transitioning yet
       if (!prevPageReady) {
-        // Show loading state
-        setAllImagesLoaded(false);
-        
-        // Set the target page so we can track loading progress
-        const targetPage = currentPage - 1;
-        setNextPage(targetPage);
-        
-        // Aggressively preload the images we need with high priority
+        // Aggressively preload the images we need
         prevPageMovies.forEach(movie => {
           if (!imagesLoaded[movie.showId]) {
             preloadImage(movie, 'high');
           }
         });
         
-        // Wait for the images to load via the targetPageLoaded effect
+        // Wait for images to load before proceeding
         return;
       }
       
-      // Force a small delay before starting transition to ensure browser is ready
-      setTimeout(() => {
-        // Start transition animation once images are ready
-        setTransitionActive(true);
-        setTransitionDirection('left');
-        
-        // Set the target page
-        const targetPage = currentPage - 1;
-        setNextPage(targetPage);
-        setTargetPageLoaded(true); // Images are already confirmed loaded
-        
-        // Using setTimeout to allow the animation to complete
-        setTimeout(() => {
-          // Update the current page
-          setCurrentPage(targetPage);
-          setNextPage(null);
-          
-          // Increased delay (150ms) to prevent flashing when resetting transition states
-          setTimeout(() => {
-            // Using a single state update for all transition-related states
-            // This ensures state changes happen in the same render cycle
-            const newCurrentMovies = getCurrentPageMovies(targetPage);
-            const allLoaded = newCurrentMovies.every(
-              movie => !movie.posterUrl || imagesLoaded[movie.showId]
-            );
-            
-            // Batch update all transition-related states together
-            setAllImagesLoaded(allLoaded);
-            setTransitionActive(false);
-            setTransitionDirection(null);
-          }, 150);
-        }, TRANSITION_DURATION);
-      }, 50);
+      // NEW APPROACH: Single state update with no timing dependencies
+      // This completely eliminates the multiple renders that cause flashing
+      setCurrentPage(targetPage);
+      
+      // Proactively preload adjacent pages
+      if (targetPage > 0) {
+        getCurrentPageMovies(targetPage - 1).forEach(movie => 
+          preloadImage(movie, 'medium')
+        );
+      }
     }
   };
   
+  // Complete rewrite of the scrollNext function with a radically different approach
   const scrollNext = async () => {
     // Only scroll if not at the end, not in transition, not loading
     if (currentPage < totalPages - 1 && !transitionActive && !isLoading) {
       const targetPage = currentPage + 1;
-      setNextPage(targetPage); // Set this early to trigger target page loading checks
       
       // Check if we need to load more data
       if (!loadedPages.includes(targetPage) && onLoadMore && userId) {
         setIsLoading(true);
-        setAllImagesLoaded(false); // Show loading state
         
         try {
           console.log(`Loading more ${sectionType} recommendations for page ${targetPage}`);
@@ -568,13 +540,7 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
               // Start preloading these images with high priority
               uniqueNewMovies.forEach(movie => preloadImage(movie, 'high'));
               
-              // If we actually got new movies, increase the totalPages
-              if (uniqueNewMovies.length > 0) {
-                // This will be handled by the totalPages calculation on next render
-                return [...prevMovies, ...uniqueNewMovies];
-              }
-              
-              return prevMovies;
+              return [...prevMovies, ...uniqueNewMovies];
             });
           }
           
@@ -597,8 +563,6 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
       
       // If next page images aren't ready, start preloading without transitioning yet
       if (!nextPageReady) {
-        setAllImagesLoaded(false);
-        
         // Aggressively preload the images we need
         nextPageMovies.forEach(movie => {
           if (!imagesLoaded[movie.showId]) {
@@ -606,51 +570,25 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
           }
         });
         
-        // Wait for targetPageLoaded to become true via the useEffect hook
+        // Wait for images to load before proceeding
         return;
       }
       
-      // Force a small delay before starting transition to ensure browser is ready
-      setTimeout(() => {
-        // Start the transition animation
-        setTransitionActive(true);
-        setTransitionDirection('right');
-        setTargetPageLoaded(true); // We've confirmed images are loaded
-        
-        // Using setTimeout to allow the animation to complete
-        setTimeout(() => {
-          // Update the current page and clean up transition states
-          setCurrentPage(targetPage);
-          setNextPage(null);
-          
-          // Increased delay (150ms) to prevent flashing when resetting transition states
-          setTimeout(() => {
-            // Using a single state update for all transition-related states
-            // This ensures state changes happen in the same render cycle
-            const newCurrentMovies = getCurrentPageMovies(targetPage);
-            const allLoaded = newCurrentMovies.every(
-              movie => !movie.posterUrl || imagesLoaded[movie.showId]
-            );
-            
-            // Batch update all transition-related states together
-            setAllImagesLoaded(allLoaded);
-            setTransitionActive(false);
-            setTransitionDirection(null);
-          }, 150);
-          
-          // Proactively preload upcoming pages
-          if (targetPage + 1 < totalPages) {
-            getCurrentPageMovies(targetPage + 1).forEach(movie => 
-              preloadImage(movie, 'medium')
-            );
-          }
-          if (targetPage + 2 < totalPages) {
-            getCurrentPageMovies(targetPage + 2).forEach(movie => 
-              preloadImage(movie, 'low')
-            );
-          }
-        }, TRANSITION_DURATION);
-      }, 50);
+      // NEW APPROACH: Single state update with no timing dependencies 
+      // This completely eliminates the multiple renders that cause flashing
+      setCurrentPage(targetPage);
+      
+      // Proactively preload upcoming pages
+      if (targetPage + 1 < totalPages) {
+        getCurrentPageMovies(targetPage + 1).forEach(movie => 
+          preloadImage(movie, 'medium')
+        );
+      }
+      if (targetPage + 2 < totalPages) {
+        getCurrentPageMovies(targetPage + 2).forEach(movie => 
+          preloadImage(movie, 'low')
+        );
+      }
     }
   };
 
@@ -802,7 +740,7 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
         <NavigationArrow 
           direction="left" 
           onClick={scrollPrev} 
-          disabled={currentPage === 0 || transitionActive || isLoading || (nextPage !== null && !targetPageLoaded)} 
+          disabled={currentPage === 0 || isLoading} 
         />
         
         <div
@@ -831,7 +769,7 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
         <NavigationArrow 
           direction="right" 
           onClick={scrollNext} 
-          disabled={currentPage >= totalPages - 1 || transitionActive || isLoading || (nextPage !== null && !targetPageLoaded)} 
+          disabled={currentPage >= totalPages - 1 || isLoading} 
         />
       </div>
     </div>
