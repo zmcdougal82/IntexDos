@@ -198,11 +198,11 @@ export const movieApi = {
 
   getById: (id: string) => api.get<Movie>(`/movies/${id}`),
 
-  searchMovies: (query: string, page = 1, pageSize = 20) =>
+  searchMovies: (query: string, searchField: string = 'title', page = 1, pageSize = 20) =>
     api.get<Movie[]>(
       `/movies/search?query=${encodeURIComponent(
         query
-      )}&page=${page}&pageSize=${pageSize}`
+      )}&searchField=${searchField}&page=${page}&pageSize=${pageSize}`
     ),
 
   getByGenre: (genre: string, page = 1, pageSize = 20) =>

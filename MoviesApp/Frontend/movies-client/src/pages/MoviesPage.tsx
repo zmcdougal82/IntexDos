@@ -9,6 +9,7 @@ const MoviesPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchField, setSearchField] = useState<string>("title");
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -26,7 +27,7 @@ const MoviesPage = () => {
       let response;
 
       if (searchQuery) {
-        response = await movieApi.searchMovies(searchQuery, pageNum);
+        response = await movieApi.searchMovies(searchQuery, searchField, pageNum);
       } else if (selectedGenres.length > 0) {
         // Use the multi-genre endpoint when multiple genres are selected
         response = await movieApi.getByMultipleGenres(selectedGenres, pageNum);
@@ -156,13 +157,35 @@ const MoviesPage = () => {
             style={{ marginBottom: "var(--spacing-lg)" }}
           >
             <div style={{ display: "flex", gap: "var(--spacing-sm)" }}>
-              <input
-                type="text"
-                placeholder="Search titles, directors, actors, or keywords..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                style={{ flex: 1 }}
-              />
+              <div style={{ display: "flex", minWidth: "200px" }}>
+                <select
+                  value={searchField}
+                  onChange={(e) => setSearchField(e.target.value)}
+                  style={{
+                    borderTopRightRadius: 0,
+                    borderBottomRightRadius: 0,
+                    borderRight: 'none',
+                    backgroundColor: "var(--color-card)",
+                    color: "var(--color-text)"
+                  }}
+                >
+                  <option value="title">Title</option>
+                  <option value="director">Director</option>
+                  <option value="cast">Cast</option>
+                  <option value="year">Year</option>
+                </select>
+                <input
+                  type="text"
+                  placeholder={`Search by ${searchField}...`}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  style={{
+                    flex: 1,
+                    borderTopLeftRadius: 0,
+                    borderBottomLeftRadius: 0
+                  }}
+                />
+              </div>
               <button
                 type="submit"
                 style={{

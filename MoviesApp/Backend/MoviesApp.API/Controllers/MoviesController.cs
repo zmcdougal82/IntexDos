@@ -49,7 +49,11 @@ namespace MoviesApp.API.Controllers
 
         // GET: api/Movies/search?query=...
         [HttpGet("search")]
-        public async Task<ActionResult<IEnumerable<Movie>>> SearchMovies([FromQuery] string query, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+        public async Task<ActionResult<IEnumerable<Movie>>> SearchMovies(
+            [FromQuery] string query, 
+            [FromQuery] string searchField = "title", // New parameter with default value
+            [FromQuery] int page = 1, 
+            [FromQuery] int pageSize = 20)
         {
             if (string.IsNullOrEmpty(query))
             {
@@ -60,8 +64,36 @@ namespace MoviesApp.API.Controllers
                     .ToListAsync();
             }
 
-            return await _context.Movies
-                .Where(m => m.Title.Contains(query))
+            // Updated query logic based on searchField
+            var moviesQuery = _context.Movies.AsQueryable();
+            
+            switch (searchField.ToLower())
+            {
+                case "director":
+                    moviesQuery = moviesQuery.Where(m => m.Director != null && m.Director.Contains(query));
+                    break;
+                case "cast":
+                    moviesQuery = moviesQuery.Where(m => m.Cast != null && m.Cast.Contains(query));
+                    break;
+                case "year":
+                    // Try to parse the year
+                    if (int.TryParse(query, out int year))
+                    {
+                        moviesQuery = moviesQuery.Where(m => m.ReleaseYear == year);
+                    }
+                    else
+                    {
+                        // If not a valid year, search in title as fallback
+                        moviesQuery = moviesQuery.Where(m => m.Title.Contains(query));
+                    }
+                    break;
+                case "title":
+                default:
+                    moviesQuery = moviesQuery.Where(m => m.Title.Contains(query));
+                    break;
+            }
+
+            return await moviesQuery
                 .OrderBy(m => m.ShowId) // Add ordering for consistent results
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
