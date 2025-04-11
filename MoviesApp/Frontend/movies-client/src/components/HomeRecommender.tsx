@@ -84,7 +84,7 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
   const [currentPage, setCurrentPage] = useState(0);
   const [loadedPages, setLoadedPages] = useState<number[]>([0]);
   const [allMovies, setAllMovies] = useState<Movie[]>(movies);
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   
   // Update allMovies when movies prop changes
@@ -118,7 +118,7 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
       
       // If we haven't loaded this page yet and we have an onLoadMore callback
       if (!loadedPages.includes(nextPage) && onLoadMore && userId) {
-        setLoading(true);
+        setIsLoading(true);
         try {
           const newMovies = await onLoadMore(sectionType, nextPage);
           
@@ -132,7 +132,7 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
         } catch (err) {
           console.error(`Error loading more ${sectionType} recommendations:`, err);
         } finally {
-          setLoading(false);
+          setIsLoading(false);
         }
       }
     }
