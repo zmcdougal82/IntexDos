@@ -50,8 +50,10 @@ const CookieConsentBanner = () => {
           </a>
           . {/* Use regular <a> tag with onClick */}
         </p>
-        <button onClick={handleDismiss}>I Accept</button>
-        <button onClick={handleReject}>No Thank you</button>
+        <div className="cookie-banner-buttons">
+          <button onClick={handleReject}>No Thank you</button>
+          <button onClick={handleDismiss}>I Agree</button>
+        </div>
       </div>
     )
   );

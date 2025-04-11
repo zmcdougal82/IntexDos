@@ -15,12 +15,18 @@
   color: #4caf50;
 }
 
+.cookie-banner-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+}
+
 .cookie-consent-banner button {
   background-color: #4caf50;
   color: white;
   border: none;
   padding: 10px 20px;
-  margin: 5px;
   cursor: pointer;
 }
 

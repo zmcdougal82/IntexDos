@@ -36,7 +36,7 @@ function App() {
               path="/"
               element={
                 <>
-                  <CookieConsentBanner /> {/* Show this only on the homepage */}
+                  <CookieConsentBanner />
                   <HomePage />
                 </>
               }
@@ -44,8 +44,18 @@ function App() {
             <Route path="/movies" element={<MoviesPage />} />
             <Route path="/tvshows" element={<TVShowsPage />} />
             <Route path="/movie/:id" element={<MovieDetailsPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/login" element={
+              <>
+                <CookieConsentBanner />
+                <LoginPage />
+              </>
+            } />
+            <Route path="/register" element={
+              <>
+                <CookieConsentBanner />
+                <RegisterPage />
+              </>
+            } />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/admin/movies" element={<AdminMoviesPage />} />
