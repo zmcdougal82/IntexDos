@@ -416,7 +416,7 @@ const HomeRecommender: React.FC<HomeRecommenderProps> = ({ userId }) => {
       setError(null);
 
       try {
-        // Try to fetch from recommendation API first
+        // Fetch from recommendation API only - no fallback
         let recommendationsData: RecommendationData | null = null;
         
         try {
@@ -425,31 +425,17 @@ const HomeRecommender: React.FC<HomeRecommenderProps> = ({ userId }) => {
           recommendationsData = apiResponse.data;
           console.log("Recommendation API response:", recommendationsData);
         } catch (apiErr) {
-          console.warn("Could not fetch from recommendation API, falling back to static file:", apiErr);
-          
-          // Fallback to the static file
-          const fallbackResponse = await fetch("/homeRecommendations.json");
-          if (!fallbackResponse.ok) {
-            throw new Error("Failed to fetch recommendations JSON.");
-          }
-          
-          const staticData = await fallbackResponse.json();
-          if (!staticData[userId]) {
-            throw new Error("No recommendations found for this user.");
-          }
-          
-          // Convert the old format to the new format
-          recommendationsData = {
-            collaborative: staticData[userId],
-            contentBased: [],
-            genres: {}
-          };
+          console.error("Could not fetch from recommendation API:", apiErr);
+          throw new Error("Failed to fetch recommendations. Please try again later.");
         }
         
         if (!recommendationsData) {
           throw new Error("No recommendations data available.");
         }
 
+        // Create a set to track all movie IDs to prevent duplicates
+        const processedMovieIds = new Set<string>();
+        
         // Process collaborative recommendations
         if (recommendationsData.collaborative && recommendationsData.collaborative.length > 0) {
           const movieResponses = await Promise.all(
@@ -471,7 +457,7 @@ const HomeRecommender: React.FC<HomeRecommenderProps> = ({ userId }) => {
             })
           );
 
-          // Filter out invalid movies
+          // Filter out invalid movies and add to processed set
           const validMovies = movieResponses.filter(movie => 
             movie !== null && 
             movie !== undefined && 
@@ -479,15 +465,22 @@ const HomeRecommender: React.FC<HomeRecommenderProps> = ({ userId }) => {
             movie.title
           ) as Movie[];
           
+          // Add all collaborative movies to the processed set
+          validMovies.forEach(movie => processedMovieIds.add(movie.showId));
           setCollaborativeMovies(validMovies);
         }
 
-        // Process content-based recommendations
+        // Process content-based recommendations (excluding duplicates)
         if (recommendationsData.contentBased && recommendationsData.contentBased.length > 0) {
           const movieResponses = await Promise.all(
             recommendationsData.contentBased.map(async (id) => {
               try {
                 const dbStyleId = id.startsWith('s') ? id : `s${id.replace(/\D/g, '')}`;
+                // Skip if we've already processed this movie ID
+                if (processedMovieIds.has(dbStyleId)) {
+                  return null;
+                }
+                
                 const movieResponse = await movieApi.getById(dbStyleId);
                 
                 if (movieResponse.data && movieResponse.data.showId && movieResponse.data.title) {
@@ -511,10 +504,12 @@ const HomeRecommender: React.FC<HomeRecommenderProps> = ({ userId }) => {
             movie.title
           ) as Movie[];
           
+          // Add all content-based movies to the processed set
+          validMovies.forEach(movie => processedMovieIds.add(movie.showId));
           setContentBasedMovies(validMovies);
         }
         
-        // Process genre-based recommendations
+        // Process genre-based recommendations (excluding duplicates)
         if (recommendationsData.genres) {
           const genreResults: Record<string, Movie[]> = {};
 
@@ -524,6 +519,11 @@ const HomeRecommender: React.FC<HomeRecommenderProps> = ({ userId }) => {
                 movieIds.map(async (id) => {
                   try {
                     const dbStyleId = id.startsWith('s') ? id : `s${id.replace(/\D/g, '')}`;
+                    // Skip if we've already processed this movie ID
+                    if (processedMovieIds.has(dbStyleId)) {
+                      return null;
+                    }
+                    
                     const movieResponse = await movieApi.getById(dbStyleId);
                     
                     if (movieResponse.data && movieResponse.data.showId && movieResponse.data.title) {
@@ -548,6 +548,8 @@ const HomeRecommender: React.FC<HomeRecommenderProps> = ({ userId }) => {
               ) as Movie[];
               
               if (validMovies.length > 0) {
+                // Add all genre movies to the processed set
+                validMovies.forEach(movie => processedMovieIds.add(movie.showId));
                 genreResults[genre] = validMovies;
               }
             }
@@ -571,7 +573,7 @@ const HomeRecommender: React.FC<HomeRecommenderProps> = ({ userId }) => {
     navigate(`/movie/${movieId}`);
   };
 
-  // Function to load more recommendations
+  // Function to load more recommendations, preventing duplicates across all sections
   const loadMoreRecommendations = async (section: string, page: number): Promise<Movie[]> => {
     if (!userId) return [];
     
@@ -595,11 +597,31 @@ const HomeRecommender: React.FC<HomeRecommenderProps> = ({ userId }) => {
       
       if (!movieIds.length) return [];
       
-      // Fetch the movie details
+      // Create a set of all already displayed movie IDs to prevent duplicates
+      const allDisplayedMovieIds = new Set<string>();
+      
+      // Add collaborative movies
+      collaborativeMovies.forEach(movie => allDisplayedMovieIds.add(movie.showId));
+      
+      // Add content-based movies
+      contentBasedMovies.forEach(movie => allDisplayedMovieIds.add(movie.showId));
+      
+      // Add genre-based movies
+      Object.values(genreMovies).forEach(movies => 
+        movies.forEach(movie => allDisplayedMovieIds.add(movie.showId))
+      );
+      
+      // Fetch the movie details, excluding duplicates
       const movies = await Promise.all(
         movieIds.map(async (id) => {
           try {
             const dbStyleId = id.startsWith('s') ? id : `s${id.replace(/\D/g, '')}`;
+            
+            // Skip if this movie ID is already displayed in any section
+            if (allDisplayedMovieIds.has(dbStyleId)) {
+              return null;
+            }
+            
             const movieResponse = await movieApi.getById(dbStyleId);
             
             if (movieResponse.data && movieResponse.data.showId && movieResponse.data.title) {
