@@ -1319,23 +1319,6 @@ const AdminMoviesPage: React.FC = () => {
                 >
                   Search
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setShowFilters(!showFilters)}
-                  style={{
-                    backgroundColor: "var(--color-secondary)",
-                    color: "white",
-                    border: "none",
-                    padding: "var(--spacing-sm) var(--spacing-md)",
-                    borderRadius: "var(--radius-md)",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "var(--spacing-xs)",
-                  }}
-                >
-                  <span>{showFilters ? "Hide Filters" : "Show Filters"}</span>
-                </button>
               </div>
             </form>
 
