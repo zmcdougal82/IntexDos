@@ -82,61 +82,221 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
   onLoadMore
 }) => {
   const [currentPage, setCurrentPage] = useState(0);
+  const [nextPage, setNextPage] = useState<number | null>(null);
   const [loadedPages, setLoadedPages] = useState<number[]>([0]);
   const [allMovies, setAllMovies] = useState<Movie[]>(movies);
-  const [_loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [transitionActive, setTransitionActive] = useState(false);
+  const [imagesLoaded, setImagesLoaded] = useState<Record<string, boolean>>({});
+  const [transitionDirection, setTransitionDirection] = useState<'left' | 'right' | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  
+  // Transition duration in ms
+  const TRANSITION_DURATION = 300;
+  const moviesPerPage = 5;
   
   // Update allMovies when movies prop changes
   useEffect(() => {
     setAllMovies(movies);
+    
+    // Preload the initial images
+    if (movies.length > 0) {
+      movies.forEach(movie => {
+        if (movie.posterUrl) {
+          const img = new Image();
+          img.onload = () => {
+            setImagesLoaded(prev => ({...prev, [movie.showId]: true}));
+          };
+          img.src = movie.posterUrl;
+        }
+      });
+    }
   }, [movies]);
   
   // Calculate the total number of pages
-  const moviesPerPage = 5;
   const totalPages = Math.max(Math.ceil(allMovies.length / moviesPerPage), loadedPages.length + 1);
   
-  // Get the current visible movies
-  const visibleMovies = allMovies.slice(
-    currentPage * moviesPerPage, 
-    (currentPage + 1) * moviesPerPage
-  );
+  // Preload the adjacent pages
+  useEffect(() => {
+    const preloadAdjacentPages = async () => {
+      // Try to preload both next and previous pages
+      const pagesToPreload = [currentPage + 1, currentPage - 1].filter(
+        page => page >= 0 && page < totalPages + 1 && !loadedPages.includes(page)
+      );
+      
+      for (const pageToPreload of pagesToPreload) {
+        if (onLoadMore && userId && !isLoading) {
+          try {
+            // Preload page data
+            const newMovies = await onLoadMore(sectionType, pageToPreload);
+            
+            // Add the new movies to our collection
+            if (newMovies && newMovies.length > 0) {
+              setAllMovies(prevMovies => {
+                // Filter out any duplicates
+                const existingIds = new Set(prevMovies.map(m => m.showId));
+                const uniqueNewMovies = newMovies.filter(m => !existingIds.has(m.showId));
+                return [...prevMovies, ...uniqueNewMovies];
+              });
+              
+              // Preload the images
+              newMovies.forEach(movie => {
+                if (movie.posterUrl && !imagesLoaded[movie.showId]) {
+                  const img = new Image();
+                  img.onload = () => {
+                    setImagesLoaded(prev => ({...prev, [movie.showId]: true}));
+                  };
+                  img.src = movie.posterUrl;
+                }
+              });
+            }
+            
+            // Mark this page as loaded
+            setLoadedPages(prev => [...prev, pageToPreload]);
+          } catch (err) {
+            console.error(`Error preloading page ${pageToPreload} for ${sectionType}:`, err);
+          }
+        }
+      }
+    };
+    
+    preloadAdjacentPages();
+  }, [currentPage, loadedPages, totalPages, onLoadMore, userId, sectionType, isLoading, imagesLoaded]);
+  
+  // Get the current and next visible movies
+  const getCurrentPageMovies = (page: number) => {
+    return allMovies.slice(
+      page * moviesPerPage, 
+      (page + 1) * moviesPerPage
+    );
+  };
+  
+  const visibleMovies = getCurrentPageMovies(currentPage);
   
   if (allMovies.length === 0) return null;
   
   const scrollPrev = () => {
-    if (currentPage > 0) {
-      setCurrentPage(currentPage - 1);
+    if (currentPage > 0 && !transitionActive) {
+      setTransitionActive(true);
+      setTransitionDirection('left');
+      
+      // Set the target page
+      const targetPage = currentPage - 1;
+      setNextPage(targetPage);
+      
+      // Using setTimeout to allow the animation to play
+      setTimeout(() => {
+        setCurrentPage(targetPage);
+        setNextPage(null);
+        setTransitionActive(false);
+        setTransitionDirection(null);
+      }, TRANSITION_DURATION);
     }
   };
   
   const scrollNext = async () => {
-    if (currentPage < totalPages - 1) {
-      // Move to next page
-      const nextPage = currentPage + 1;
-      setCurrentPage(nextPage);
+    if (currentPage < totalPages - 1 && !transitionActive && !isLoading) {
+      setTransitionActive(true);
+      setTransitionDirection('right');
       
-      // If we haven't loaded this page yet and we have an onLoadMore callback
-      if (!loadedPages.includes(nextPage) && onLoadMore && userId) {
-        setLoading(true);
+      // Check if we need to load more data
+      const targetPage = currentPage + 1;
+      setNextPage(targetPage);
+      
+      if (!loadedPages.includes(targetPage) && onLoadMore && userId) {
+        setIsLoading(true);
         try {
-          const newMovies = await onLoadMore(sectionType, nextPage);
+          const newMovies = await onLoadMore(sectionType, targetPage);
           
           // Add the new movies to our collection
           if (newMovies && newMovies.length > 0) {
-            setAllMovies(prevMovies => [...prevMovies, ...newMovies]);
+            setAllMovies(prevMovies => {
+              // Filter out any duplicates
+              const existingIds = new Set(prevMovies.map(m => m.showId));
+              const uniqueNewMovies = newMovies.filter(m => !existingIds.has(m.showId));
+              return [...prevMovies, ...uniqueNewMovies];
+            });
+            
+            // Preload images
+            newMovies.forEach(movie => {
+              if (movie.posterUrl && !imagesLoaded[movie.showId]) {
+                const img = new Image();
+                img.onload = () => {
+                  setImagesLoaded(prev => ({...prev, [movie.showId]: true}));
+                };
+                img.src = movie.posterUrl;
+              }
+            });
           }
           
           // Mark this page as loaded
-          setLoadedPages(prev => [...prev, nextPage]);
+          setLoadedPages(prev => [...prev, targetPage]);
         } catch (err) {
           console.error(`Error loading more ${sectionType} recommendations:`, err);
         } finally {
-          setLoading(false);
+          setIsLoading(false);
         }
       }
+      
+      // Using setTimeout to allow the animation to complete
+      setTimeout(() => {
+        setCurrentPage(targetPage);
+        setNextPage(null);
+        setTransitionActive(false);
+        setTransitionDirection(null);
+      }, TRANSITION_DURATION);
     }
   };
+
+  const containerStyles = {
+    position: "relative" as const,
+    paddingBottom: "1rem",
+    paddingLeft: "40px",
+    paddingRight: "40px",
+    overflow: "hidden",
+    height: "395px", // Fixed height to prevent layout shifts
+    backgroundColor: "transparent" // Ensure no background color
+  };
+
+  // This styling approach provides a cleaner and more consistent transition
+  const pageStyles = (isVisible: boolean, direction: number) => ({
+    display: "flex",
+    gap: "1.5rem",
+    position: "absolute" as const,
+    top: 0,
+    left: 0,
+    right: 0,
+    width: "100%",
+    justifyContent: "center",
+    visibility: isVisible ? "visible" as const : "hidden" as const,
+    opacity: isVisible ? 1 : 0,
+    transform: `translateX(${direction}%)`,
+    transition: transitionActive 
+      ? `opacity ${TRANSITION_DURATION}ms ease-out, transform ${TRANSITION_DURATION}ms ease-out` 
+      : "none",
+    willChange: "opacity, transform", // Performance optimization
+    zIndex: isVisible ? 2 : 1
+  });
+
+  // Calculate direction and offset for each page
+  const getCurrentPageTransform = () => {
+    if (!transitionActive) return 0;
+    return transitionDirection === 'right' ? -100 : 100;
+  };
+
+  const getNextPageTransform = () => {
+    if (!transitionActive) return transitionDirection === 'right' ? 100 : -100;
+    return 0;
+  };
+
+  // This approach ensures we always preload the next possible page direction
+  const prevPageMovies = currentPage > 0 ? getCurrentPageMovies(currentPage - 1) : [];
+  const nextForwardMovies = currentPage < totalPages - 1 ? getCurrentPageMovies(currentPage + 1) : [];
+  
+  // Determine which page to show as the "next" page during transition
+  const targetPageMovies = nextPage !== null 
+    ? getCurrentPageMovies(nextPage) 
+    : (transitionDirection === 'right' ? nextForwardMovies : prevPageMovies);
 
   return (
     <div style={{ marginBottom: "2.5rem" }}>
@@ -152,36 +312,42 @@ const RecommendationSection: React.FC<RecommendationSectionProps> = ({
         <NavigationArrow 
           direction="left" 
           onClick={scrollPrev} 
-          disabled={currentPage === 0} 
+          disabled={currentPage === 0 || transitionActive} 
         />
         
         <div
           ref={containerRef}
-          style={{
-            display: "flex",
-            gap: "1.5rem",
-            paddingBottom: "1rem",
-            paddingLeft: "40px",
-            paddingRight: "40px",
-            transition: "transform 0.3s ease",
-            overflow: "hidden",
-            justifyContent: "center",
-          }}
+          style={containerStyles}
         >
-          {visibleMovies.map((movie) => (
-            <div key={movie.showId} style={{ flexShrink: 0, width: "200px" }}>
-              <MovieCard
-                movie={movie}
-                onClick={() => onMovieClick(movie.showId)}
-              />
-            </div>
-          ))}
+          {/* Current page content - always rendered */}
+          <div style={pageStyles(!transitionActive, getCurrentPageTransform())}>
+            {visibleMovies.map((movie) => (
+              <div key={movie.showId} style={{ flexShrink: 0, width: "200px" }}>
+                <MovieCard
+                  movie={movie}
+                  onClick={() => onMovieClick(movie.showId)}
+                />
+              </div>
+            ))}
+          </div>
+          
+          {/* Target page content - shown during transition */}
+          <div style={pageStyles(transitionActive, getNextPageTransform())}>
+            {targetPageMovies.map((movie) => (
+              <div key={movie.showId} style={{ flexShrink: 0, width: "200px" }}>
+                <MovieCard
+                  movie={movie}
+                  onClick={() => onMovieClick(movie.showId)}
+                />
+              </div>
+            ))}
+          </div>
         </div>
         
         <NavigationArrow 
           direction="right" 
           onClick={scrollNext} 
-          disabled={currentPage >= totalPages - 1} 
+          disabled={currentPage >= totalPages - 1 || transitionActive || isLoading} 
         />
       </div>
     </div>
@@ -403,19 +569,28 @@ const HomeRecommender: React.FC<HomeRecommender> = ({ userId }) => {
       const limit = 10; // Number of new recommendations to fetch
       
       // Call the API to get more recommendations
+      console.log(`Loading more for section: ${section}, page: ${page}, limit: ${limit}`);
       const response = await axios.get(
         `${RECOMMENDATION_API_URL}/recommendations/${userId}/more`, 
         { params: { section, page, limit } }
       );
       
+      // Log the full response for debugging
+      console.log(`API Response for ${section}:`, response.data);
+      
       // Extract the relevant section from the response
       let movieIds: string[] = [];
       if (section === 'collaborative' && response.data.collaborative) {
+        console.log('Found collaborative data:', response.data.collaborative);
         movieIds = response.data.collaborative;
       } else if (section === 'contentBased' && response.data.contentBased) {
+        console.log('Found contentBased data:', response.data.contentBased);
         movieIds = response.data.contentBased;
       } else if (response.data.genres && response.data.genres[section]) {
+        console.log(`Found genre data for ${section}:`, response.data.genres[section]);
         movieIds = response.data.genres[section];
+      } else {
+        console.warn(`No matching data found for section: ${section} in response:`, response.data);
       }
       
       if (!movieIds.length) return [];

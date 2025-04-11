@@ -133,6 +133,45 @@ class NotebookRecommendationService:
         except Exception as e:
             logger.error(f"Error retrieving movie IDs: {e}")
             return self.sample_movies
+            
+    def validate_movie_ids(self, movie_ids):
+        """
+        Filter out movie IDs that don't exist in the database
+        
+        Args:
+            movie_ids (list): List of movie IDs to validate
+            
+        Returns:
+            list: Filtered list containing only valid movie IDs
+        """
+        if not self.conn or not movie_ids:
+            return movie_ids
+            
+        try:
+            # Convert list to tuple for SQL query
+            ids_tuple_str = ','.join(f"'{id}'" for id in movie_ids)
+            
+            cursor = self.conn.cursor()
+            query = f"""
+            SELECT show_id
+            FROM movies_titles
+            WHERE show_id IN ({ids_tuple_str})
+            """
+            cursor.execute(query)
+            
+            # Get all valid IDs from the database
+            valid_ids = [row.show_id for row in cursor.fetchall()]
+            cursor.close()
+            
+            # Log how many IDs were filtered out
+            filtered_count = len(movie_ids) - len(valid_ids)
+            if filtered_count > 0:
+                logger.warning(f"Filtered out {filtered_count} non-existent movie IDs")
+                
+            return valid_ids
+        except Exception as e:
+            logger.error(f"Error validating movie IDs: {e}")
+            return movie_ids  # Return original list on error
     
     def get_genre_movies(self, genre, limit=20, offset=0):
         """Get movies for a specific genre with good ratings with pagination support"""
@@ -198,23 +237,34 @@ class NotebookRecommendationService:
             cursor = self.conn.cursor()
             # Find users who rated the same movies similarly
             # This is a simplified collaborative filtering approach that now filters for positive ratings (>=3.5)
-            query = """
-            SELECT r2.show_id
-            FROM movies_ratings r1
-            JOIN movies_ratings r2 ON r1.user_id != r2.user_id 
-                AND r1.show_id = r2.show_id 
-                AND ABS(r1.rating - r2.rating) <= 1
-                AND r2.rating >= 3.5 -- Only include positively rated movies
-            WHERE r1.user_id = ?
-                AND r2.show_id NOT IN (
-                    SELECT show_id FROM movies_ratings WHERE user_id = ?
-                )
-            GROUP BY r2.show_id
-            ORDER BY COUNT(*) DESC
+            
+            # Print debug info
+            logger.info(f"Getting collaborative recommendations for user {user_id} with limit={limit}, offset={offset}")
+            
+            # First get a list of all potential collaborative recommendations without pagination
+            # to allow for more consistent results
+            all_query = """
+            WITH potential_recs AS (
+                SELECT r2.show_id, COUNT(*) as similarity_count
+                FROM movies_ratings r1
+                JOIN movies_ratings r2 ON r1.user_id != r2.user_id 
+                    AND r1.show_id = r2.show_id 
+                    AND ABS(r1.rating - r2.rating) <= 1
+                    AND r2.rating >= 3.5
+                WHERE r1.user_id = ?
+                    AND r2.show_id NOT IN (
+                        SELECT show_id FROM movies_ratings WHERE user_id = ?
+                    )
+                GROUP BY r2.show_id
+                ORDER BY similarity_count DESC
+            )
+            SELECT show_id
+            FROM potential_recs
+            ORDER BY similarity_count DESC
             OFFSET ? ROWS
             FETCH NEXT ? ROWS ONLY
             """
-            cursor.execute(query, (user_id, user_id, offset, limit))
+            cursor.execute(all_query, (user_id, user_id, offset, limit))
             
             # Ensure all IDs are in the 's' prefix format
             collaborative = []
@@ -407,22 +457,33 @@ class NotebookRecommendationService:
         Args:
             user_id (str): The user ID to generate recommendations for.
             page (int): The page number for pagination (default: 0).
-            limit (int): The number of items per page (default: 10).
+            limit (int): The number of items per page (default: 20).
             
         Returns:
             dict: A dictionary containing collaborative, content-based, and genre recommendations.
         """
         logger.info(f"Generating recommendations for user {user_id}, page {page}, limit {limit}")
         
+        # Calculate offset based on page and limit for pagination
+        offset = page * limit
+        
         # Get recommendations from database if connection is available
         if self.conn:
-            # Get collaborative filtering recommendations
-            collaborative = self.get_collaborative_recommendations(user_id, limit=20)
-            logger.info(f"Found {len(collaborative)} collaborative recommendations")
+            # Get collaborative filtering recommendations with proper pagination
+            collaborative = self.get_collaborative_recommendations(user_id, limit=limit, offset=offset)
+            logger.info(f"Found {len(collaborative)} collaborative recommendations with offset {offset}")
             
-            # Get content-based recommendations
-            content_based = self.get_content_based_recommendations(user_id, limit=20)
-            logger.info(f"Found {len(content_based)} content-based recommendations")
+            # Validate movie IDs to ensure they exist in the database
+            collaborative = self.validate_movie_ids(collaborative)
+            logger.info(f"After validation: {len(collaborative)} collaborative recommendations remain")
+            
+            # Get content-based recommendations with proper pagination
+            content_based = self.get_content_based_recommendations(user_id, limit=limit, offset=offset)
+            logger.info(f"Found {len(content_based)} content-based recommendations with offset {offset}")
+            
+            # Validate movie IDs
+            content_based = self.validate_movie_ids(content_based)
+            logger.info(f"After validation: {len(content_based)} content-based recommendations remain")
             
             # Get genre-based recommendations
             genres_dict = {}
@@ -430,7 +491,11 @@ class NotebookRecommendationService:
             selected_genres = random.sample(available_genres, min(3, len(available_genres)))
             
             for genre in selected_genres:
-                genres_dict[genre] = self.get_genre_movies(genre, limit=5)
+                genre_movies = self.get_genre_movies(genre, limit=10, offset=offset)
+                # Validate genre movie IDs
+                genre_movies = self.validate_movie_ids(genre_movies)
+                if genre_movies:  # Only add genres that have valid movies
+                    genres_dict[genre] = genre_movies
             
         else:
             # Fallback to random recommendations if no database connection
@@ -485,6 +550,9 @@ class NotebookRecommendationService:
             # Get collaborative filtering recommendations with offset
             if self.conn:
                 recommendations = self.get_collaborative_recommendations(user_id, limit=limit, offset=offset)
+                # Validate the recommendations
+                recommendations = self.validate_movie_ids(recommendations)
+                logger.info(f"Returning {len(recommendations)} validated collaborative recommendations")
             else:
                 # Deterministic random sampling for consistent results
                 random.seed(int(user_id) if user_id.isdigit() else sum(ord(c) for c in user_id))
@@ -504,6 +572,9 @@ class NotebookRecommendationService:
             # Get content-based recommendations with offset
             if self.conn:
                 recommendations = self.get_content_based_recommendations(user_id, limit=limit, offset=offset)
+                # Validate the recommendations
+                recommendations = self.validate_movie_ids(recommendations)
+                logger.info(f"Returning {len(recommendations)} validated content-based recommendations")
             else:
                 # Deterministic random sampling with different seed
                 random.seed((int(user_id) if user_id.isdigit() else sum(ord(c) for c in user_id)) + 100)
@@ -522,6 +593,9 @@ class NotebookRecommendationService:
             # Assume it's a genre
             if self.conn:
                 recommendations = self.get_genre_movies(section, limit=limit, offset=offset)
+                # Validate the recommendations
+                recommendations = self.validate_movie_ids(recommendations)
+                logger.info(f"Returning {len(recommendations)} validated genre recommendations for {section}")
             else:
                 # Deterministic random sampling with genre-specific seed
                 genre_seed = sum(ord(c) for c in section)
