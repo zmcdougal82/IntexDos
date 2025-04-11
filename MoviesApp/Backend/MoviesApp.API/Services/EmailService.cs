@@ -47,88 +47,108 @@ namespace MoviesApp.API.Services
             // Email content variables
             var resetLink = $"{_baseUrl}/reset-password?token={Uri.EscapeDataString(token)}&email={Uri.EscapeDataString(user.Email)}";
             
-            try
-            {
-                // Create the SparkPost client
-                Console.WriteLine($"Creating SparkPost client with API key: {apiKey.Substring(0, 4)}...{apiKey.Substring(apiKey.Length - 4)}");
-                var client = new Client(apiKey);
-                
-                // Make sure we use the correct API host
-                if (!string.IsNullOrEmpty(apiUrl))
-                {
-                    var apiHost = apiUrl.Replace("https://", "").Replace("/api/v1", "");
-                    Console.WriteLine($"Setting API host to: {apiHost}");
-                    client.ApiHost = apiHost;
-                }
-                
-                // HTML template for the email
-                var htmlContent = $@"
-                <html>
-                <head>
-                    <style>
-                        body {{ font-family: Arial, sans-serif; line-height: 1.6; }}
-                        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
-                        .header {{ background-color: #007bff; color: white; padding: 10px 20px; }}
-                        .content {{ padding: 20px; }}
-                        .button {{ display: inline-block; background-color: #007bff; color: white; text-decoration: none; padding: 10px 20px; margin: 20px 0; border-radius: 4px; }}
-                        .footer {{ font-size: 12px; color: #666; margin-top: 20px; }}
-                    </style>
-                </head>
-                <body>
-                    <div class='container'>
-                        <div class='header'>
-                            <h1>Reset Your Password</h1>
-                        </div>
-                        <div class='content'>
-                            <p>Hello {user.Name},</p>
-                            <p>We received a request to reset the password for your CineNiche account. To reset your password, click the button below:</p>
-                            <p><a href='{resetLink}' class='button'>Reset Password</a></p>
-                            <p>If you didn't request a password reset, you can ignore this email. The link will expire in 1 hour.</p>
-                            <p>If the button above doesn't work, copy and paste the following URL into your browser:</p>
-                            <p>{resetLink}</p>
-                            <div class='footer'>
-                                <p>CineNiche - Your personal movie recommendation platform</p>
-                            </div>
+            var isDevelopment = string.Equals(
+                Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"), 
+                "Development", 
+                StringComparison.OrdinalIgnoreCase);
+            
+            // HTML template for the email
+            var htmlContent = $@"
+            <html>
+            <head>
+                <style>
+                    body {{ font-family: Arial, sans-serif; line-height: 1.6; }}
+                    .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                    .header {{ background-color: #007bff; color: white; padding: 10px 20px; }}
+                    .content {{ padding: 20px; }}
+                    .button {{ display: inline-block; background-color: #007bff; color: white; text-decoration: none; padding: 10px 20px; margin: 20px 0; border-radius: 4px; }}
+                    .footer {{ font-size: 12px; color: #666; margin-top: 20px; }}
+                </style>
+            </head>
+            <body>
+                <div class='container'>
+                    <div class='header'>
+                        <h1>Reset Your Password</h1>
+                    </div>
+                    <div class='content'>
+                        <p>Hello {user.Name},</p>
+                        <p>We received a request to reset the password for your CineNiche account. To reset your password, click the button below:</p>
+                        <p><a href='{resetLink}' class='button'>Reset Password</a></p>
+                        <p>If you didn't request a password reset, you can ignore this email. The link will expire in 1 hour.</p>
+                        <p>If the button above doesn't work, copy and paste the following URL into your browser:</p>
+                        <p>{resetLink}</p>
+                        <div class='footer'>
+                            <p>CineNiche - Your personal movie recommendation platform</p>
                         </div>
                     </div>
-                </body>
-                </html>";
+                </div>
+            </body>
+            </html>";
 
-                // Create and send the transmission
-                var transmission = new Transmission();
-                transmission.Content.From.Email = senderEmail;
-                if (!string.IsNullOrEmpty(senderName))
+            try
+            {
+                // In development mode, just log the email with the password reset link
+                if (isDevelopment)
                 {
-                    transmission.Content.From.Name = senderName;
+                    // Log a visible box with the reset link for local testing
+                    Console.WriteLine();
+                    Console.WriteLine("██████████████████████████████████████████████████████████████");
+                    Console.WriteLine("█                                                            █");
+                    Console.WriteLine("█  MOCK EMAIL SERVICE - FOR TESTING PASSWORD RESET           █");
+                    Console.WriteLine("█                                                            █");
+                    Console.WriteLine("█  Since SparkPost integration requires domain verification, █");
+                    Console.WriteLine("█  we've implemented a mock email service for testing        █");
+                    Console.WriteLine("█  that provides the password reset link directly here.      █");
+                    Console.WriteLine("█                                                            █");
+                    Console.WriteLine("█  COPY THIS LINK TO RESET YOUR PASSWORD:                    █");
+                    Console.WriteLine($"█  {resetLink}");
+                    Console.WriteLine("█                                                            █");
+                    Console.WriteLine("█  You can use this link to test the password reset flow.    █");
+                    Console.WriteLine("█                                                            █");
+                    Console.WriteLine("██████████████████████████████████████████████████████████████");
+                    Console.WriteLine();
+                    
+                    // Log email details for debugging
+                    Console.WriteLine("==== EMAIL DETAILS ====");
+                    Console.WriteLine($"To: {user.Email}");
+                    Console.WriteLine($"From: {senderEmail}");
+                    Console.WriteLine($"Subject: CineNiche Password Reset");
+                    Console.WriteLine("========================");
+                } 
+                // In production (Azure), use SparkPost to actually send the email
+                else 
+                {
+                    // Create the SparkPost client
+                    var client = new Client(apiKey);
+                    
+                    // Set API host if provided in config
+                    if (!string.IsNullOrEmpty(apiUrl))
+                    {
+                        client.ApiHost = apiUrl;
+                    }
+
+                    // Create and send the transmission
+                    var transmission = new Transmission();
+                    transmission.Content.From.Email = senderEmail;
+                    if (!string.IsNullOrEmpty(senderName))
+                    {
+                        transmission.Content.From.Name = senderName;
+                    }
+                    transmission.Content.Subject = "CineNiche Password Reset";
+                    transmission.Content.Html = htmlContent;
+
+                    var recipient = new Recipient
+                    {
+                        Address = new Address { Email = user.Email, Name = user.Name }
+                    };
+                    transmission.Recipients.Add(recipient);
+
+                    // Send the email
+                    var response = client.Transmissions.Send(transmission);
+                    
+                    // Log the transmission ID for tracking
+                    Console.WriteLine($"Email sent via SparkPost with ID: {response?.Id}");
                 }
-                transmission.Content.Subject = "CineNiche Password Reset";
-                transmission.Content.Html = htmlContent;
-
-                var recipient = new Recipient
-                {
-                    Address = new Address { Email = user.Email, Name = user.Name }
-                };
-                transmission.Recipients.Add(recipient);
-
-                // Send the email
-                client.Transmissions.Send(transmission);
-                
-                // Output detailed information about the transmission
-                Console.WriteLine("==== EMAIL TRANSMISSION DETAILS ====");
-                Console.WriteLine($"Email sent via SparkPost");
-                Console.WriteLine("==================================");
-                
-                // Even if SparkPost accepted the email, it might not be delivered
-                // So provide the reset link in the console as a fallback
-                Console.WriteLine();
-                Console.WriteLine("==== EMAIL PREVIEW (FOR TESTING) ====");
-                Console.WriteLine($"To: {user.Email}");
-                Console.WriteLine($"From: {senderEmail}");
-                Console.WriteLine($"Subject: CineNiche Password Reset");
-                Console.WriteLine();
-                Console.WriteLine("Password Reset Link (copy to browser if email not received):");
-                Console.WriteLine($"{resetLink}");
-                Console.WriteLine("====================================");
             }
             catch (Exception ex)
             {
@@ -144,11 +164,10 @@ namespace MoviesApp.API.Services
                     Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
                 }
                 Console.WriteLine("=============================");
-                
-                // Don't throw - let's handle the error gracefully
-                // Just log it and let the user know through the UI that they should contact support
-                return;
             }
+            
+            // We always return a completed task, whether the email was sent or not
+            await Task.CompletedTask;
         }
     }
 }

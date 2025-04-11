@@ -120,21 +120,35 @@ builder.Services.AddScoped<MoviesApp.API.Services.IEmailService>(sp =>
 {
     var configuration = sp.GetRequiredService<IConfiguration>();
     var httpContext = sp.GetRequiredService<IHttpContextAccessor>();
+    var env = sp.GetRequiredService<IWebHostEnvironment>();
     
     // Determine the base URL for reset links
-    var request = httpContext.HttpContext?.Request;
-    string baseUrl = "https://moviesapp.com"; // Default fallback
-
-    if (request != null)
+    string baseUrl;
+    
+    // In production (Azure), use a configured base URL or fallback to a production URL
+    if (!env.IsDevelopment())
     {
-        baseUrl = $"{request.Scheme}://{request.Host}";
-        // If app is behind a proxy, we might need to use X-Forwarded headers
-        if (request.Headers.ContainsKey("X-Forwarded-Proto") && request.Headers.ContainsKey("X-Forwarded-Host"))
+        // Try to get the base URL from configuration first
+        baseUrl = configuration["AppSettings:BaseUrl"] ?? "https://cineniche.azurewebsites.net";
+    }
+    // In development, try to determine from the current request
+    else 
+    {
+        var request = httpContext.HttpContext?.Request;
+        baseUrl = "http://localhost:5237"; // Default development fallback
+        
+        if (request != null)
         {
-            baseUrl = $"{request.Headers["X-Forwarded-Proto"]}://{request.Headers["X-Forwarded-Host"]}";
+            baseUrl = $"{request.Scheme}://{request.Host}";
+            // If app is behind a proxy, we might need to use X-Forwarded headers
+            if (request.Headers.ContainsKey("X-Forwarded-Proto") && request.Headers.ContainsKey("X-Forwarded-Host"))
+            {
+                baseUrl = $"{request.Headers["X-Forwarded-Proto"]}://{request.Headers["X-Forwarded-Host"]}";
+            }
         }
     }
     
+    Console.WriteLine($"Email Service using base URL: {baseUrl}");
     return new MoviesApp.API.Services.EmailService(configuration, baseUrl);
 });
 
